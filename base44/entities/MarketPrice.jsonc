@@ -1,0 +1,36 @@
+{
+  "name": "MarketPrice",
+  "type": "object",
+  "properties": {
+    "product_name": {
+      "type": "string",
+      "description": "Nome do produto (ex: Boi, Leite, Milho, Soja)"
+    },
+    "price": {
+      "type": "number",
+      "description": "Pre\u00e7o atual"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unidade (ex: @, L, sc)"
+    },
+    "trend": {
+      "type": "string",
+      "enum": [
+        "up",
+        "down"
+      ],
+      "description": "Tend\u00eancia do pre\u00e7o"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Emoji do produto"
+    }
+  },
+  "required": [
+    "product_name",
+    "price",
+    "unit",
+    "trend"
+  ]
+}

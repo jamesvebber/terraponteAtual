@@ -1,0 +1,90 @@
+{
+  "name": "ProductListing",
+  "type": "object",
+  "properties": {
+    "product_name": {
+      "type": "string",
+      "description": "Nome do produto"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Gado",
+        "Leite",
+        "Ovos",
+        "Frutas",
+        "M\u00e1quinas"
+      ],
+      "description": "Categoria do produto"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do produto"
+    },
+    "price": {
+      "type": "number",
+      "description": "Pre\u00e7o em R$"
+    },
+    "city": {
+      "type": "string",
+      "description": "Cidade"
+    },
+    "state": {
+      "type": "string",
+      "description": "Estado (UF)"
+    },
+    "whatsapp": {
+      "type": "string",
+      "description": "N\u00famero do WhatsApp"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "URL da imagem do produto"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "sold",
+        "expired"
+      ],
+      "default": "active",
+      "description": "Status do an\u00fancio"
+    }
+  },
+  "required": [
+    "product_name",
+    "category",
+    "price",
+    "city",
+    "whatsapp"
+  ],
+  "rls": {
+    "create": {},
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

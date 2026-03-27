@@ -1,0 +1,56 @@
+{
+  "name": "AgriculturalInput",
+  "type": "object",
+  "properties": {
+    "product_name": {
+      "type": "string",
+      "description": "Nome do insumo"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Ra\u00e7\u00e3o Animal",
+        "Milho em Gr\u00e3o",
+        "Sal Mineral",
+        "Medicamentos Veterin\u00e1rios",
+        "Fertilizantes"
+      ],
+      "description": "Categoria do insumo"
+    },
+    "price": {
+      "type": "number",
+      "description": "Pre\u00e7o em R$"
+    },
+    "supplier": {
+      "type": "string",
+      "description": "Nome da loja/empresa fornecedora"
+    },
+    "city": {
+      "type": "string",
+      "description": "Cidade do fornecedor"
+    },
+    "state": {
+      "type": "string",
+      "description": "Estado (UF)"
+    },
+    "distance_km": {
+      "type": "number",
+      "description": "Dist\u00e2ncia em km"
+    },
+    "freight_cost": {
+      "type": "number",
+      "description": "Custo do frete em R$"
+    },
+    "whatsapp": {
+      "type": "string",
+      "description": "N\u00famero do WhatsApp do fornecedor"
+    }
+  },
+  "required": [
+    "product_name",
+    "category",
+    "price",
+    "supplier",
+    "city"
+  ]
+}
