@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import InsumoProductCard from "../components/InsumoProductCard";
-import { Loader2, ShoppingBag, Store, Search, SlidersHorizontal, X } from "lucide-react";
+import { Loader2, ShoppingBag, Store, Search, SlidersHorizontal, X, Settings, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
@@ -19,6 +20,7 @@ const DEMO_PRODUCTS = [
 
 export default function Insumos() {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [products, setProducts] = useState(() => {
     try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null") || []; } catch { return []; }
   });
@@ -82,13 +84,30 @@ export default function Insumos() {
           </div>
           <div>
             <h1 className="text-xl font-extrabold text-foreground tracking-tight">Insumos</h1>
-            <p className="text-xs text-muted-foreground font-medium">Compare preços e encontre o melhor custo</p>
+            <p className="text-xs text-muted-foreground font-medium">Lojas e cooperativas da sua região</p>
           </div>
         </div>
         <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-xs font-bold" onClick={() => navigate("/minha-loja")}>
-          <Store className="h-3.5 w-3.5" /> Minha loja
+          <Settings className="h-3.5 w-3.5" /> Minha loja
         </Button>
       </div>
+
+      {/* Store CTA for non-store users */}
+      {isAuthenticated && (
+        <button
+          onClick={() => navigate("/minha-loja")}
+          className="w-full flex items-center gap-3 bg-accent/20 border border-accent/40 rounded-2xl px-4 py-3 mb-4 select-none"
+        >
+          <div className="h-9 w-9 rounded-xl bg-accent flex items-center justify-center shrink-0">
+            <Store className="h-5 w-5 text-accent-foreground" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-bold text-foreground">Venda insumos pelo TerraPonte</p>
+            <p className="text-xs text-muted-foreground">Cadastre sua loja ou gerencie seus produtos</p>
+          </div>
+          <PlusCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+        </button>
+      )}
 
       {/* Search + Filter */}
       <div className="flex gap-2 mb-3">

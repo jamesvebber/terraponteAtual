@@ -1,21 +1,19 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Store, ShoppingBag, UserCircle, Package } from "lucide-react";
+import { Home, Store, ShoppingBag, UserCircle, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TAB_ROOTS = [
   { root: "/", label: "Início", icon: Home },
   { root: "/marketplace", label: "Mercado", icon: Store },
+  { root: "/vender", label: "Anunciar", icon: PlusCircle, action: true },
   { root: "/insumos", label: "Insumos", icon: ShoppingBag },
-  { root: "/minha-loja", label: "Minha Loja", icon: Package },
   { root: "/profile", label: "Conta", icon: UserCircle },
 ];
 
-// Remember last visited path per tab root (module-level = survives re-renders)
 const tabLastPath = {
   "/": "/",
   "/marketplace": "/marketplace",
   "/insumos": "/insumos",
-  "/minha-loja": "/minha-loja",
   "/profile": "/profile",
 };
 
@@ -32,11 +30,15 @@ export default function BottomNav() {
     }
   }
 
-  const isActive = (root) => root === "/" ? currentPath === "/" : currentPath.startsWith(root);
+  const isActive = (root) => {
+    if (root === "/vender") return currentPath === "/vender";
+    if (root === "/") return currentPath === "/";
+    return currentPath.startsWith(root);
+  };
 
-  const handleTabPress = (root) => {
+  const handleTabPress = (root, isAction) => {
+    if (isAction) { navigate(root); return; }
     const dest = tabLastPath[root] ?? root;
-    // If already on this tab's root, do nothing (no flicker)
     if (currentPath === dest) return;
     navigate(dest);
   };
@@ -50,12 +52,26 @@ export default function BottomNav() {
         {TAB_ROOTS.map((tab) => {
           const active = isActive(tab.root);
           const Icon = tab.icon;
+          if (tab.action) {
+            return (
+              <button
+                key={tab.root}
+                onClick={() => handleTabPress(tab.root, true)}
+                className="flex flex-col items-center justify-center gap-0.5 select-none"
+              >
+                <div className="h-12 w-12 rounded-2xl bg-primary flex items-center justify-center shadow-md -mt-3">
+                  <Icon className="h-6 w-6 text-primary-foreground" strokeWidth={2.5} />
+                </div>
+                <span className="text-[10px] font-bold text-primary mt-0.5">{tab.label}</span>
+              </button>
+            );
+          }
           return (
             <button
               key={tab.root}
-              onClick={() => handleTabPress(tab.root)}
+              onClick={() => handleTabPress(tab.root, false)}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 px-4 py-2 rounded-xl transition-all duration-200 min-w-[72px] select-none",
+                "flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200 min-w-[64px] select-none",
                 active ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
