@@ -8,6 +8,8 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from './components/Layout';
 import Home from './pages/Home';
+import Marketplace from './pages/Marketplace';
+import ListingDetail from './pages/ListingDetail';
 import Insumos from './pages/Insumos';
 import Vender from './pages/Vender';
 import Profile from './pages/Profile';
@@ -40,6 +42,8 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/marketplace/:id" element={<ListingDetail />} />
         <Route path="/insumos" element={<Insumos />} />
         <Route path="/vender" element={<Vender />} />
         <Route path="/profile" element={<Profile />} />

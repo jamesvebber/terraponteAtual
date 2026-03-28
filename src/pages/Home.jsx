@@ -57,14 +57,22 @@ export default function Home() {
         </p>
       </div>
 
-      {/* CTA button */}
-      <Button
-        onClick={() => navigate("/insumos")}
-        className="w-full h-13 mb-6 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-sm shadow-md gap-2"
-      >
-        <TrendingDown className="h-5 w-5" />
-        Ver onde está mais barato
-      </Button>
+      {/* CTAs */}
+      <div className="flex flex-col gap-2 mb-6">
+        <Button
+          onClick={() => navigate("/marketplace")}
+          className="w-full h-12 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-sm shadow-md gap-2"
+        >
+          🛒 Ver produtos anunciados na sua região
+        </Button>
+        <Button
+          onClick={() => navigate("/insumos")}
+          className="w-full h-12 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-sm shadow-md gap-2"
+        >
+          <TrendingDown className="h-5 w-5" />
+          Ver onde está mais barato
+        </Button>
+      </div>
 
       {/* Market prices */}
       <div className="flex items-center justify-between mb-3">
