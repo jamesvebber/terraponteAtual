@@ -22,7 +22,15 @@ const CATEGORIES = [
   { label: "Outros", emoji: "📦" },
 ];
 
-const UNITS = ["saco 25kg", "saco 50kg", "litro", "kg", "unidade", "caixa", "galão"];
+const UNITS = [
+  { label: "saco 25kg", emoji: "👜" },
+  { label: "saco 50kg", emoji: "👜" },
+  { label: "litro", emoji: "🧴" },
+  { label: "kg", emoji: "⚖️" },
+  { label: "unidade", emoji: "📦" },
+  { label: "caixa", emoji: "🗃️" },
+  { label: "galão", emoji: "🪣" },
+];
 const STOCK = ["Disponível", "Sob encomenda", "Esgotado"];
 
 function FieldBlock({ label, hint, children }) {
@@ -46,6 +54,7 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [unitDrawerOpen, setUnitDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -183,14 +192,43 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
               </div>
             </FieldBlock>
             <FieldBlock label="Unidade *">
-              <select
-                className="w-full h-12 rounded-xl border border-input bg-card px-3 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                value={form.unit} onChange={e => set("unit", e.target.value)}>
-                <option value="">Selecionar</option>
-                {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-              </select>
+              <button
+                type="button"
+                onClick={() => setUnitDrawerOpen(true)}
+                className={`w-full h-12 rounded-xl border px-3 text-sm font-semibold text-left select-none transition-colors ${
+                  form.unit ? "border-input bg-card text-foreground" : "border-input bg-card text-muted-foreground"
+                }`}
+              >
+                {form.unit || "Selecionar unidade"}
+              </button>
             </FieldBlock>
           </div>
+
+          {/* Unit drawer */}
+          <Drawer open={unitDrawerOpen} onOpenChange={setUnitDrawerOpen}>
+            <DrawerContent>
+              <DrawerHeader><DrawerTitle>Unidade de venda</DrawerTitle></DrawerHeader>
+              <div className="px-4 pb-2 space-y-2">
+                {UNITS.map(({ label, emoji }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => { set("unit", label); setUnitDrawerOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold border transition-colors select-none ${
+                      form.unit === label ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                    }`}
+                  >
+                    <span className="text-lg">{emoji}</span> {label}
+                  </button>
+                ))}
+              </div>
+              <DrawerFooter>
+                <DrawerClose asChild>
+                  <button className="w-full h-11 rounded-xl bg-muted text-muted-foreground font-semibold text-sm select-none">Cancelar</button>
+                </DrawerClose>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
 
           {/* Brand */}
           <FieldBlock label="Marca" hint='Ex: Guabi, Tortuga, Presence...'>
