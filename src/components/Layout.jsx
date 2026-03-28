@@ -22,7 +22,7 @@ export default function Layout() {
           initial="initial"
           animate="animate"
           exit="exit"
-          className="pb-24 max-w-lg mx-auto"
+          className="pb-28 max-w-lg mx-auto"
         >
           <Outlet />
         </motion.main>

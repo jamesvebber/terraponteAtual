@@ -51,7 +51,7 @@ export default function Home() {
 
       {/* Greeting banner */}
       <div className="bg-primary rounded-2xl p-4 mb-4 shadow-md">
-        <p className="text-primary-foreground text-sm font-semibold mb-1">Bom dia, produtor! 🌾</p>
+        <p className="text-primary-foreground text-sm font-semibold mb-1">Olá, produtor! 🌾</p>
         <p className="text-primary-foreground/80 text-xs">
           Acompanhe os preços do mercado agropecuário e venda seus produtos.
         </p>

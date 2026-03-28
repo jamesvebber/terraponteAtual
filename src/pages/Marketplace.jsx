@@ -202,9 +202,9 @@ function EmptyState({ search, category }) {
       </h3>
       <p className="text-sm text-muted-foreground max-w-[240px]">
         {search
-          ? `Não encontramos nada para "${search}". Tente outro termo.`
+          ? `Não encontramos nada para “${search}”. Tente outro termo.`
           : category !== "Todos"
-          ? `Ainda não há anúncios em "${category}". Seja o primeiro!`
+          ? `Ainda não há anúncios em “${category}”. Seja o primeiro!`
           : "Ainda não há anúncios publicados. Que tal anunciar o seu produto?"}
       </p>
     </div>

@@ -19,6 +19,8 @@ const categoryEmoji = {
 export default function ListingDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  // Support going back to wherever user came from
+  const goBack = () => navigate(-1);
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reportOpen, setReportOpen] = useState(false);
@@ -55,7 +57,7 @@ export default function ListingDetail() {
     : null;
 
   return (
-    <div className="pb-28">
+    <div className="pb-40">
       {/* Back button */}
       <div className="px-4 pt-5 pb-2">
         <button
@@ -144,12 +146,15 @@ export default function ListingDetail() {
         />
       </div>
 
-      {/* Fixed bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 flex gap-3" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
+      {/* Fixed bottom CTA — sits above BottomNav (h-16 = 4rem) */}
+      <div
+        className="fixed bottom-16 left-0 right-0 bg-background/95 backdrop-blur border-t border-border p-4 flex gap-3 max-w-lg mx-auto"
+        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+      >
         {waUrl && (
           <a href={waUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
             <Button className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2">
-              <MessageCircle className="h-5 w-5" /> WhatsApp
+              <MessageCircle className="h-5 w-5" /> Entrar em contato
             </Button>
           </a>
         )}

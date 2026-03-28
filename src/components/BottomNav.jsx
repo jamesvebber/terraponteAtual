@@ -12,12 +12,13 @@ const navItems = [
 
 export default function BottomNav() {
   const location = useLocation();
+  const isActive = (path) => path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border select-none" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border select-none" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
+          const active = isActive(item.path);
           const Icon = item.icon;
           return (
             <Link
@@ -25,7 +26,7 @@ export default function BottomNav() {
               to={item.path}
               className={cn(
                 "flex flex-col items-center justify-center gap-0.5 px-4 py-2 rounded-xl transition-all duration-200 min-w-[72px] select-none",
-                isActive
+                active
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
@@ -33,14 +34,14 @@ export default function BottomNav() {
               <Icon
                 className={cn(
                   "transition-all duration-200",
-                  isActive ? "h-6 w-6" : "h-5 w-5"
+                  active ? "h-6 w-6" : "h-5 w-5"
                 )}
-                strokeWidth={isActive ? 2.5 : 2}
+                strokeWidth={active ? 2.5 : 2}
               />
               <span
                 className={cn(
                   "text-[11px] transition-all duration-200",
-                  isActive ? "font-bold" : "font-medium"
+                  active ? "font-bold" : "font-medium"
                 )}
               >
                 {item.label}
