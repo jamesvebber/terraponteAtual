@@ -1,38 +1,66 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import RecentListings from "../components/RecentListings";
-import { PlusCircle, Loader2, Camera, CheckCircle2 } from "lucide-react";
-import { useAuth } from "@/lib/AuthContext";
+import { PlusCircle, Loader2, CheckCircle2, Camera, X, ChevronRight, Eye } from "lucide-react";
 import { toast } from "sonner";
 
-const categories = [
-  { value: "Gado", label: "🐂 Gado" },
-  { value: "Leite", label: "🥛 Leite" },
-  { value: "Ovos", label: "🥚 Ovos" },
-  { value: "Frutas", label: "🍊 Frutas" },
-  { value: "Máquinas", label: "🚜 Máquinas" },
+const CATEGORIES = [
+  { value: "Alimentos da roça", emoji: "🍯" },
+  { value: "Laticínios", emoji: "🧀" },
+  { value: "Gado e animais", emoji: "🐂" },
+  { value: "Hortifruti", emoji: "🥬" },
+  { value: "Máquinas e ferramentas", emoji: "🚜" },
+  { value: "Artesanato rural", emoji: "🪵" },
+  { value: "Serviços rurais", emoji: "🔧" },
+  { value: "Outros", emoji: "📦" },
 ];
+
+const SELLER_TYPES = ["Produtor", "Loja"];
+
+const PROFANITY = ["merda", "porra", "caralho", "puta", "viado", "fdp"];
+const hasProfanity = (t) => PROFANITY.some((w) => t?.toLowerCase().includes(w));
+const validPhone = (p) => p.replace(/\D/g, "").length >= 10;
+
+const EMPTY = {
+  title: "", description: "", category: "", price: "",
+  city: "", region: "", seller_name: "", seller_type: "Produtor", whatsapp: "",
+};
+
+function FieldGroup({ label, hint, children, error }) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-bold text-foreground block">{label}</Label>
+      {hint && <p className="text-xs text-muted-foreground -mt-0.5">{hint}</p>}
+      {children}
+      {error && <p className="text-xs text-destructive font-medium">{error}</p>}
+    </div>
+  );
+}
+
+function SectionHeader({ emoji, title }) {
+  return (
+    <div className="flex items-center gap-2 pt-2 pb-1">
+      <span className="text-lg">{emoji}</span>
+      <h2 className="text-sm font-extrabold text-muted-foreground uppercase tracking-wide">{title}</h2>
+    </div>
+  );
+}
 
 export default function Vender() {
   const { isAuthenticated, isLoadingAuth } = useAuth();
-  const [form, setForm] = useState({
-    product_name: "",
-    category: "",
-    description: "",
-    price: "",
-    city: "",
-    state: "",
-    whatsapp: "",
-  });
+  const navigate = useNavigate();
+  const [form, setForm] = useState(EMPTY);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [publishedId, setPublishedId] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
   if (isLoadingAuth) {
     return (
@@ -62,209 +90,292 @@ export default function Vender() {
     );
   }
 
-  const handleChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+  // Success screen
+  if (publishedId) {
+    return (
+      <div className="px-4 pt-12 flex flex-col items-center justify-center min-h-[75vh] text-center">
+        <div className="h-24 w-24 rounded-full bg-green-100 flex items-center justify-center mb-5 shadow">
+          <CheckCircle2 className="h-12 w-12 text-green-600" />
+        </div>
+        <h2 className="text-2xl font-extrabold text-foreground mb-2">Anúncio publicado!</h2>
+        <p className="text-sm text-muted-foreground mb-8 max-w-xs">
+          Seu produto já está visível no Marketplace para compradores da sua região.
+        </p>
+        <div className="w-full max-w-xs space-y-3">
+          <Button
+            className="w-full h-12 rounded-xl font-bold gap-2"
+            onClick={() => navigate(`/marketplace/${publishedId}`)}
+          >
+            <Eye className="h-4 w-4" /> Ver meu anúncio
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full h-12 rounded-xl font-bold gap-2"
+            onClick={() => { setForm(EMPTY); setImageFile(null); setImagePreview(null); setPublishedId(null); setErrors({}); setTouched({}); }}
+          >
+            <PlusCircle className="h-4 w-4" /> Publicar outro anúncio
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const set = (field, value) => {
+    setForm((p) => ({ ...p, [field]: value }));
+    setTouched((p) => ({ ...p, [field]: true }));
   };
+
+  const validate = (f) => {
+    const e = {};
+    if (!f.title || f.title.trim().length < 5) e.title = "Mínimo 5 caracteres.";
+    if (hasProfanity(f.title)) e.title = "Título contém conteúdo inadequado.";
+    if (!f.category) e.category = "Selecione uma categoria.";
+    if (!f.price || isNaN(parseFloat(f.price)) || parseFloat(f.price) <= 0) e.price = "Informe um preço válido.";
+    if (!f.city || f.city.trim().length < 2) e.city = "Informe a cidade.";
+    if (!f.seller_name || f.seller_name.trim().length < 2) e.seller_name = "Informe seu nome ou nome da loja.";
+    if (!f.whatsapp || !validPhone(f.whatsapp)) e.whatsapp = "WhatsApp inválido. Inclua o DDD.";
+    if (hasProfanity(f.description)) e.description = "Descrição contém conteúdo inadequado.";
+    return e;
+  };
+
+  const liveErrors = validate(form);
+  const isReady = Object.keys(liveErrors).length === 0;
+
+  const fieldError = (field) => touched[field] ? liveErrors[field] : undefined;
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
-    }
+    if (file) { setImageFile(file); setImagePreview(URL.createObjectURL(file)); }
   };
 
-  const PROFANITY = ["merda", "porra", "caralho", "puta", "viado", "fdp"];
-  const hasProfanity = (text) => PROFANITY.some(w => text?.toLowerCase().includes(w));
-  const validPhone = (p) => p.replace(/\D/g, "").length >= 10;
-
   const handleSubmit = async () => {
-    if (!form.product_name || !form.category || !form.price || !form.city || !form.whatsapp) {
-      toast.error("Preencha todos os campos obrigatórios.");
-      return;
-    }
-    if (hasProfanity(form.product_name) || hasProfanity(form.description)) {
-      toast.error("O anúncio contém conteúdo inadequado.");
-      return;
-    }
-    if (!validPhone(form.whatsapp)) {
-      toast.error("Informe um WhatsApp válido com DDD.");
-      return;
-    }
-    if (form.product_name.trim().length < 5) {
-      toast.error("Título muito curto. Seja mais descritivo.");
-      return;
-    }
+    setTouched(Object.fromEntries(Object.keys(form).map(k => [k, true])));
+    const e = validate(form);
+    setErrors(e);
+    if (Object.keys(e).length > 0) { toast.error("Corrija os campos destacados."); return; }
 
     setSubmitting(true);
-
     let image_url = null;
     if (imageFile) {
       const result = await base44.integrations.Core.UploadFile({ file: imageFile });
       image_url = result.file_url;
     }
 
-    await base44.entities.ProductListing.create({
-      ...form,
+    const listing = await base44.entities.Listing.create({
+      title: form.title.trim(),
+      description: form.description.trim(),
+      category: form.category,
       price: parseFloat(form.price),
+      city: form.city.trim(),
+      region: form.region.trim().toUpperCase(),
+      seller_name: form.seller_name.trim(),
+      seller_type: form.seller_type,
+      whatsapp: form.whatsapp,
       image_url,
       status: "active",
     });
 
     setSubmitting(false);
-    setSuccess(true);
-    toast.success("Produto publicado!");
-
-    setTimeout(() => {
-      setForm({ product_name: "", category: "", description: "", price: "", city: "", state: "", whatsapp: "" });
-      setImageFile(null);
-      setImagePreview(null);
-      setSuccess(false);
-    }, 2500);
+    setPublishedId(listing.id);
   };
 
-  if (success) {
-    return (
-      <div className="px-4 pt-6 flex flex-col items-center justify-center min-h-[70vh]">
-        <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center mb-4">
-          <CheckCircle2 className="h-10 w-10 text-green-600" />
-        </div>
-        <h2 className="text-xl font-bold text-foreground mb-1">Produto publicado!</h2>
-        <p className="text-sm text-muted-foreground">Seu anúncio já está no mercado.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="px-4 pt-6">
-      <div className="flex items-center gap-3 mb-5">
+    <div className="px-4 pt-6 pb-10">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
         <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
           <PlusCircle className="h-5 w-5 text-primary-foreground" />
         </div>
         <div>
-          <h1 className="text-xl font-extrabold text-foreground tracking-tight">Vender</h1>
+          <h1 className="text-xl font-extrabold text-foreground tracking-tight">Anunciar produto</h1>
           <p className="text-xs text-muted-foreground font-medium">Publique e venda direto pelo WhatsApp</p>
         </div>
       </div>
 
-      {/* Recent listings */}
-      <RecentListings />
+      <div className="space-y-5">
 
-      {/* Divider */}
-      <div className="border-t border-border mb-5" />
-      <h2 className="text-base font-bold text-foreground mb-4">Novo anúncio</h2>
+        {/* === Produto === */}
+        <SectionHeader emoji="📦" title="Produto" />
 
-      <div className="space-y-4">
-        {/* Image upload */}
-        <div>
-          <Label className="text-sm font-semibold mb-2 block">Foto do produto</Label>
-          <label className="flex flex-col items-center justify-center h-36 rounded-2xl border-2 border-dashed border-border bg-muted/50 cursor-pointer hover:bg-muted transition-colors overflow-hidden">
+        {/* Image */}
+        <FieldGroup label="Foto do produto" hint="Uma boa foto aumenta muito as chances de venda.">
+          <label className="flex flex-col items-center justify-center h-40 rounded-2xl border-2 border-dashed border-border bg-muted/40 cursor-pointer hover:bg-muted transition-colors overflow-hidden relative">
             {imagePreview ? (
-              <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-            ) : (
               <>
-                <Camera className="h-8 w-8 text-muted-foreground mb-1" />
-                <span className="text-sm text-muted-foreground font-medium">Toque para adicionar</span>
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); setImageFile(null); setImagePreview(null); }}
+                  className="absolute top-2 right-2 h-7 w-7 rounded-full bg-black/50 flex items-center justify-center"
+                >
+                  <X className="h-4 w-4 text-white" />
+                </button>
               </>
+            ) : (
+              <div className="flex flex-col items-center gap-1.5">
+                <Camera className="h-8 w-8 text-muted-foreground" />
+                <span className="text-sm font-semibold text-muted-foreground">Toque para adicionar foto</span>
+                <span className="text-xs text-muted-foreground/70">JPG, PNG até 10 MB</span>
+              </div>
             )}
             <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
           </label>
-        </div>
+        </FieldGroup>
 
-        {/* Category */}
-        <div>
-          <Label className="text-sm font-semibold mb-2 block">Categoria *</Label>
-          <Select value={form.category} onValueChange={(v) => handleChange("category", v)}>
-            <SelectTrigger className="h-12 rounded-xl text-base">
-              <SelectValue placeholder="Selecione a categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Product name */}
-        <div>
-          <Label className="text-sm font-semibold mb-2 block">Nome do produto *</Label>
+        {/* Title */}
+        <FieldGroup label="Título *" hint='Ex: "Queijo artesanal meia cura"' error={fieldError("title")}>
           <Input
             className="h-12 rounded-xl text-base"
-            placeholder="Ex: 10 cabeças de gado nelore"
-            value={form.product_name}
-            onChange={(e) => handleChange("product_name", e.target.value)}
+            placeholder="Descreva o produto em poucas palavras"
+            value={form.title}
+            onChange={(e) => set("title", e.target.value)}
           />
-        </div>
+        </FieldGroup>
 
         {/* Description */}
-        <div>
-          <Label className="text-sm font-semibold mb-2 block">Descrição</Label>
+        <FieldGroup label="Descrição" hint='Ex: "Produção local, fresco, retirada em Goiás..."' error={fieldError("description")}>
           <Textarea
-            className="rounded-xl text-base min-h-[80px]"
-            placeholder="Descreva seu produto..."
+            className="rounded-xl text-base min-h-[90px]"
+            placeholder="Detalhes do produto, condições, disponibilidade..."
             value={form.description}
-            onChange={(e) => handleChange("description", e.target.value)}
+            onChange={(e) => set("description", e.target.value)}
           />
-        </div>
+        </FieldGroup>
+
+        {/* Category */}
+        <FieldGroup label="Categoria *" error={fieldError("category")}>
+          <div className="grid grid-cols-2 gap-2">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.value}
+                type="button"
+                onClick={() => set("category", cat.value)}
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold border transition-colors select-none ${
+                  form.category === cat.value
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card border-border text-foreground"
+                }`}
+              >
+                <span>{cat.emoji}</span>
+                <span className="text-left leading-tight">{cat.value}</span>
+              </button>
+            ))}
+          </div>
+        </FieldGroup>
 
         {/* Price */}
-        <div>
-          <Label className="text-sm font-semibold mb-2 block">Preço (R$) *</Label>
-          <Input
-            className="h-12 rounded-xl text-base"
-            type="number"
-            placeholder="0,00"
-            value={form.price}
-            onChange={(e) => handleChange("price", e.target.value)}
-          />
-        </div>
+        <FieldGroup label="Preço (R$) *" hint='Ex: "35" para R$ 35,00' error={fieldError("price")}>
+          <div className="relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">R$</span>
+            <Input
+              className="h-12 rounded-xl text-base pl-10"
+              type="number"
+              inputMode="decimal"
+              placeholder="0,00"
+              value={form.price}
+              onChange={(e) => set("price", e.target.value)}
+            />
+          </div>
+        </FieldGroup>
 
-        {/* City + State */}
+        {/* === Localização === */}
+        <SectionHeader emoji="📍" title="Localização" />
+
         <div className="grid grid-cols-3 gap-2">
           <div className="col-span-2">
-            <Label className="text-sm font-semibold mb-2 block">Cidade *</Label>
-            <Input
-              className="h-12 rounded-xl text-base"
-              placeholder="Sua cidade"
-              value={form.city}
-              onChange={(e) => handleChange("city", e.target.value)}
-            />
+            <FieldGroup label="Cidade *" hint='Ex: "São Luís de Montes Belos"' error={fieldError("city")}>
+              <Input
+                className="h-12 rounded-xl text-base"
+                placeholder="Sua cidade"
+                value={form.city}
+                onChange={(e) => set("city", e.target.value)}
+              />
+            </FieldGroup>
           </div>
           <div>
-            <Label className="text-sm font-semibold mb-2 block">UF</Label>
-            <Input
-              className="h-12 rounded-xl text-base"
-              placeholder="SP"
-              maxLength={2}
-              value={form.state}
-              onChange={(e) => handleChange("state", e.target.value.toUpperCase())}
-            />
+            <FieldGroup label="UF">
+              <Input
+                className="h-12 rounded-xl text-base"
+                placeholder="GO"
+                maxLength={2}
+                value={form.region}
+                onChange={(e) => set("region", e.target.value.toUpperCase())}
+              />
+            </FieldGroup>
           </div>
         </div>
 
+        {/* === Vendedor === */}
+        <SectionHeader emoji="👤" title="Vendedor" />
+
+        {/* Seller name */}
+        <FieldGroup label="Seu nome ou nome da loja *" hint='Ex: "Sítio Boa Vista" ou "João Silva"' error={fieldError("seller_name")}>
+          <Input
+            className="h-12 rounded-xl text-base"
+            placeholder="Como você quer ser identificado"
+            value={form.seller_name}
+            onChange={(e) => set("seller_name", e.target.value)}
+          />
+        </FieldGroup>
+
+        {/* Seller type */}
+        <FieldGroup label="Tipo de vendedor">
+          <div className="flex gap-2">
+            {SELLER_TYPES.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => set("seller_type", t)}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors select-none ${
+                  form.seller_type === t
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card border-border text-foreground"
+                }`}
+              >
+                {t === "Produtor" ? "🌱 Produtor" : "🏪 Loja"}
+              </button>
+            ))}
+          </div>
+        </FieldGroup>
+
         {/* WhatsApp */}
-        <div>
-          <Label className="text-sm font-semibold mb-2 block">WhatsApp *</Label>
+        <FieldGroup
+          label="WhatsApp *"
+          hint="Compradores entrarão em contato por aqui. Inclua o DDD."
+          error={fieldError("whatsapp")}
+        >
           <Input
             className="h-12 rounded-xl text-base"
             type="tel"
-            placeholder="(11) 99999-9999"
+            inputMode="tel"
+            placeholder="(62) 99999-9999"
             value={form.whatsapp}
-            onChange={(e) => handleChange("whatsapp", e.target.value)}
+            onChange={(e) => set("whatsapp", e.target.value)}
           />
-        </div>
+        </FieldGroup>
 
         {/* Submit */}
-        <Button
-          className="w-full h-14 text-base font-bold rounded-xl bg-primary hover:bg-primary/90 shadow-lg mt-2"
-          onClick={handleSubmit}
-          disabled={submitting}
-        >
-          {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Vender produto"}
-        </Button>
-
-        <div className="h-4" />
+        <div className="pt-2">
+          {!isReady && Object.keys(touched).length > 0 && (
+            <p className="text-xs text-muted-foreground text-center mb-3">
+              Preencha todos os campos obrigatórios (*) para publicar.
+            </p>
+          )}
+          <Button
+            className="w-full h-14 text-base font-bold rounded-xl shadow-md gap-2"
+            onClick={handleSubmit}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <><Loader2 className="h-5 w-5 animate-spin" /> Publicando...</>
+            ) : (
+              <><ChevronRight className="h-5 w-5" /> Publicar anúncio</>
+            )}
+          </Button>
+          <p className="text-center text-xs text-muted-foreground mt-3">
+            Ao publicar, você concorda com os <span className="underline cursor-pointer" onClick={() => navigate("/terms")}>Termos de Uso</span>.
+          </p>
+        </div>
       </div>
     </div>
   );
