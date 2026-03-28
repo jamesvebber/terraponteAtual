@@ -118,10 +118,10 @@ export default function ListingDetail() {
 
         {/* More from seller */}
         <button
-          onClick={() => navigate(`/marketplace?seller=${encodeURIComponent(listing.seller_name)}`)}
+          onClick={() => navigate(`/seller/${encodeURIComponent(listing.seller_name)}`)}
           className="w-full flex items-center justify-between bg-card border border-border rounded-2xl px-4 py-3 text-sm font-semibold text-foreground select-none"
         >
-          <span>Ver mais anúncios de {listing.seller_name}</span>
+          <span>Ver perfil de {listing.seller_name}</span>
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </button>
       </div>

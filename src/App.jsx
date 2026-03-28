@@ -13,6 +13,8 @@ import ListingDetail from './pages/ListingDetail';
 import Insumos from './pages/Insumos';
 import Vender from './pages/Vender';
 import Profile from './pages/Profile';
+import SellerProfile from './pages/SellerProfile';
+import EditSellerProfile from './pages/EditSellerProfile';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -44,6 +46,8 @@ const AuthenticatedApp = () => {
         <Route path="/insumos" element={<Insumos />} />
         <Route path="/vender" element={<Vender />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/seller/:sellerName" element={<SellerProfile />} />
+        <Route path="/edit-seller-profile" element={<EditSellerProfile />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

@@ -1,0 +1,82 @@
+{
+  "name": "SellerProfile",
+  "type": "object",
+  "properties": {
+    "seller_name": {
+      "type": "string",
+      "description": "Nome do vendedor / empresa"
+    },
+    "seller_type": {
+      "type": "string",
+      "enum": [
+        "Produtor",
+        "Loja",
+        "Cooperativa"
+      ],
+      "description": "Tipo de vendedor"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o curta"
+    },
+    "city": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string",
+      "description": "Estado (UF)"
+    },
+    "whatsapp": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "URL da foto/logo"
+    },
+    "badge": {
+      "type": "string",
+      "enum": [
+        "Produtor local",
+        "Loja parceira",
+        "Verificado"
+      ],
+      "description": "Selo de confian\u00e7a"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email do dono do perfil"
+    }
+  },
+  "required": [
+    "seller_name",
+    "seller_type"
+  ],
+  "rls": {
+    "create": {},
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

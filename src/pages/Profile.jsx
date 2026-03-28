@@ -9,8 +9,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   User, LogOut, Trash2, ChevronRight, Moon, Sun, Shield, HelpCircle,
-  Pencil, X, Check, FileText, Phone,
+  Pencil, X, Check, FileText, Store,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 /* ── small reusable pieces ────────────────────────────────────── */
@@ -75,6 +76,7 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains("dark"));
+  const navigate = useNavigate();
 
   if (isLoadingAuth) {
     return (
@@ -181,6 +183,11 @@ export default function Profile() {
             <div className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition-transform ${darkMode ? "translate-x-5" : "translate-x-1"}`} />
           </div>
         </button>
+      </Section>
+
+      {/* Seller profile */}
+      <Section title="Vendedor">
+        <SettingsRow icon={Store} label="Perfil de vendedor" sublabel="Configure como os compradores te veem" onClick={() => navigate("/edit-seller-profile")} />
       </Section>
 
       {/* Suporte */}
