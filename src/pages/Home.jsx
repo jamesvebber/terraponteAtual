@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import MarketCard from "../components/MarketCard";
-import { Loader2, Sprout } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Sprout, TrendingDown } from "lucide-react";
 
 const defaultPrices = [
   { product_name: "Arroba do Boi", price: 310.5, unit: "@", trend: "up", icon: "🐂" },
@@ -13,6 +15,7 @@ const defaultPrices = [
 export default function Home() {
   const [prices, setPrices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function loadPrices() {
@@ -37,12 +40,21 @@ export default function Home() {
       </div>
 
       {/* Greeting banner */}
-      <div className="bg-primary rounded-2xl p-4 mb-6 shadow-md">
+      <div className="bg-primary rounded-2xl p-4 mb-4 shadow-md">
         <p className="text-primary-foreground text-sm font-semibold mb-1">Bom dia, produtor! 🌾</p>
         <p className="text-primary-foreground/80 text-xs">
           Acompanhe os preços do mercado agropecuário e venda seus produtos.
         </p>
       </div>
+
+      {/* CTA button */}
+      <Button
+        onClick={() => navigate("/insumos")}
+        className="w-full h-13 mb-6 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-sm shadow-md gap-2"
+      >
+        <TrendingDown className="h-5 w-5" />
+        Ver onde está mais barato
+      </Button>
 
       {/* Market prices */}
       <h2 className="text-base font-bold text-foreground mb-3">Cotações</h2>

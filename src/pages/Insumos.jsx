@@ -1,42 +1,53 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import InputCard from "../components/InputCard";
-import FilterBar from "../components/FilterBar";
+import InsumosFilters from "../components/InsumosFilters";
 import { Loader2, ShoppingBag } from "lucide-react";
+
+const defaultFilters = {
+  category: "Todos",
+  city: "Todas",
+  maxDistance: 9999,
+  maxTotal: 9999,
+};
 
 export default function Insumos() {
   const [inputs, setInputs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState("Todos");
-  const [sortBy, setSortBy] = useState("price_asc");
+  const [filters, setFilters] = useState(defaultFilters);
 
   useEffect(() => {
     async function loadInputs() {
       const data = await base44.entities.AgriculturalInput.list();
       setInputs(data);
+      // Set sensible defaults based on data
+      const maxDist = Math.max(...data.map((i) => i.distance_km || 0), 500);
+      const maxTotal = Math.max(...data.map((i) => (i.price || 0) + (i.freight_cost || 0)), 1000);
+      setFilters({ category: "Todos", city: "Todas", maxDistance: maxDist, maxTotal });
       setLoading(false);
     }
     loadInputs();
   }, []);
 
-  const filtered = inputs.filter(
-    (item) => category === "Todos" || item.category === category
-  );
+  // Annotate with custo final
+  const withCusto = inputs.map((item) => ({
+    ...item,
+    custo_final: (item.price || 0) + (item.freight_cost || 0),
+  }));
 
-  const sorted = [...filtered].sort((a, b) => {
-    switch (sortBy) {
-      case "price_asc":
-        return (a.price || 0) - (b.price || 0);
-      case "price_desc":
-        return (b.price || 0) - (a.price || 0);
-      case "distance_asc":
-        return (a.distance_km || 9999) - (b.distance_km || 9999);
-      case "distance_desc":
-        return (b.distance_km || 0) - (a.distance_km || 0);
-      default:
-        return 0;
-    }
+  // Filter
+  const filtered = withCusto.filter((item) => {
+    if (filters.category !== "Todos" && item.category !== filters.category) return false;
+    if (filters.city !== "Todas" && item.city !== filters.city) return false;
+    if (item.distance_km != null && item.distance_km > filters.maxDistance) return false;
+    if (item.custo_final > filters.maxTotal) return false;
+    return true;
   });
+
+  // Sort by custo_final ascending
+  const sorted = [...filtered].sort((a, b) => a.custo_final - b.custo_final);
+
+  const bestId = sorted[0]?.id;
 
   return (
     <div className="px-4 pt-6">
@@ -46,18 +57,15 @@ export default function Insumos() {
         </div>
         <div>
           <h1 className="text-xl font-extrabold text-foreground tracking-tight">Insumos</h1>
-          <p className="text-xs text-muted-foreground font-medium">Compare preços e fornecedores</p>
+          <p className="text-xs text-muted-foreground font-medium">Menor custo total = melhor compra</p>
         </div>
       </div>
 
-      <div className="mb-4">
-        <FilterBar
-          category={category}
-          setCategory={setCategory}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-        />
-      </div>
+      {!loading && (
+        <div className="mb-4">
+          <InsumosFilters inputs={inputs} filters={filters} setFilters={setFilters} />
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
@@ -70,11 +78,16 @@ export default function Insumos() {
           <p className="text-muted-foreground/70 text-xs mt-1">Tente mudar os filtros</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {sorted.map((item) => (
-            <InputCard key={item.id} input={item} />
-          ))}
-        </div>
+        <>
+          <p className="text-xs text-muted-foreground mb-3 font-medium">
+            {sorted.length} resultado{sorted.length !== 1 ? "s" : ""} · ordenado por menor custo total
+          </p>
+          <div className="space-y-3">
+            {sorted.map((item) => (
+              <InputCard key={item.id} input={item} isBest={item.id === bestId} />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
