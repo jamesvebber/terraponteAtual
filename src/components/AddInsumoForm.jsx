@@ -4,13 +4,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
+import {
+  Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose,
+} from "@/components/ui/drawer";
 import { Camera, X, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
-const CATEGORIES = ["Ração", "Sal mineral", "Adubo", "Sementes", "Defensivos", "Medicamentos veterinários", "Ferramentas", "Equipamentos", "Outros"];
+const CATEGORIES = [
+  { label: "Ração", emoji: "🌾" },
+  { label: "Sal mineral", emoji: "🧂" },
+  { label: "Adubo", emoji: "🌱" },
+  { label: "Sementes", emoji: "🌻" },
+  { label: "Defensivos", emoji: "🧪" },
+  { label: "Medicamentos veterinários", emoji: "💊" },
+  { label: "Ferramentas", emoji: "🔧" },
+  { label: "Equipamentos", emoji: "⚙️" },
+  { label: "Outros", emoji: "📦" },
+];
+
 const UNITS = ["saco 25kg", "saco 50kg", "litro", "kg", "unidade", "caixa", "galão"];
-const STOCK_OPTIONS = ["Disponível", "Sob encomenda", "Esgotado"];
+const STOCK = ["Disponível", "Sob encomenda", "Esgotado"];
+
+function FieldBlock({ label, hint, children }) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-bold text-foreground">{label}</Label>
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {children}
+    </div>
+  );
+}
 
 const EMPTY = {
   product_name: "", category: "", brand: "", description: "",
@@ -25,13 +48,14 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (!open) return;
     if (editProduct) {
       setForm({
         product_name: editProduct.product_name || "",
         category: editProduct.category || "",
         brand: editProduct.brand || "",
         description: editProduct.description || "",
-        price: editProduct.price || "",
+        price: editProduct.price?.toString() || "",
         unit: editProduct.unit || "",
         stock_status: editProduct.stock_status || "Disponível",
         pickup_available: editProduct.pickup_available !== false,
@@ -39,23 +63,26 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
         featured: !!editProduct.featured,
       });
       setImagePreview(editProduct.image_url || null);
-      setImageFile(null);
     } else {
-      setForm({ ...EMPTY, pickup_available: supplierProfile?.pickup_available !== false, delivery_available: !!supplierProfile?.delivery_available });
-      setImageFile(null);
+      setForm({
+        ...EMPTY,
+        pickup_available: supplierProfile?.pickup_available !== false,
+        delivery_available: !!supplierProfile?.delivery_available,
+      });
       setImagePreview(null);
     }
-  }, [editProduct, open]);
+    setImageFile(null);
+  }, [open, editProduct]);
 
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
 
   const handleSave = async () => {
-    if (!form.product_name || !form.category || !form.price || !form.unit) {
+    if (!form.product_name.trim() || !form.category || !form.price || !form.unit) {
       toast.error("Preencha nome, categoria, preço e unidade.");
       return;
     }
     if (!supplierProfile) {
-      toast.error("Cadastre o perfil da sua loja primeiro.");
+      toast.error("Cadastre o perfil da loja antes de adicionar produtos.");
       return;
     }
     setSaving(true);
@@ -74,12 +101,12 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
       city: supplierProfile.city,
       region: supplierProfile.region,
       whatsapp: supplierProfile.whatsapp,
-      delivery_radius_km: supplierProfile.delivery_radius_km,
-      price_per_km: supplierProfile.price_per_km,
-      fixed_delivery_fee: supplierProfile.fixed_delivery_fee,
-      minimum_order_for_delivery: supplierProfile.minimum_order_for_delivery,
-      free_delivery_above: supplierProfile.free_delivery_above,
-      delivery_notes: supplierProfile.delivery_notes,
+      delivery_radius_km: supplierProfile.delivery_radius_km || null,
+      price_per_km: supplierProfile.price_per_km || null,
+      fixed_delivery_fee: supplierProfile.fixed_delivery_fee || null,
+      minimum_order_for_delivery: supplierProfile.minimum_order_for_delivery || null,
+      free_delivery_above: supplierProfile.free_delivery_above || null,
+      delivery_notes: supplierProfile.delivery_notes || null,
       status: "active",
     };
     if (editProduct) {
@@ -88,7 +115,7 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
       await base44.entities.InsumoProduct.create(data);
     }
     setSaving(false);
-    toast.success(editProduct ? "Produto atualizado!" : "Produto cadastrado com sucesso!");
+    toast.success(editProduct ? "Produto atualizado!" : "Produto adicionado!");
     onSaved();
   };
 
@@ -96,25 +123,29 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
     <Drawer open={open} onOpenChange={onClose}>
       <DrawerContent>
         <DrawerHeader>
-          <DrawerTitle>{editProduct ? "Editar produto" : "Adicionar produto"}</DrawerTitle>
+          <DrawerTitle className="text-base">
+            {editProduct ? "✏️ Editar produto" : "📦 Adicionar produto"}
+          </DrawerTitle>
         </DrawerHeader>
-        <div className="px-4 space-y-3 pb-2 overflow-y-auto max-h-[70vh]">
-          {/* Image */}
-          <div>
-            <Label className="text-xs font-bold text-muted-foreground block mb-1.5">Foto do produto</Label>
-            <label className="flex flex-col items-center justify-center h-32 rounded-2xl border-2 border-dashed border-border bg-muted/40 cursor-pointer overflow-hidden relative">
+
+        <div className="px-4 space-y-4 pb-2 overflow-y-auto max-h-[72vh]">
+          {/* Image upload */}
+          <FieldBlock label="Foto do produto" hint="Produtos com foto vendem mais.">
+            <label className="relative flex h-36 w-full cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-muted/40 transition-colors hover:bg-muted">
               {imagePreview ? (
                 <>
                   <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                  <button type="button" onClick={e => { e.preventDefault(); setImageFile(null); setImagePreview(null); }}
-                    className="absolute top-2 right-2 h-7 w-7 rounded-full bg-black/50 flex items-center justify-center">
+                  <button type="button"
+                    onClick={e => { e.preventDefault(); setImageFile(null); setImagePreview(null); }}
+                    className="absolute top-2 right-2 h-7 w-7 rounded-full bg-black/60 flex items-center justify-center">
                     <X className="h-4 w-4 text-white" />
                   </button>
                 </>
               ) : (
-                <div className="flex flex-col items-center gap-1 text-muted-foreground">
-                  <Camera className="h-6 w-6" />
-                  <span className="text-xs font-semibold">Adicionar foto</span>
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <Camera className="h-8 w-8" />
+                  <span className="text-sm font-semibold">Toque para adicionar foto</span>
+                  <span className="text-xs opacity-70">JPG ou PNG</span>
                 </div>
               )}
               <input type="file" accept="image/*" className="hidden" onChange={e => {
@@ -122,91 +153,93 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
                 if (f) { setImageFile(f); setImagePreview(URL.createObjectURL(f)); }
               }} />
             </label>
-          </div>
+          </FieldBlock>
 
-          {/* Product name */}
-          <div>
-            <Label className="text-xs font-bold text-muted-foreground block mb-1.5">Nome do produto *</Label>
-            <Input className="h-11 rounded-xl" placeholder='Ex: Ração para gado de corte' value={form.product_name} onChange={e => set("product_name", e.target.value)} />
-          </div>
+          {/* Name */}
+          <FieldBlock label="Nome do produto *" hint='Ex: Ração para gado de corte 50kg'>
+            <Input className="h-12 rounded-xl text-base" placeholder="Nome do produto" value={form.product_name} onChange={e => set("product_name", e.target.value)} />
+          </FieldBlock>
 
           {/* Category */}
-          <div>
-            <Label className="text-xs font-bold text-muted-foreground block mb-1.5">Categoria *</Label>
-            <div className="grid grid-cols-2 gap-1.5">
-              {CATEGORIES.map(c => (
-                <button key={c} type="button" onClick={() => set("category", c)}
-                  className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-colors select-none text-left ${form.category === c ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"}`}>
-                  {c}
+          <FieldBlock label="Categoria *">
+            <div className="grid grid-cols-2 gap-2">
+              {CATEGORIES.map(({ label, emoji }) => (
+                <button key={label} type="button" onClick={() => set("category", label)}
+                  className={`flex items-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold border transition-all select-none ${
+                    form.category === label ? "bg-primary text-primary-foreground border-primary" : "bg-muted/50 border-border text-foreground"
+                  }`}>
+                  <span>{emoji}</span> {label}
                 </button>
               ))}
             </div>
-          </div>
+          </FieldBlock>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label className="text-xs font-bold text-muted-foreground block mb-1.5">Preço (R$) *</Label>
+          {/* Price & Unit */}
+          <div className="grid grid-cols-2 gap-3">
+            <FieldBlock label="Preço (R$) *">
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">R$</span>
-                <Input className="h-11 rounded-xl pl-8 text-sm" type="number" inputMode="decimal" placeholder="0,00" value={form.price} onChange={e => set("price", e.target.value)} />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">R$</span>
+                <Input className="h-12 rounded-xl pl-9 text-base" type="number" inputMode="decimal" placeholder="0,00" value={form.price} onChange={e => set("price", e.target.value)} />
               </div>
-            </div>
-            <div>
-              <Label className="text-xs font-bold text-muted-foreground block mb-1.5">Unidade *</Label>
+            </FieldBlock>
+            <FieldBlock label="Unidade *">
               <select
-                className="w-full h-11 rounded-xl border border-input bg-card px-3 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                value={form.unit} onChange={e => set("unit", e.target.value)}
-              >
+                className="w-full h-12 rounded-xl border border-input bg-card px-3 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                value={form.unit} onChange={e => set("unit", e.target.value)}>
                 <option value="">Selecionar</option>
                 {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
               </select>
-            </div>
+            </FieldBlock>
           </div>
 
-          <div>
-            <Label className="text-xs font-bold text-muted-foreground block mb-1.5">Marca</Label>
-            <Input className="h-11 rounded-xl" placeholder='Ex: Guabi, Tortuga...' value={form.brand} onChange={e => set("brand", e.target.value)} />
-          </div>
+          {/* Brand */}
+          <FieldBlock label="Marca" hint='Ex: Guabi, Tortuga, Presence...'>
+            <Input className="h-12 rounded-xl text-base" placeholder="Marca do produto (opcional)" value={form.brand} onChange={e => set("brand", e.target.value)} />
+          </FieldBlock>
 
-          <div>
-            <Label className="text-xs font-bold text-muted-foreground block mb-1.5">Descrição</Label>
-            <Textarea className="rounded-xl text-sm min-h-[70px]" placeholder='Detalhe o produto, composição, indicação...' value={form.description} onChange={e => set("description", e.target.value)} />
-          </div>
+          {/* Description */}
+          <FieldBlock label="Descrição" hint="Indicação, composição, quantidade embalada, etc.">
+            <Textarea className="rounded-xl text-base min-h-[75px]" placeholder="Descreva o produto..." value={form.description} onChange={e => set("description", e.target.value)} />
+          </FieldBlock>
 
           {/* Stock status */}
-          <div>
-            <Label className="text-xs font-bold text-muted-foreground block mb-1.5">Estoque</Label>
+          <FieldBlock label="Situação do estoque">
             <div className="flex gap-2">
-              {STOCK_OPTIONS.map(s => (
+              {STOCK.map(s => (
                 <button key={s} type="button" onClick={() => set("stock_status", s)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-colors select-none ${form.stock_status === s ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"}`}>
-                  {s}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition-all select-none ${
+                    form.stock_status === s ? "bg-primary text-primary-foreground border-primary" : "bg-muted/50 border-border text-foreground"
+                  }`}>
+                  {s === "Disponível" ? "🟢" : s === "Sob encomenda" ? "🟡" : "🔴"} {s}
                 </button>
               ))}
             </div>
-          </div>
+          </FieldBlock>
 
           {/* Availability toggles */}
-          <div className="flex gap-2">
-            <button type="button" onClick={() => set("pickup_available", !form.pickup_available)}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold border transition-colors select-none ${form.pickup_available ? "bg-green-100 border-green-400 text-green-700" : "bg-card border-border text-muted-foreground"}`}>
-              🏪 Retirada {form.pickup_available ? "✓" : "✗"}
-            </button>
-            <button type="button" onClick={() => set("delivery_available", !form.delivery_available)}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold border transition-colors select-none ${form.delivery_available ? "bg-blue-100 border-blue-400 text-blue-700" : "bg-card border-border text-muted-foreground"}`}>
-              🚚 Entrega {form.delivery_available ? "✓" : "✗"}
-            </button>
-            <button type="button" onClick={() => set("featured", !form.featured)}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold border transition-colors select-none ${form.featured ? "bg-amber-100 border-amber-400 text-amber-700" : "bg-card border-border text-muted-foreground"}`}>
-              ⭐ Destaque {form.featured ? "✓" : "✗"}
-            </button>
-          </div>
+          <FieldBlock label="Disponibilidade" hint="Define como o comprador pode adquirir este produto.">
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { field: "pickup_available", label: "🏪 Retirada" },
+                { field: "delivery_available", label: "🚚 Entrega" },
+                { field: "featured", label: "⭐ Destaque" },
+              ].map(({ field, label }) => (
+                <button key={field} type="button" onClick={() => set(field, !form[field])}
+                  className={`py-3 rounded-xl text-xs font-bold border transition-all select-none ${
+                    form[field] ? "bg-primary/10 border-primary text-primary" : "bg-muted/50 border-border text-muted-foreground"
+                  }`}>
+                  {label}<br />
+                  <span className="font-extrabold">{form[field] ? "Sim" : "Não"}</span>
+                </button>
+              ))}
+            </div>
+          </FieldBlock>
         </div>
 
         <DrawerFooter>
-          <Button className="w-full rounded-xl gap-2" onClick={handleSave} disabled={saving}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            {saving ? "Salvando..." : editProduct ? "Salvar alterações" : "Cadastrar produto"}
+          <Button className="w-full h-12 rounded-xl font-bold gap-2 text-base" onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
+            {saving ? "Salvando..." : editProduct ? "Salvar alterações" : "Adicionar produto"}
           </Button>
           <DrawerClose asChild>
             <Button variant="ghost" className="w-full rounded-xl text-muted-foreground">Cancelar</Button>
