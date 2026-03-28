@@ -1,12 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Store, ShoppingBag, PlusCircle, UserCircle } from "lucide-react";
+import { Home, Store, ShoppingBag, UserCircle, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { path: "/", label: "Início", icon: Home },
   { path: "/marketplace", label: "Mercado", icon: Store },
   { path: "/insumos", label: "Insumos", icon: ShoppingBag },
-  { path: "/vender", label: "Anunciar", icon: PlusCircle },
+  { path: "/minha-loja", label: "Minha Loja", icon: Package },
   { path: "/profile", label: "Conta", icon: UserCircle },
 ];
 

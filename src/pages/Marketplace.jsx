@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import ListingCard from "../components/ListingCard";
-import { Search, Loader2, SlidersHorizontal, X } from "lucide-react";
+import { Search, Loader2, SlidersHorizontal, X, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose,
@@ -22,7 +23,15 @@ const categories = [
 
 const CACHE_KEY = "mkt_listings";
 
+const DEMO_LISTINGS = [
+  { id: "demo1", title: "Bezerros nelore cruzados", category: "Gado e animais", price: 2800, city: "Goiânia", region: "GO", seller_name: "Sítio Boa Vista", seller_type: "Produtor", whatsapp: "62999990001", status: "active", featured: true },
+  { id: "demo2", title: "Leite fresco tipo A", category: "Laticínios", price: 3.20, city: "Anápolis", region: "GO", seller_name: "Fazenda São João", seller_type: "Produtor", whatsapp: "62999990002", status: "active" },
+  { id: "demo3", title: "Milho em grão saca 60kg", category: "Alimentos da roça", price: 72, city: "Rio Verde", region: "GO", seller_name: "Armazém Rural", seller_type: "Loja", whatsapp: "64999990003", status: "active" },
+  { id: "demo4", title: "Roçadeira lateral profissional", category: "Máquinas e ferramentas", price: 1350, city: "Jataí", region: "GO", seller_name: "Agro Sul", seller_type: "Loja", whatsapp: "64999990004", status: "active" },
+];
+
 export default function Marketplace() {
+  const navigate = useNavigate();
   const [listings, setListings] = useState(() => {
     try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null") || []; } catch { return []; }
   });
@@ -35,9 +44,10 @@ export default function Marketplace() {
 
   const fetchListings = useCallback(async () => {
     const data = await base44.entities.Listing.filter({ status: "active" }, "-created_date");
-    setListings(data);
+    const result = data.length > 0 ? data : DEMO_LISTINGS;
+    setListings(result);
     setLoading(false);
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    if (data.length > 0) sessionStorage.setItem(CACHE_KEY, JSON.stringify(result));
   }, []);
 
   useEffect(() => { fetchListings(); }, [fetchListings]);
@@ -77,9 +87,17 @@ export default function Marketplace() {
       )}
 
       {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Marketplace</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">Compre direto de produtores e vendedores da região</p>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Marketplace</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Compre direto de produtores da região</p>
+        </div>
+        <button
+          onClick={() => navigate("/vender")}
+          className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-primary text-primary-foreground text-xs font-bold select-none"
+        >
+          <PlusCircle className="h-4 w-4" /> Anunciar
+        </button>
       </div>
 
       {/* Search + filter */}

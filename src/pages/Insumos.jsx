@@ -10,6 +10,13 @@ import { usePullToRefresh } from "../hooks/usePullToRefresh";
 const CATEGORIES = ["Todos", "Ração", "Sal mineral", "Adubo", "Sementes", "Defensivos", "Medicamentos veterinários", "Ferramentas", "Equipamentos", "Outros"];
 const CACHE_KEY = "insumos_products";
 
+const DEMO_PRODUCTS = [
+  { id: "dp1", product_name: "Ração bovino engorda 50kg", category: "Ração", brand: "Guabi", price: 115, unit: "saco 50kg", supplier_name: "Agropecária São João", city: "Goiânia", region: "GO", whatsapp: "62999990010", pickup_available: true, delivery_available: false, stock_status: "Disponível", status: "active" },
+  { id: "dp2", product_name: "Sal mineral bovino 30kg", category: "Sal mineral", brand: "Tortuga", price: 89, unit: "saco 25kg", supplier_name: "Cooperativa Cenário", city: "Anápolis", region: "GO", whatsapp: "62999990011", pickup_available: true, delivery_available: true, delivery_radius_km: 80, stock_status: "Disponível", status: "active" },
+  { id: "dp3", product_name: "Adubo fórmula 20-05-20", category: "Adubo", price: 230, unit: "saco 50kg", supplier_name: "Insumos Rio Verde", city: "Rio Verde", region: "GO", whatsapp: "64999990012", pickup_available: true, delivery_available: true, delivery_radius_km: 120, stock_status: "Disponível", status: "active" },
+  { id: "dp4", product_name: "Sementes de soja TMG 7063", category: "Sementes", price: 340, unit: "saco 50kg", supplier_name: "AgroSul Jataí", city: "Jataí", region: "GO", whatsapp: "64999990013", pickup_available: true, delivery_available: false, stock_status: "Sob encomenda", status: "active" },
+];
+
 export default function Insumos() {
   const navigate = useNavigate();
   const [products, setProducts] = useState(() => {
@@ -25,9 +32,10 @@ export default function Insumos() {
 
   const fetchProducts = useCallback(async () => {
     const data = await base44.entities.InsumoProduct.filter({ status: "active" }, "-created_date");
-    setProducts(data);
+    const result = data.length > 0 ? data : DEMO_PRODUCTS;
+    setProducts(result);
     setLoading(false);
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    if (data.length > 0) sessionStorage.setItem(CACHE_KEY, JSON.stringify(result));
   }, []);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
