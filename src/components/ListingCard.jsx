@@ -16,7 +16,7 @@ const categoryEmoji = {
 export default function ListingCard({ listing }) {
   const navigate = useNavigate();
   const waUrl = listing.whatsapp
-    ? `https://wa.me/55${listing.whatsapp.replace(/\D/g, "")}?text=Olá! Vi o anúncio "${listing.title}" no Mercado Rural e tenho interesse.`
+    ? `https://wa.me/55${listing.whatsapp.replace(/\D/g, "")}?text=Olá! Vi o anúncio "${listing.title}" no TerraPonte e tenho interesse.`
     : null;
 
   const tag = listing.featured ? "⭐ Destaque" : listing.seller_type === "Produtor" ? "🌱 Produtor local" : "🏪 Loja";

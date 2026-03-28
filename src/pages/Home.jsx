@@ -44,16 +44,16 @@ export default function Home() {
           <Sprout className="h-7 w-7 text-primary-foreground" />
         </div>
         <div>
-          <h1 className="text-xl font-extrabold text-foreground tracking-tight">Mercado Rural</h1>
+          <h1 className="text-xl font-extrabold text-foreground tracking-tight">TerraPonte</h1>
           <p className="text-xs text-muted-foreground font-medium">Cotações do dia</p>
         </div>
       </div>
 
       {/* Greeting banner */}
       <div className="bg-primary rounded-2xl p-4 mb-4 shadow-md">
-        <p className="text-primary-foreground text-sm font-semibold mb-1">Olá, produtor! 🌾</p>
+        <p className="text-primary-foreground text-sm font-semibold mb-1">Compre direto de quem produz. 🌾</p>
         <p className="text-primary-foreground/80 text-xs">
-          Acompanhe os preços do mercado agropecuário e venda seus produtos.
+          Produtos, anúncios e oportunidades da sua região. A ponte entre o produtor e o comprador.
         </p>
       </div>
 
@@ -63,7 +63,7 @@ export default function Home() {
           onClick={() => navigate("/marketplace")}
           className="w-full h-12 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-sm shadow-md gap-2"
         >
-          🛒 Ver produtos anunciados na sua região
+          🛒 Ver anúncios da sua região
         </Button>
         <Button
           onClick={() => navigate("/insumos")}

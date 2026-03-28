@@ -7,7 +7,7 @@ import ReportSheet from "../components/ReportSheet";
 const FAQ = [
   {
     q: "Como publico um anúncio?",
-    a: "Acesse a aba \"Anunciar\" no menu inferior. Preencha as informações do produto, adicione uma foto e seu WhatsApp. Após publicar, o anúncio aparece no Marketplace."
+    a: "Acesse a aba \"Anunciar\" no menu inferior. Preencha as informações do produto, adicione uma foto e seu WhatsApp. Após publicar, o anúncio aparece no Marketplace do TerraPonte."
   },
   {
     q: "Como entro em contato com um vendedor?",
@@ -15,7 +15,7 @@ const FAQ = [
   },
   {
     q: "Meu anúncio não aparece no Marketplace. O que fazer?",
-    a: "Verifique se o anúncio foi publicado com sucesso na aba \"Anunciar\". Se o problema persistir, entre em contato com nosso suporte."
+    a: "Verifique se o anúncio foi publicado com sucesso na aba \"Anunciar\". Se o problema persistir, entre em contato com o suporte do TerraPonte."
   },
   {
     q: "Como denuncio um anúncio ou vendedor suspeito?",
@@ -76,19 +76,19 @@ export default function SupportPage() {
 
       {/* Contact options */}
       <div className="space-y-3 mb-8">
-        <a href="mailto:suporte@mercadorural.app" className="block">
+        <a href="mailto:suporte@terraponte.app" className="block">
           <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-4">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
               <Mail className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="font-bold text-foreground text-sm">E-mail</p>
-              <p className="text-xs text-muted-foreground">suporte@mercadorural.app</p>
+              <p className="text-xs text-muted-foreground">suporte@terraponte.app</p>
             </div>
           </div>
         </a>
 
-        <a href="https://wa.me/5511999999999?text=Olá! Preciso de suporte no Mercado Rural." target="_blank" rel="noopener noreferrer" className="block">
+        <a href="https://wa.me/5511999999999?text=Olá! Preciso de suporte no TerraPonte." target="_blank" rel="noopener noreferrer" className="block">
           <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-4">
             <div className="h-10 w-10 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
               <MessageCircle className="h-5 w-5 text-green-600" />

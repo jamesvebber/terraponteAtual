@@ -32,7 +32,7 @@ export default function PrivacyPolicy() {
       </div>
 
       <Section title="1. Quais dados coletamos">
-        <p>O Mercado Rural coleta apenas as informações necessárias para o funcionamento da plataforma:</p>
+        <p>O TerraPonte coleta apenas as informações necessárias para o funcionamento da plataforma:</p>
         <ul className="list-disc pl-4 space-y-1">
           <li><strong>Nome e e-mail</strong> — fornecidos no cadastro, usados para identificação e comunicação.</li>
           <li><strong>Número de WhatsApp</strong> — fornecido voluntariamente para que compradores entrem em contato com você diretamente.</li>
@@ -64,7 +64,7 @@ export default function PrivacyPolicy() {
       </Section>
 
       <Section title="4. Compartilhamento com terceiros">
-        <p>O Mercado Rural <strong>não vende</strong> seus dados pessoais. Os dados podem ser acessados por:</p>
+        <p>O TerraPonte <strong>não vende</strong> seus dados pessoais. Os dados podem ser acessados por:</p>
         <ul className="list-disc pl-4 space-y-1">
           <li><strong>Base44</strong> — plataforma de infraestrutura técnica que hospeda o aplicativo e o banco de dados.</li>
           <li><strong>Equipe de moderação</strong> — administradores do aplicativo que revisam denúncias e anúncios reportados.</li>
@@ -83,7 +83,7 @@ export default function PrivacyPolicy() {
 
       <Section title="7. Contato">
         <p>Para dúvidas sobre esta política ou para exercer seus direitos, entre em contato:</p>
-        <p className="font-semibold text-foreground">suporte@mercadorural.app</p>
+        <p className="font-semibold text-foreground">suporte@terraponte.app</p>
       </Section>
     </div>
   );

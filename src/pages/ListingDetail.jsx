@@ -53,7 +53,7 @@ export default function ListingDetail() {
   }
 
   const waUrl = listing.whatsapp
-    ? `https://wa.me/55${listing.whatsapp.replace(/\D/g, "")}?text=Olá! Vi o anúncio "${listing.title}" no Mercado Rural e tenho interesse.`
+    ? `https://wa.me/55${listing.whatsapp.replace(/\D/g, "")}?text=Olá! Vi o anúncio "${listing.title}" no TerraPonte e tenho interesse.`
     : null;
 
   return (

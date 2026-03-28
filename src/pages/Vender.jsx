@@ -76,9 +76,9 @@ export default function Vender() {
         <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
           <PlusCircle className="h-10 w-10 text-primary" />
         </div>
-        <h2 className="text-xl font-extrabold text-foreground mb-2">Anuncie seus produtos</h2>
+        <h2 className="text-xl font-extrabold text-foreground mb-2">Anuncie no TerraPonte</h2>
         <p className="text-sm text-muted-foreground mb-8 max-w-xs">
-          Entre na sua conta para publicar anúncios e vender diretamente pelo WhatsApp.
+          Entre na sua conta para publicar anúncios e vender direto para compradores da sua região.
         </p>
         <button
           onClick={() => base44.auth.redirectToLogin(window.location.href)}
@@ -99,7 +99,7 @@ export default function Vender() {
         </div>
         <h2 className="text-2xl font-extrabold text-foreground mb-2">Anúncio publicado!</h2>
         <p className="text-sm text-muted-foreground mb-8 max-w-xs">
-          Seu produto já está visível no Marketplace para compradores da sua região.
+          Seu produto já está visível no TerraPonte para compradores da sua região.
         </p>
         <div className="w-full max-w-xs space-y-3">
           <Button
@@ -188,7 +188,7 @@ export default function Vender() {
         </div>
         <div>
           <h1 className="text-xl font-extrabold text-foreground tracking-tight">Anunciar produto</h1>
-          <p className="text-xs text-muted-foreground font-medium">Publique e venda direto pelo WhatsApp</p>
+          <p className="text-xs text-muted-foreground font-medium">Ganhe visibilidade e venda direto pelo WhatsApp</p>
         </div>
       </div>
 
@@ -373,7 +373,7 @@ export default function Vender() {
             )}
           </Button>
           <p className="text-center text-xs text-muted-foreground mt-3">
-            Ao publicar, você concorda com os <span className="underline cursor-pointer" onClick={() => navigate("/terms")}>Termos de Uso</span>.
+            Ao publicar, você concorda com os <span className="underline cursor-pointer" onClick={() => navigate("/terms")}>Termos de Uso</span> do TerraPonte.
           </p>
         </div>
       </div>

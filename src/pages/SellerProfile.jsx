@@ -54,7 +54,7 @@ export default function SellerProfile() {
   const filtered = category === "Todos" ? listings : listings.filter(l => l.category === category);
   const TypeIcon = typeIcon[profile?.seller_type] || Store;
   const waUrl = profile?.whatsapp
-    ? `https://wa.me/55${profile.whatsapp.replace(/\D/g, "")}?text=Olá ${name}! Vi seu perfil no Mercado Rural.`
+    ? `https://wa.me/55${profile.whatsapp.replace(/\D/g, "")}?text=Olá ${name}! Vi seu perfil no TerraPonte.`
     : null;
 
   const joinDate = profile?.created_date

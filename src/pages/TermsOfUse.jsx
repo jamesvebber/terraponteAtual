@@ -31,8 +31,8 @@ export default function TermsOfUse() {
         </div>
       </div>
 
-      <Section title="1. Sobre o Mercado Rural">
-        <p>O Mercado Rural é uma plataforma digital que conecta produtores rurais, vendedores e compradores do agronegócio. Ao utilizar o aplicativo, você concorda com estes Termos de Uso.</p>
+      <Section title="1. Sobre o TerraPonte">
+        <p>O TerraPonte é uma plataforma digital de comércio rural que conecta produtores, vendedores e compradores de forma direta e prática. Ao utilizar o aplicativo, você concorda com estes Termos de Uso.</p>
       </Section>
 
       <Section title="2. Uso do Marketplace">
@@ -45,7 +45,7 @@ export default function TermsOfUse() {
       </Section>
 
       <Section title="3. Responsabilidade sobre anúncios">
-        <p>O Mercado Rural é uma plataforma intermediária. Cada vendedor é <strong>inteiramente responsável</strong> pelo conteúdo, veracidade e legalidade dos anúncios publicados em sua conta.</p>
+        <p>O TerraPonte é uma plataforma intermediária. Cada vendedor é <strong>inteiramente responsável</strong> pelo conteúdo, veracidade e legalidade dos anúncios publicados em sua conta.</p>
         <p>A plataforma não participa, garante ou intermedia nenhuma negociação ou transação financeira entre usuários.</p>
       </Section>
 
@@ -62,7 +62,7 @@ export default function TermsOfUse() {
       </Section>
 
       <Section title="5. Contato e negociação">
-        <p>O contato entre comprador e vendedor ocorre diretamente pelo WhatsApp informado no anúncio. O Mercado Rural não é parte das negociações e não se responsabiliza por:</p>
+        <p>O contato entre comprador e vendedor ocorre diretamente pelo WhatsApp informado no anúncio. O TerraPonte não é parte das negociações e não se responsabiliza por:</p>
         <ul className="list-disc pl-4 space-y-1">
           <li>Qualidade, entrega ou pagamento de produtos.</li>
           <li>Disputas entre comprador e vendedor.</li>
@@ -72,7 +72,7 @@ export default function TermsOfUse() {
       </Section>
 
       <Section title="6. Limitação de responsabilidade">
-        <p>O Mercado Rural oferece o serviço "como está" e não garante disponibilidade contínua, correção de erros em prazo específico ou adequação para fins específicos. Não somos responsáveis por danos indiretos, perda de dados ou lucros cessantes.</p>
+        <p>O TerraPonte oferece o serviço "como está" e não garante disponibilidade contínua, correção de erros em prazo específico ou adequação para fins específicos. Não somos responsáveis por danos indiretos, perda de dados ou lucros cessantes.</p>
       </Section>
 
       <Section title="7. Regras de conta">
@@ -90,7 +90,7 @@ export default function TermsOfUse() {
 
       <Section title="9. Contato">
         <p>Dúvidas sobre estes termos:</p>
-        <p className="font-semibold text-foreground">suporte@mercadorural.app</p>
+        <p className="font-semibold text-foreground">suporte@terraponte.app</p>
       </Section>
     </div>
   );

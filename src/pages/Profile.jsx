@@ -51,9 +51,9 @@ function GuestScreen() {
       <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
         <User className="h-10 w-10 text-primary" />
       </div>
-      <h2 className="text-xl font-extrabold text-foreground mb-2">Bem-vindo ao Mercado Rural</h2>
+      <h2 className="text-xl font-extrabold text-foreground mb-2">Bem-vindo ao TerraPonte</h2>
       <p className="text-sm text-muted-foreground mb-8 max-w-xs">
-        Crie uma conta ou entre para anunciar produtos, gerenciar seus anúncios e acessar todas as funcionalidades.
+        Crie uma conta ou entre para anunciar produtos, conectar com compradores e acessar todas as funcionalidades do TerraPonte.
       </p>
       <Button
         className="w-full max-w-xs h-12 rounded-xl font-bold text-base mb-3"
@@ -62,7 +62,7 @@ function GuestScreen() {
         Entrar / Criar conta
       </Button>
       <p className="text-xs text-muted-foreground">
-        Você pode navegar pelo marketplace sem conta.
+        Você pode navegar pelo Marketplace sem conta.
       </p>
     </div>
   );
@@ -115,7 +115,7 @@ export default function Profile() {
         </div>
         <div>
           <h1 className="text-xl font-extrabold text-foreground tracking-tight">Minha Conta</h1>
-          <p className="text-xs text-muted-foreground font-medium">Perfil e configurações</p>
+          <p className="text-xs text-muted-foreground font-medium">Minha conta no TerraPonte</p>
         </div>
       </div>
 
