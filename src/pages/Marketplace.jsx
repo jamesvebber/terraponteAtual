@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import ListingCard from "../components/ListingCard";
-import { Search, Loader2, ShoppingBag, SlidersHorizontal, X } from "lucide-react";
+import { Search, Loader2, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose,
 } from "@/components/ui/drawer";
+import { usePullToRefresh } from "../hooks/usePullToRefresh";
 
 const categories = [
   { label: "Todos", emoji: "🔍" },
@@ -19,21 +20,29 @@ const categories = [
   { label: "Outros", emoji: "📦" },
 ];
 
+const CACHE_KEY = "mkt_listings";
+
 export default function Marketplace() {
-  const [listings, setListings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [listings, setListings] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null") || []; } catch { return []; }
+  });
+  const [loading, setLoading] = useState(() => !sessionStorage.getItem(CACHE_KEY));
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [sellerType, setSellerType] = useState("Ambos");
   const [selectedCity, setSelectedCity] = useState("Todas");
 
-  useEffect(() => {
-    base44.entities.Listing.filter({ status: "active" }, "-created_date").then((data) => {
-      setListings(data);
-      setLoading(false);
-    });
+  const fetchListings = useCallback(async () => {
+    const data = await base44.entities.Listing.filter({ status: "active" }, "-created_date");
+    setListings(data);
+    setLoading(false);
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
   }, []);
+
+  useEffect(() => { fetchListings(); }, [fetchListings]);
+
+  const { isPulling, pullActive, onTouchStart, onTouchMove, onTouchEnd } = usePullToRefresh(fetchListings);
 
   const cities = useMemo(() => ["Todas", ...new Set(listings.map((l) => l.city).filter(Boolean))], [listings]);
 
@@ -54,7 +63,19 @@ export default function Marketplace() {
   const hasFilters = sellerType !== "Ambos" || selectedCity !== "Todas";
 
   return (
-    <div className="px-4 pt-6">
+    <div
+      className="px-4 pt-6"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* Pull-to-refresh indicator */}
+      {pullActive && (
+        <div className="flex justify-center pb-2 transition-all">
+          <Loader2 className={`h-5 w-5 text-primary ${isPulling ? "animate-spin" : "opacity-40"}`} />
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-4">
         <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Marketplace</h1>
@@ -74,7 +95,7 @@ export default function Marketplace() {
         </div>
         <Button
           variant="outline"
-          className={`h-11 px-3 rounded-xl gap-1.5 select-none ${hasFilters ? "border-primary text-primary" : ""}`}
+          className={`h-11 px-3 rounded-xl gap-1.5 ${hasFilters ? "border-primary text-primary" : ""}`}
           onClick={() => setFilterDrawerOpen(true)}
         >
           <SlidersHorizontal className="h-4 w-4" />
@@ -142,7 +163,6 @@ export default function Marketplace() {
         <DrawerContent>
           <DrawerHeader><DrawerTitle>Filtros</DrawerTitle></DrawerHeader>
           <div className="px-4 space-y-5 pb-2">
-            {/* Seller type */}
             <div>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2 block">Tipo de vendedor</label>
               <div className="flex gap-2">
@@ -159,7 +179,6 @@ export default function Marketplace() {
                 ))}
               </div>
             </div>
-            {/* City */}
             <div>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2 block">Cidade</label>
               <div className="space-y-1 max-h-44 overflow-y-auto">
@@ -179,12 +198,12 @@ export default function Marketplace() {
           </div>
           <DrawerFooter>
             {hasFilters && (
-              <Button variant="ghost" className="w-full gap-2 text-muted-foreground select-none" onClick={() => { setSellerType("Ambos"); setSelectedCity("Todas"); }}>
+              <Button variant="ghost" className="w-full gap-2 text-muted-foreground" onClick={() => { setSellerType("Ambos"); setSelectedCity("Todas"); }}>
                 <X className="h-4 w-4" /> Limpar filtros
               </Button>
             )}
             <DrawerClose asChild>
-              <Button className="w-full rounded-xl select-none">Aplicar</Button>
+              <Button className="w-full rounded-xl">Aplicar</Button>
             </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
@@ -202,9 +221,9 @@ function EmptyState({ search, category }) {
       </h3>
       <p className="text-sm text-muted-foreground max-w-[240px]">
         {search
-          ? `Não encontramos nada para “${search}”. Tente outro termo.`
+          ? `Não encontramos nada para "${search}". Tente outro termo.`
           : category !== "Todos"
-          ? `Ainda não há anúncios em “${category}”. Seja o primeiro!`
+          ? `Ainda não há anúncios em "${category}". Seja o primeiro!`
           : "Ainda não há anúncios publicados. Que tal anunciar o seu produto?"}
       </p>
     </div>

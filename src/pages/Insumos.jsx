@@ -1,17 +1,21 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import InsumoProductCard from "../components/InsumoProductCard";
 import { Loader2, ShoppingBag, Store, Search, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
+import { usePullToRefresh } from "../hooks/usePullToRefresh";
 
 const CATEGORIES = ["Todos", "Ração", "Sal mineral", "Adubo", "Sementes", "Defensivos", "Medicamentos veterinários", "Ferramentas", "Equipamentos", "Outros"];
+const CACHE_KEY = "insumos_products";
 
 export default function Insumos() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null") || []; } catch { return []; }
+  });
+  const [loading, setLoading] = useState(() => !sessionStorage.getItem(CACHE_KEY));
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -19,12 +23,16 @@ export default function Insumos() {
   const [deliveryOnly, setDeliveryOnly] = useState(false);
   const [pickupOnly, setPickupOnly] = useState(false);
 
-  useEffect(() => {
-    base44.entities.InsumoProduct.filter({ status: "active" }, "-created_date").then((data) => {
-      setProducts(data);
-      setLoading(false);
-    });
+  const fetchProducts = useCallback(async () => {
+    const data = await base44.entities.InsumoProduct.filter({ status: "active" }, "-created_date");
+    setProducts(data);
+    setLoading(false);
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
   }, []);
+
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+
+  const { isPulling, pullActive, onTouchStart, onTouchMove, onTouchEnd } = usePullToRefresh(fetchProducts);
 
   const cities = useMemo(() => ["Todas", ...new Set(products.map(p => p.city).filter(Boolean))], [products]);
   const hasFilters = selectedCity !== "Todas" || deliveryOnly || pickupOnly;
@@ -45,7 +53,19 @@ export default function Insumos() {
   const bestId = sorted[0]?.id;
 
   return (
-    <div className="px-4 pt-6">
+    <div
+      className="px-4 pt-6"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* Pull-to-refresh indicator */}
+      {pullActive && (
+        <div className="flex justify-center pb-2 transition-all">
+          <Loader2 className={`h-5 w-5 text-primary ${isPulling ? "animate-spin" : "opacity-40"}`} />
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">

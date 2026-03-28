@@ -204,14 +204,29 @@ export default function MinhaLoja() {
 
   const handleToggleProduct = async (product) => {
     const newStatus = product.status === "active" ? "inactive" : "active";
-    await base44.entities.InsumoProduct.update(product.id, { status: newStatus });
+    // Optimistic update
     setProducts(ps => ps.map(p => p.id === product.id ? { ...p, status: newStatus } : p));
+    try {
+      await base44.entities.InsumoProduct.update(product.id, { status: newStatus });
+    } catch {
+      // Rollback
+      setProducts(ps => ps.map(p => p.id === product.id ? { ...p, status: product.status } : p));
+      toast.error("Não foi possível atualizar o produto. Tente novamente.");
+    }
   };
 
   const handleDeleteProduct = async (id) => {
-    await base44.entities.InsumoProduct.delete(id);
+    const backup = products.find(p => p.id === id);
+    // Optimistic update
     setProducts(ps => ps.filter(p => p.id !== id));
     toast.success("Produto removido.");
+    try {
+      await base44.entities.InsumoProduct.delete(id);
+    } catch {
+      // Rollback
+      if (backup) setProducts(ps => [backup, ...ps]);
+      toast.error("Não foi possível remover. Tente novamente.");
+    }
   };
 
   if (isLoadingAuth || loading) {
