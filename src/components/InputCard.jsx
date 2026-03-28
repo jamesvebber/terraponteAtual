@@ -2,7 +2,7 @@ import { MapPin, Truck, Store, MessageCircle, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export default function InputCard({ input, isBest }) {
+export default function InputCard({ input, isBest, isNearest, economia }) {
   const custoFinal = (input.price || 0) + (input.freight_cost || 0);
 
   const whatsappUrl = input.whatsapp
@@ -18,11 +18,20 @@ export default function InputCard({ input, isBest }) {
           : "border-border"
       )}
     >
-      {/* Best badge */}
-      {isBest && (
-        <div className="flex items-center gap-1.5 mb-3 bg-primary text-primary-foreground text-xs font-bold px-3 py-1.5 rounded-full w-fit">
-          <Star className="h-3.5 w-3.5 fill-current" />
-          🔥 Melhor opção
+      {/* Badges */}
+      {(isBest || isNearest) && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {isBest && (
+            <div className="flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-bold px-3 py-1.5 rounded-full">
+              <Star className="h-3.5 w-3.5 fill-current" />
+              🔥 Melhor preço hoje
+            </div>
+          )}
+          {isNearest && !isBest && (
+            <div className="flex items-center gap-1.5 bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">
+              📍 Mais perto
+            </div>
+          )}
         </div>
       )}
 
@@ -53,22 +62,22 @@ export default function InputCard({ input, isBest }) {
         </div>
         <div className="border-t border-border/60 pt-1.5 flex items-center justify-between">
           <span className="font-bold text-foreground text-sm">Total</span>
-          <span
-            className={cn(
-              "text-lg font-extrabold",
-              isBest ? "text-primary" : "text-foreground"
-            )}
-          >
+          <span className="text-2xl font-extrabold text-green-600">
             R$ {custoFinal.toFixed(2).replace(".", ",")}
           </span>
         </div>
+        {economia > 0 && (
+          <div className="pt-1 text-xs font-bold text-green-600">
+            💰 Você economiza R$ {economia.toFixed(2).replace(".", ",")} nesta opção
+          </div>
+        )}
       </div>
 
       {/* Location & supplier */}
       <div className="space-y-1.5 mb-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Store className="h-4 w-4 shrink-0" />
-          <span className="truncate">{input.supplier}</span>
+          <span className="truncate">Loja: {input.supplier}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="h-4 w-4 shrink-0" />
@@ -84,7 +93,7 @@ export default function InputCard({ input, isBest }) {
         <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block">
           <Button className="w-full h-11 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-xl gap-2">
             <MessageCircle className="h-4 w-4" />
-            Chamar no WhatsApp
+            WhatsApp
           </Button>
         </a>
       )}

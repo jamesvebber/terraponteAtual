@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
-import { TrendingUp, TrendingDown } from "lucide-react";
 
-export default function MarketCard({ product_name, price, unit, trend, icon }) {
+export default function MarketCard({ product_name, price, unit, trend, icon, urgency }) {
   const isUp = trend === "up";
 
   return (
@@ -14,20 +13,25 @@ export default function MarketCard({ product_name, price, unit, trend, icon }) {
         R$ {price?.toFixed(2).replace(".", ",")}
       </p>
       <p className="text-xs text-muted-foreground mb-2">por {unit}</p>
-      <div
-        className={cn(
-          "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold",
-          isUp
-            ? "bg-green-100 text-green-700"
-            : "bg-red-100 text-red-600"
+      <div className="flex items-center justify-between">
+        <div
+          className={cn(
+            "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold",
+            isUp
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-600"
+          )}
+        >
+          {isUp ? (
+            <TrendingUp className="h-3.5 w-3.5" />
+          ) : (
+            <TrendingDown className="h-3.5 w-3.5" />
+          )}
+          {isUp ? "↑ Subiu" : "↓ Caiu"}
+        </div>
+        {urgency && (
+          <span className="text-[10px] font-bold ml-1">{urgency}</span>
         )}
-      >
-        {isUp ? (
-          <TrendingUp className="h-3.5 w-3.5" />
-        ) : (
-          <TrendingDown className="h-3.5 w-3.5" />
-        )}
-        {isUp ? "↑ Subiu" : "↓ Caiu"}
       </div>
     </div>
   );

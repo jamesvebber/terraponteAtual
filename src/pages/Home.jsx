@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Sprout, TrendingDown } from "lucide-react";
 
 const defaultPrices = [
-  { product_name: "Arroba do Boi", price: 310.5, unit: "@", trend: "up", icon: "🐂" },
-  { product_name: "Leite", price: 2.85, unit: "litro", trend: "down", icon: "🥛" },
+  { product_name: "Arroba do Boi", price: 310.5, unit: "@", trend: "up", icon: "🐂", urgency: "🔥 Preço em alta hoje" },
+  { product_name: "Leite", price: 2.85, unit: "litro", trend: "down", icon: "🥛", urgency: "⚠️ Atenção ao mercado" },
   { product_name: "Milho", price: 72.0, unit: "saca 60kg", trend: "up", icon: "🌽" },
   { product_name: "Soja", price: 138.5, unit: "saca 60kg", trend: "down", icon: "🫘" },
 ];
@@ -16,11 +16,21 @@ export default function Home() {
   const [prices, setPrices] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     async function loadPrices() {
       const data = await base44.entities.MarketPrice.list();
-      setPrices(data.length > 0 ? data : defaultPrices);
+      const enriched = (data.length > 0 ? data : defaultPrices).map((p, i) => ({
+        ...p,
+        urgency: i === 0 ? "🔥 Preço em alta hoje" : i === 1 ? "⚠️ Atenção ao mercado" : undefined,
+      }));
+      setPrices(enriched);
       setLoading(false);
     }
     loadPrices();
@@ -57,7 +67,12 @@ export default function Home() {
       </Button>
 
       {/* Market prices */}
-      <h2 className="text-base font-bold text-foreground mb-3">Cotações</h2>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-base font-bold text-foreground">Cotações</h2>
+        <span className="text-[11px] text-muted-foreground font-medium">
+          ⏱️ Atualizado hoje às {now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+        </span>
+      </div>
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />

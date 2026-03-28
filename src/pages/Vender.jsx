@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import RecentListings from "../components/RecentListings";
 import { PlusCircle, Loader2, Camera, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -66,18 +67,10 @@ export default function Vender() {
 
     setSubmitting(false);
     setSuccess(true);
-    toast.success("Anúncio publicado com sucesso!");
+    toast.success("Produto publicado!");
 
     setTimeout(() => {
-      setForm({
-        product_name: "",
-        category: "",
-        description: "",
-        price: "",
-        city: "",
-        state: "",
-        whatsapp: "",
-      });
+      setForm({ product_name: "", category: "", description: "", price: "", city: "", state: "", whatsapp: "" });
       setImageFile(null);
       setImagePreview(null);
       setSuccess(false);
@@ -90,8 +83,8 @@ export default function Vender() {
         <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center mb-4">
           <CheckCircle2 className="h-10 w-10 text-green-600" />
         </div>
-        <h2 className="text-xl font-bold text-foreground mb-1">Anúncio publicado!</h2>
-        <p className="text-sm text-muted-foreground">Seu produto já está disponível.</p>
+        <h2 className="text-xl font-bold text-foreground mb-1">Produto publicado!</h2>
+        <p className="text-sm text-muted-foreground">Seu anúncio já está no mercado.</p>
       </div>
     );
   }
@@ -104,9 +97,16 @@ export default function Vender() {
         </div>
         <div>
           <h1 className="text-xl font-extrabold text-foreground tracking-tight">Vender</h1>
-          <p className="text-xs text-muted-foreground font-medium">Publique seu produto</p>
+          <p className="text-xs text-muted-foreground font-medium">Publique e venda direto pelo WhatsApp</p>
         </div>
       </div>
+
+      {/* Recent listings */}
+      <RecentListings />
+
+      {/* Divider */}
+      <div className="border-t border-border mb-5" />
+      <h2 className="text-base font-bold text-foreground mb-4">Novo anúncio</h2>
 
       <div className="space-y-4">
         {/* Image upload */}
@@ -134,9 +134,7 @@ export default function Vender() {
             </SelectTrigger>
             <SelectContent>
               {categories.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
+                <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -217,11 +215,7 @@ export default function Vender() {
           onClick={handleSubmit}
           disabled={submitting}
         >
-          {submitting ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            "Publicar anúncio"
-          )}
+          {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Vender produto"}
         </Button>
 
         <div className="h-4" />

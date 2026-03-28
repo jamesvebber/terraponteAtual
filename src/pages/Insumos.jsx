@@ -4,23 +4,20 @@ import InputCard from "../components/InputCard";
 import InsumosFilters from "../components/InsumosFilters";
 import { Loader2, ShoppingBag } from "lucide-react";
 
-const defaultFilters = {
-  category: "Todos",
-  city: "Todas",
-  maxDistance: 9999,
-  maxTotal: 9999,
-};
-
 export default function Insumos() {
   const [inputs, setInputs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState(defaultFilters);
+  const [filters, setFilters] = useState({
+    category: "Todos",
+    city: "Todas",
+    maxDistance: 9999,
+    maxTotal: 9999,
+  });
 
   useEffect(() => {
     async function loadInputs() {
       const data = await base44.entities.AgriculturalInput.list();
       setInputs(data);
-      // Set sensible defaults based on data
       const maxDist = Math.max(...data.map((i) => i.distance_km || 0), 500);
       const maxTotal = Math.max(...data.map((i) => (i.price || 0) + (i.freight_cost || 0)), 1000);
       setFilters({ category: "Todos", city: "Todas", maxDistance: maxDist, maxTotal });
@@ -29,13 +26,11 @@ export default function Insumos() {
     loadInputs();
   }, []);
 
-  // Annotate with custo final
   const withCusto = inputs.map((item) => ({
     ...item,
     custo_final: (item.price || 0) + (item.freight_cost || 0),
   }));
 
-  // Filter
   const filtered = withCusto.filter((item) => {
     if (filters.category !== "Todos" && item.category !== filters.category) return false;
     if (filters.city !== "Todas" && item.city !== filters.city) return false;
@@ -44,10 +39,11 @@ export default function Insumos() {
     return true;
   });
 
-  // Sort by custo_final ascending
   const sorted = [...filtered].sort((a, b) => a.custo_final - b.custo_final);
 
   const bestId = sorted[0]?.id;
+  const nearestId = [...filtered].sort((a, b) => (a.distance_km || 9999) - (b.distance_km || 9999))[0]?.id;
+  const maxCusto = sorted.length > 0 ? sorted[sorted.length - 1].custo_final : 0;
 
   return (
     <div className="px-4 pt-6">
@@ -84,7 +80,13 @@ export default function Insumos() {
           </p>
           <div className="space-y-3">
             {sorted.map((item) => (
-              <InputCard key={item.id} input={item} isBest={item.id === bestId} />
+              <InputCard
+                key={item.id}
+                input={item}
+                isBest={item.id === bestId}
+                isNearest={item.id === nearestId}
+                economia={maxCusto - item.custo_final}
+              />
             ))}
           </div>
         </>
