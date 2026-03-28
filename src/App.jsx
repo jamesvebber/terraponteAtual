@@ -18,6 +18,7 @@ import EditSellerProfile from './pages/EditSellerProfile';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfUse from './pages/TermsOfUse';
 import SupportPage from './pages/SupportPage';
+import MinhaLoja from './pages/MinhaLoja';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -54,6 +55,7 @@ const AuthenticatedApp = () => {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfUse />} />
         <Route path="/support" element={<SupportPage />} />
+        <Route path="/minha-loja" element={<MinhaLoja />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

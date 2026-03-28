@@ -188,6 +188,7 @@ export default function Profile() {
       {/* Seller profile */}
       <Section title="Vendedor">
         <SettingsRow icon={Store} label="Perfil de vendedor" sublabel="Configure como os compradores te veem" onClick={() => navigate("/edit-seller-profile")} />
+        <SettingsRow icon={Store} label="Minha loja de insumos" sublabel="Gerencie produtos, entregas e frete" onClick={() => navigate("/minha-loja")} />
       </Section>
 
       {/* Suporte */}

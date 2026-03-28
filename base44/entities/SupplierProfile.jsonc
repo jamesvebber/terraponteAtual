@@ -1,0 +1,107 @@
+{
+  "name": "SupplierProfile",
+  "type": "object",
+  "properties": {
+    "store_name": {
+      "type": "string",
+      "description": "Nome da loja ou cooperativa"
+    },
+    "responsible_name": {
+      "type": "string",
+      "description": "Nome do respons\u00e1vel"
+    },
+    "supplier_type": {
+      "type": "string",
+      "enum": [
+        "Agropecu\u00e1ria",
+        "Cooperativa",
+        "Fornecedor de insumos",
+        "Loja",
+        "Revendedor"
+      ],
+      "description": "Tipo de fornecedor"
+    },
+    "city": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string",
+      "description": "Estado (UF)"
+    },
+    "whatsapp": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o curta da loja"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL do logo ou foto da loja"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email do dono do perfil"
+    },
+    "pickup_available": {
+      "type": "boolean",
+      "default": true
+    },
+    "delivery_available": {
+      "type": "boolean",
+      "default": false
+    },
+    "delivery_radius_km": {
+      "type": "number"
+    },
+    "price_per_km": {
+      "type": "number"
+    },
+    "fixed_delivery_fee": {
+      "type": "number"
+    },
+    "minimum_order_for_delivery": {
+      "type": "number"
+    },
+    "free_delivery_above": {
+      "type": "number"
+    },
+    "delivery_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "store_name",
+    "supplier_type",
+    "city",
+    "whatsapp"
+  ],
+  "rls": {
+    "create": {},
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

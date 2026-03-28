@@ -1,0 +1,150 @@
+{
+  "name": "InsumoProduct",
+  "type": "object",
+  "properties": {
+    "product_name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Ra\u00e7\u00e3o",
+        "Sal mineral",
+        "Adubo",
+        "Sementes",
+        "Defensivos",
+        "Medicamentos veterin\u00e1rios",
+        "Ferramentas",
+        "Equipamentos",
+        "Outros"
+      ]
+    },
+    "brand": {
+      "type": "string",
+      "description": "Marca do produto"
+    },
+    "description": {
+      "type": "string"
+    },
+    "price": {
+      "type": "number"
+    },
+    "unit": {
+      "type": "string",
+      "enum": [
+        "saco 25kg",
+        "saco 50kg",
+        "litro",
+        "kg",
+        "unidade",
+        "caixa",
+        "gal\u00e3o"
+      ],
+      "description": "Unidade de venda"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "stock_status": {
+      "type": "string",
+      "enum": [
+        "Dispon\u00edvel",
+        "Sob encomenda",
+        "Esgotado"
+      ],
+      "default": "Dispon\u00edvel"
+    },
+    "pickup_available": {
+      "type": "boolean",
+      "default": true
+    },
+    "delivery_available": {
+      "type": "boolean",
+      "default": false
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "supplier_id": {
+      "type": "string",
+      "description": "ID do perfil do fornecedor"
+    },
+    "supplier_name": {
+      "type": "string"
+    },
+    "supplier_type": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string"
+    },
+    "whatsapp": {
+      "type": "string"
+    },
+    "delivery_radius_km": {
+      "type": "number"
+    },
+    "price_per_km": {
+      "type": "number"
+    },
+    "fixed_delivery_fee": {
+      "type": "number"
+    },
+    "minimum_order_for_delivery": {
+      "type": "number"
+    },
+    "free_delivery_above": {
+      "type": "number"
+    },
+    "delivery_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "product_name",
+    "category",
+    "price",
+    "unit",
+    "supplier_id"
+  ],
+  "rls": {
+    "create": {},
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
