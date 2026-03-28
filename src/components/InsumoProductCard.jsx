@@ -72,11 +72,11 @@ export default function InsumoProductCard({ product, isBest }) {
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground mb-1.5 self-start">
             {product.category}
           </span>
-          <h3 className="font-bold text-foreground text-sm leading-snug mb-0.5 line-clamp-2">{product.product_name}</h3>
+          <h3 className="font-bold text-foreground text-base leading-snug mb-0.5 line-clamp-2">{product.product_name}</h3>
           {product.brand && <p className="text-xs text-muted-foreground mb-1">{product.brand}</p>}
 
           <div className="flex items-baseline gap-1 mb-2">
-            <span className="text-green-600 font-extrabold text-lg">
+            <span className="text-green-600 font-extrabold text-xl">
               R$ {product.price?.toFixed(2).replace(".", ",")}
             </span>
             <span className="text-xs text-muted-foreground">/{product.unit}</span>
@@ -110,7 +110,7 @@ export default function InsumoProductCard({ product, isBest }) {
 
           {/* Actions */}
           <div className="flex gap-2 mt-auto">
-            <Button variant="outline" size="sm" className="flex-1 rounded-xl text-xs gap-1 h-9"
+            <Button variant="outline" size="sm" className="flex-1 rounded-xl text-xs gap-1 h-11"
               onClick={(e) => { e.stopPropagation(); setFreightOpen(true); }}>
               <Calculator className="h-3.5 w-3.5" />
               {product.delivery_available ? "Calcular frete" : "Ver condições"}

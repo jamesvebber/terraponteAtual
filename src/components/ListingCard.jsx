@@ -43,12 +43,12 @@ export default function ListingCard({ listing }) {
 
         {/* Title & price */}
         <h3
-          className="font-bold text-foreground text-sm leading-tight mb-1 cursor-pointer hover:text-primary transition-colors line-clamp-2"
+          className="font-bold text-foreground text-base leading-snug mb-1.5 cursor-pointer hover:text-primary transition-colors line-clamp-2"
           onClick={() => navigate(`/marketplace/${listing.id}`)}
         >
           {listing.title}
         </h3>
-        <p className="text-green-600 font-extrabold text-lg mb-2">
+        <p className="text-green-600 font-extrabold text-xl mb-2">
           R$ {listing.price?.toFixed(2).replace(".", ",")}
         </p>
 
@@ -65,7 +65,7 @@ export default function ListingCard({ listing }) {
         {/* Actions */}
         <div className="flex gap-2">
           <Button
-            className="flex-1 h-9 text-xs font-bold rounded-xl"
+            className="flex-1 h-11 text-sm font-bold rounded-xl"
             onClick={() => navigate(`/marketplace/${listing.id}`)}
           >
             Ver anúncio

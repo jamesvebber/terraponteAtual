@@ -143,11 +143,11 @@ export default function Insumos() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : sorted.length === 0 ? (
-        <div className="text-center py-16">
-          <ShoppingBag className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
-          <p className="text-muted-foreground text-sm font-medium">Nenhum produto encontrado</p>
-          <p className="text-muted-foreground/70 text-xs mt-1">Tente outros termos ou cadastre sua loja</p>
-          <Button variant="outline" className="rounded-xl mt-4 gap-2 text-sm" onClick={() => navigate("/minha-loja")}>
+        <div className="text-center py-16 px-4">
+          <span className="text-6xl mb-4 block">🌿</span>
+          <p className="text-foreground text-xl font-bold mb-2">Nenhum produto ainda nesta região</p>
+          <p className="text-muted-foreground text-base leading-relaxed mb-5">Seja o primeiro a anunciar insumos e alcance produtores locais.</p>
+          <Button variant="outline" className="rounded-xl gap-2 h-12 text-sm" onClick={() => navigate("/minha-loja")}>
             <Store className="h-4 w-4" /> Cadastrar minha loja
           </Button>
         </div>

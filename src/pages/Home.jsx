@@ -109,21 +109,23 @@ function LocationPermissionBanner({ onAllow, onDismiss }) {
 
 function RegionBlock({ region, onChangeRegion }) {
   return (
-    <div className="bg-card border border-border rounded-2xl px-4 py-3 flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-primary shrink-0" />
-        <div>
-          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Sua região</p>
-          <p className="text-sm font-bold text-foreground">{region}</p>
+    <button
+      onClick={onChangeRegion}
+      className="w-full bg-primary/10 border-2 border-primary/30 rounded-2xl px-4 py-3.5 flex items-center justify-between mb-4 select-none active:scale-[0.98] transition-transform"
+    >
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+          <MapPin className="h-5 w-5 text-primary" />
+        </div>
+        <div className="text-left">
+          <p className="text-[11px] font-bold text-primary uppercase tracking-wide">Sua região</p>
+          <p className="text-base font-extrabold text-foreground">{region}</p>
         </div>
       </div>
-      <button
-        onClick={onChangeRegion}
-        className="flex items-center gap-1 text-xs font-bold text-primary select-none"
-      >
-        <Edit2 className="h-3 w-3" /> Alterar
-      </button>
-    </div>
+      <div className="flex items-center gap-1 text-sm font-bold text-primary">
+        <Edit2 className="h-4 w-4" /> Alterar
+      </div>
+    </button>
   );
 }
 

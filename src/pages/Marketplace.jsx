@@ -222,17 +222,15 @@ export default function Marketplace() {
 
 function EmptyState({ search, category }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <span className="text-5xl mb-4">🌾</span>
-      <h3 className="font-bold text-foreground text-lg mb-1">
-        {search ? "Nenhum resultado encontrado" : "Sem anúncios aqui ainda"}
+    <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+      <span className="text-6xl mb-4">🌾</span>
+      <h3 className="font-bold text-foreground text-xl mb-2">
+        {search ? "Nenhum resultado encontrado" : "Nenhum produto ainda nesta região"}
       </h3>
-      <p className="text-sm text-muted-foreground max-w-[240px]">
+      <p className="text-base text-muted-foreground max-w-[260px] leading-relaxed">
         {search
           ? `Não encontramos nada para "${search}". Tente outro termo.`
-          : category !== "Todos"
-          ? `Ainda não há anúncios em "${category}". Seja o primeiro!`
-          : "Ainda não há anúncios publicados. Que tal anunciar o seu produto?"}
+          : "Seja o primeiro a anunciar e vender direto pelo WhatsApp."}
       </p>
     </div>
   );
