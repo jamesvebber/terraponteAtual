@@ -107,7 +107,7 @@ export default function SupportPage() {
             </div>
             <div className="text-left">
               <p className="font-bold text-foreground text-sm">Reportar um problema</p>
-              <p className="text-xs text-muted-foreground">Nos avise sobre erros ou conteúdo inadequado</p>
+              <p className="text-xs text-muted-foreground">Nos avise sobre erros ou conteúdo impróprio</p>
             </div>
           </div>
         </button>

@@ -137,7 +137,7 @@ export default function EditSellerProfile() {
 
       <div className="space-y-4">
         <div>
-          <Label className="text-sm font-semibold mb-2 block">Nome / Empresa *</Label>
+          <Label className="text-sm font-semibold mb-2 block">Nome ou empresa *</Label>
           <Input className="h-12 rounded-xl text-base" value={form.seller_name} onChange={e => set("seller_name", e.target.value)} placeholder="Ex: Sítio dos Pinheiros" />
         </div>
 
@@ -154,7 +154,7 @@ export default function EditSellerProfile() {
         </div>
 
         <div>
-          <Label className="text-sm font-semibold mb-2 block">Descrição / Bio</Label>
+          <Label className="text-sm font-semibold mb-2 block">Descrição</Label>
           <Textarea
             className="rounded-xl text-base min-h-[90px]"
             placeholder="Fale um pouco sobre você ou seu negócio..."

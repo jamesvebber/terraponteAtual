@@ -45,7 +45,7 @@ export default function Home() {
         </div>
         <div>
           <h1 className="text-xl font-extrabold text-foreground tracking-tight">TerraPonte</h1>
-          <p className="text-xs text-muted-foreground font-medium">Cotações do dia</p>
+          <p className="text-xs text-muted-foreground font-medium">Preços e oportunidades da sua região</p>
         </div>
       </div>
 

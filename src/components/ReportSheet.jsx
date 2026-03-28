@@ -58,7 +58,7 @@ export default function ReportSheet({ open, onClose, targetType, targetId, targe
           <div className="px-4 py-8 flex flex-col items-center text-center">
             <CheckCircle2 className="h-12 w-12 text-green-600 mb-3" />
             <h3 className="font-bold text-foreground text-base mb-1">Denúncia enviada</h3>
-            <p className="text-sm text-muted-foreground">Nossa equipe vai analisar em breve. Obrigado por contribuir com a segurança do marketplace.</p>
+            <p className="text-sm text-muted-foreground">Nossa equipe vai analisar em breve. Obrigado por contribuir com a segurança da plataforma.</p>
           </div>
         ) : (
           <div className="px-4 space-y-4 pb-2">

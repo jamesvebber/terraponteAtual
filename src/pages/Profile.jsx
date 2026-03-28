@@ -191,7 +191,7 @@ export default function Profile() {
       </Section>
 
       {/* Suporte */}
-      <Section title="Suporte e legal">
+      <Section title="Suporte e privacidade">
         <SettingsRow icon={Shield} label="Política de privacidade" sublabel="Como seus dados são tratados" onClick={() => navigate("/privacy")} />
         <SettingsRow icon={FileText} label="Termos de uso" sublabel="Regras de uso do Mercado Rural" onClick={() => navigate("/terms")} />
         <SettingsRow

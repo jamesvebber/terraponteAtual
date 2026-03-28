@@ -53,7 +53,7 @@ export default function Insumos() {
         </div>
         <div>
           <h1 className="text-xl font-extrabold text-foreground tracking-tight">Insumos</h1>
-          <p className="text-xs text-muted-foreground font-medium">Menor custo total = melhor compra</p>
+          <p className="text-xs text-muted-foreground font-medium">Compare preços e encontre o melhor custo</p>
         </div>
       </div>
 
