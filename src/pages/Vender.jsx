@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import RecentListings from "../components/RecentListings";
 import { PlusCircle, Loader2, Camera, CheckCircle2 } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 
 const categories = [
@@ -18,6 +19,7 @@ const categories = [
 ];
 
 export default function Vender() {
+  const { isAuthenticated, isLoadingAuth } = useAuth();
   const [form, setForm] = useState({
     product_name: "",
     category: "",
@@ -31,6 +33,34 @@ export default function Vender() {
   const [imagePreview, setImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  if (isLoadingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
+        <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
+          <PlusCircle className="h-10 w-10 text-primary" />
+        </div>
+        <h2 className="text-xl font-extrabold text-foreground mb-2">Anuncie seus produtos</h2>
+        <p className="text-sm text-muted-foreground mb-8 max-w-xs">
+          Entre na sua conta para publicar anúncios e vender diretamente pelo WhatsApp.
+        </p>
+        <button
+          onClick={() => base44.auth.redirectToLogin(window.location.href)}
+          className="w-full max-w-xs h-12 rounded-xl bg-primary text-primary-foreground font-bold text-base"
+        >
+          Entrar / Criar conta
+        </button>
+      </div>
+    );
+  }
 
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));

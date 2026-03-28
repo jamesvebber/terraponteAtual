@@ -1,12 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Store, ShoppingBag, PlusCircle } from "lucide-react";
+import { Home, Store, ShoppingBag, PlusCircle, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { path: "/", label: "Início", icon: Home },
-  { path: "/marketplace", label: "Marketplace", icon: Store },
+  { path: "/marketplace", label: "Mercado", icon: Store },
   { path: "/insumos", label: "Insumos", icon: ShoppingBag },
   { path: "/vender", label: "Anunciar", icon: PlusCircle },
+  { path: "/profile", label: "Conta", icon: UserCircle },
 ];
 
 export default function BottomNav() {
