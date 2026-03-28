@@ -15,6 +15,9 @@ import Vender from './pages/Vender';
 import Profile from './pages/Profile';
 import SellerProfile from './pages/SellerProfile';
 import EditSellerProfile from './pages/EditSellerProfile';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfUse from './pages/TermsOfUse';
+import SupportPage from './pages/SupportPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,6 +51,9 @@ const AuthenticatedApp = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/seller/:sellerName" element={<SellerProfile />} />
         <Route path="/edit-seller-profile" element={<EditSellerProfile />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfUse />} />
+        <Route path="/support" element={<SupportPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
