@@ -35,15 +35,49 @@
     },
     "distance_km": {
       "type": "number",
-      "description": "Dist\u00e2ncia em km"
+      "description": "Dist\u00e2ncia em km (legado)"
     },
     "freight_cost": {
       "type": "number",
-      "description": "Custo do frete em R$"
+      "description": "Custo fixo de frete estimado em R$ (legado)"
     },
     "whatsapp": {
       "type": "string",
       "description": "N\u00famero do WhatsApp do fornecedor"
+    },
+    "pickup_available": {
+      "type": "boolean",
+      "default": true,
+      "description": "Retirada na loja dispon\u00edvel"
+    },
+    "delivery_available": {
+      "type": "boolean",
+      "default": false,
+      "description": "Entrega dispon\u00edvel"
+    },
+    "delivery_radius_km": {
+      "type": "number",
+      "description": "Raio m\u00e1ximo de entrega em km"
+    },
+    "price_per_km": {
+      "type": "number",
+      "description": "Pre\u00e7o por km de entrega em R$"
+    },
+    "fixed_delivery_fee": {
+      "type": "number",
+      "description": "Taxa fixa de entrega em R$ (soma com price_per_km)"
+    },
+    "minimum_order_for_delivery": {
+      "type": "number",
+      "description": "Pedido m\u00ednimo para entrega em R$"
+    },
+    "free_delivery_above": {
+      "type": "number",
+      "description": "Frete gr\u00e1tis acima de R$ (valor do pedido)"
+    },
+    "delivery_notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre entrega e retirada"
     }
   },
   "required": [
