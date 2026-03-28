@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MessageCircle, MapPin, Store, Tag, Loader2, ChevronRight } from "lucide-react";
+import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag } from "lucide-react";
+import ReportSheet from "../components/ReportSheet";
 
 const categoryEmoji = {
   "Alimentos da roça": "🍯",
@@ -20,6 +21,7 @@ export default function ListingDetail() {
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
     base44.entities.Listing.filter({ id }).then((data) => {
@@ -116,6 +118,14 @@ export default function ListingDetail() {
           </div>
         </div>
 
+        {/* Report listing */}
+        <button
+          onClick={() => setReportOpen(true)}
+          className="w-full flex items-center gap-2 text-xs text-muted-foreground font-medium py-1 select-none"
+        >
+          <Flag className="h-3.5 w-3.5" /> Denunciar este anúncio
+        </button>
+
         {/* More from seller */}
         <button
           onClick={() => navigate(`/seller/${encodeURIComponent(listing.seller_name)}`)}
@@ -124,6 +134,14 @@ export default function ListingDetail() {
           <span>Ver perfil de {listing.seller_name}</span>
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </button>
+
+        <ReportSheet
+          open={reportOpen}
+          onClose={() => setReportOpen(false)}
+          targetType="listing"
+          targetId={listing.id}
+          targetTitle={listing.title}
+        />
       </div>
 
       {/* Fixed bottom CTA */}

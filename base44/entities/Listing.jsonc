@@ -65,11 +65,33 @@
       "type": "string",
       "enum": [
         "active",
-        "sold",
-        "expired"
+        "pending_review",
+        "rejected",
+        "archived",
+        "reported"
       ],
       "default": "active",
       "description": "Status"
+    },
+    "report_count": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero de den\u00fancias recebidas"
+    },
+    "moderation_status": {
+      "type": "string",
+      "enum": [
+        "clean",
+        "flagged",
+        "reviewed",
+        "removed"
+      ],
+      "default": "clean",
+      "description": "Status de modera\u00e7\u00e3o"
+    },
+    "flagged_at": {
+      "type": "string",
+      "description": "Data/hora em que foi denunciado pela primeira vez"
     }
   },
   "required": [

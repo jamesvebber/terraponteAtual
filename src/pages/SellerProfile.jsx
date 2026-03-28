@@ -5,8 +5,9 @@ import ListingCard from "../components/ListingCard";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, MessageCircle, MapPin, Store, Calendar, BadgeCheck,
-  Loader2, Leaf, Building2, Handshake,
+  Loader2, Leaf, Building2, Handshake, Flag,
 } from "lucide-react";
+import ReportSheet from "../components/ReportSheet";
 
 const typeIcon = { Produtor: Leaf, Loja: Building2, Cooperativa: Handshake };
 const typeColor = { Produtor: "text-green-600 bg-green-50", Loja: "text-blue-600 bg-blue-50", Cooperativa: "text-amber-600 bg-amber-50" };
@@ -27,6 +28,7 @@ export default function SellerProfile() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("Todos");
+  const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -146,6 +148,22 @@ export default function SellerProfile() {
             Ver anúncios
           </Button>
         </div>
+
+        {/* Report seller */}
+        <button
+          onClick={() => setReportOpen(true)}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium mt-3 select-none"
+        >
+          <Flag className="h-3.5 w-3.5" /> Denunciar vendedor
+        </button>
+
+        <ReportSheet
+          open={reportOpen}
+          onClose={() => setReportOpen(false)}
+          targetType="seller"
+          targetId={name}
+          targetTitle={name}
+        />
       </div>
 
       {/* Listings */}

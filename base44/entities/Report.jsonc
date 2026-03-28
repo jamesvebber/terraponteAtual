@@ -1,0 +1,73 @@
+{
+  "name": "Report",
+  "type": "object",
+  "properties": {
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "listing",
+        "seller"
+      ],
+      "description": "O que est\u00e1 sendo denunciado"
+    },
+    "target_id": {
+      "type": "string",
+      "description": "ID do an\u00fancio ou nome do vendedor"
+    },
+    "target_title": {
+      "type": "string",
+      "description": "T\u00edtulo/nome para refer\u00eancia"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "Conte\u00fado ofensivo",
+        "Produto proibido",
+        "Spam",
+        "Fraude / golpe",
+        "Informa\u00e7\u00e3o falsa",
+        "Outro"
+      ],
+      "description": "Motivo da den\u00fancia"
+    },
+    "details": {
+      "type": "string",
+      "description": "Detalhes adicionais opcionais"
+    },
+    "reporter_email": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "reviewed",
+        "dismissed"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "target_type",
+    "target_id",
+    "reason"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

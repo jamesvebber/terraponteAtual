@@ -194,7 +194,12 @@ export default function Profile() {
       <Section title="Suporte e legal">
         <SettingsRow icon={Shield} label="Política de privacidade" sublabel="Como seus dados são tratados" onClick={() => {}} />
         <SettingsRow icon={FileText} label="Termos de uso" sublabel="Regras de uso do Mercado Rural" onClick={() => {}} />
-        <SettingsRow icon={HelpCircle} label="Suporte" sublabel="Dúvidas ou problemas? Fale conosco" onClick={() => {}} />
+        <SettingsRow
+          icon={HelpCircle}
+          label="Suporte"
+          sublabel="suporte@mercadorural.app"
+          onClick={() => window.open("mailto:suporte@mercadorural.app")}
+        />
       </Section>
 
       {/* Conta */}

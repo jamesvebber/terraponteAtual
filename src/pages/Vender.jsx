@@ -74,9 +74,25 @@ export default function Vender() {
     }
   };
 
+  const PROFANITY = ["merda", "porra", "caralho", "puta", "viado", "fdp"];
+  const hasProfanity = (text) => PROFANITY.some(w => text?.toLowerCase().includes(w));
+  const validPhone = (p) => p.replace(/\D/g, "").length >= 10;
+
   const handleSubmit = async () => {
     if (!form.product_name || !form.category || !form.price || !form.city || !form.whatsapp) {
       toast.error("Preencha todos os campos obrigatórios.");
+      return;
+    }
+    if (hasProfanity(form.product_name) || hasProfanity(form.description)) {
+      toast.error("O anúncio contém conteúdo inadequado.");
+      return;
+    }
+    if (!validPhone(form.whatsapp)) {
+      toast.error("Informe um WhatsApp válido com DDD.");
+      return;
+    }
+    if (form.product_name.trim().length < 5) {
+      toast.error("Título muito curto. Seja mais descritivo.");
       return;
     }
 
