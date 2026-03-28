@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MapPin, Store, MessageCircle, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,7 @@ const categoryEmoji = {
 
 export default function InsumoProductCard({ product, isBest }) {
   const [freightOpen, setFreightOpen] = useState(false);
+  const navigate = useNavigate();
 
   const inputForCalc = {
     ...product,
@@ -32,10 +34,13 @@ export default function InsumoProductCard({ product, isBest }) {
 
   return (
     <>
-      <div className={cn(
-        "bg-card rounded-2xl overflow-hidden shadow-sm border flex flex-col",
-        isBest ? "border-primary ring-2 ring-primary/20" : "border-border"
-      )}>
+      <div
+        className={cn(
+          "bg-card rounded-2xl overflow-hidden shadow-sm border flex flex-col cursor-pointer",
+          isBest ? "border-primary ring-2 ring-primary/20" : "border-border"
+        )}
+        onClick={() => navigate(`/insumos/${product.id}`)}
+      >
         {/* Image */}
         <div className="relative w-full h-32 bg-muted flex items-center justify-center shrink-0">
           {product.image_url
@@ -106,12 +111,12 @@ export default function InsumoProductCard({ product, isBest }) {
           {/* Actions */}
           <div className="flex gap-2 mt-auto">
             <Button variant="outline" size="sm" className="flex-1 rounded-xl text-xs gap-1 h-9"
-              onClick={() => setFreightOpen(true)}>
+              onClick={(e) => { e.stopPropagation(); setFreightOpen(true); }}>
               <Calculator className="h-3.5 w-3.5" />
               {product.delivery_available ? "Calcular frete" : "Ver condições"}
             </Button>
             {waUrl && (
-              <a href={waUrl} target="_blank" rel="noopener noreferrer">
+              <a href={waUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                 <Button size="sm" className="h-9 w-9 rounded-xl bg-green-600 hover:bg-green-700 text-white p-0 shrink-0">
                   <MessageCircle className="h-4 w-4" />
                 </Button>
