@@ -3,7 +3,7 @@ import BottomNav from "./BottomNav";
 
 export default function Layout() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <main className="pb-20 max-w-lg mx-auto">
         <Outlet />
       </main>

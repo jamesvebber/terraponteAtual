@@ -1,18 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, ShoppingBag, PlusCircle } from "lucide-react";
+import { Home, ShoppingBag, PlusCircle, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { path: "/", label: "Início", icon: Home },
   { path: "/insumos", label: "Insumos", icon: ShoppingBag },
   { path: "/vender", label: "Vender", icon: PlusCircle },
+  { path: "/profile", label: "Perfil", icon: UserCircle },
 ];
 
 export default function BottomNav() {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border select-none" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -22,7 +23,7 @@ export default function BottomNav() {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 px-4 py-2 rounded-xl transition-all duration-200 min-w-[72px]",
+                "flex flex-col items-center justify-center gap-0.5 px-4 py-2 rounded-xl transition-all duration-200 min-w-[72px] select-none",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
