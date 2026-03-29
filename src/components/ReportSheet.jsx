@@ -9,11 +9,12 @@ import { Flag, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 const REASONS = [
-  "Conteúdo ofensivo",
-  "Produto proibido",
+  "Anúncio falso",
+  "Produto indisponível",
+  "Preço incorreto",
+  "Contato não responde",
+  "Conteúdo impróprio",
   "Spam",
-  "Fraude / golpe",
-  "Informação falsa",
   "Outro",
 ];
 

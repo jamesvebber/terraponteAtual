@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2, Clock, TreePine, Zap, Droplets } from "lucide-react";
@@ -22,9 +23,9 @@ const categoryEmoji = {
 export default function ListingDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  // Support going back to wherever user came from
-  const goBack = () => navigate(-1);
+  const { user } = useAuth();
   const [listing, setListing] = useState(null);
+  const [renewing, setRenewing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [reportOpen, setReportOpen] = useState(false);
 
@@ -146,6 +147,30 @@ export default function ListingDetail() {
           </div>
           <p className="text-3xl font-extrabold text-green-600 leading-snug">{formatListingPrice(listing)}</p>
         </div>
+
+        {/* Renewal banner for owner */}
+        {user && listing.created_by === user.email && (() => {
+          const daysSinceUpdate = Math.floor((Date.now() - new Date(listing.updated_date || listing.created_date).getTime()) / 86400000);
+          if (daysSinceUpdate < 30) return null;
+          return (
+            <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4">
+              <p className="text-sm font-bold text-amber-800 mb-1">⏰ Seu anúncio está há {daysSinceUpdate} dias sem atualização</p>
+              <p className="text-xs text-amber-700 mb-3">Renove para manter visibilidade e mostrar que ainda está disponível.</p>
+              <button
+                disabled={renewing}
+                onClick={async () => {
+                  setRenewing(true);
+                  await base44.entities.Listing.update(listing.id, { status: "active" });
+                  setListing(l => ({ ...l, updated_date: new Date().toISOString() }));
+                  setRenewing(false);
+                }}
+                className="h-9 px-4 rounded-xl bg-amber-600 text-white text-xs font-bold flex items-center gap-1.5 select-none disabled:opacity-60"
+              >
+                {renewing ? "Renovando..." : "✅ Renovar anúncio"}
+              </button>
+            </div>
+          );
+        })()}
 
         {/* Description */}
         {listing.description && (

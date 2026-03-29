@@ -85,6 +85,12 @@ export default function Marketplace() {
         <p className="text-xs text-muted-foreground mt-0.5">Compre direto de produtores da região</p>
       </div>
 
+      {/* Trust note */}
+      <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2 mb-4">
+        <span className="text-sm">🛡️</span>
+        <p className="text-xs text-green-700 font-medium">Anúncios falsos ou enganosos podem ser removidos. <span className="font-bold">Use o botão "Reportar" em qualquer anúncio.</span></p>
+      </div>
+
       {/* Search + filter */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">

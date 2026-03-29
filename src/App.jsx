@@ -24,6 +24,7 @@ import SlugRedirect from './pages/SlugRedirect';
 import SobreNos from './pages/SobreNos';
 import PublicSellerPage from './pages/PublicSellerPage';
 import PublicStorePage from './pages/PublicStorePage';
+import AdminModeration from './pages/AdminModeration';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -66,6 +67,7 @@ const AuthenticatedApp = () => {
         <Route path="/sobre" element={<SobreNos />} />
         <Route path="/produtor/:slug" element={<PublicSellerPage />} />
         <Route path="/loja/:slug" element={<PublicStorePage />} />
+        <Route path="/admin/moderation" element={<AdminModeration />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
