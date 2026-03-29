@@ -5,8 +5,9 @@ import FreightCalculator from "../components/FreightCalculator";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, MapPin, Store, MessageCircle, Calculator, Package,
-  Truck, ShoppingBag, Phone,
+  Truck, ShoppingBag, Phone, Share2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 const categoryEmoji = {
@@ -48,6 +49,18 @@ export default function InsumoDetail() {
       </div>
     );
   }
+
+  const shareUrl = `${window.location.origin}/insumos/${product.id}`;
+
+  const handleShare = async () => {
+    const text = `Veja este insumo no TerraPonte: ${product.product_name} - R$ ${product.price?.toFixed(2).replace(".", ",")} - ${product.city}${product.region ? `, ${product.region}` : ""} - ${shareUrl}`;
+    if (navigator.share) {
+      await navigator.share({ title: product.product_name, text, url: shareUrl });
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast.success("Link copiado!");
+    }
+  };
 
   const waUrl = product.whatsapp
     ? `https://wa.me/55${product.whatsapp.replace(/\D/g, "")}?text=Olá! Vi o produto "${product.product_name}" no TerraPonte e tenho interesse.`
@@ -174,11 +187,19 @@ export default function InsumoDetail() {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            className="flex-1 h-12 rounded-xl gap-2 font-bold"
+            className="h-12 px-3 rounded-xl gap-1.5 font-bold select-none"
             onClick={() => setFreightOpen(true)}
           >
             <Calculator className="h-4 w-4" />
-            Calcular frete
+            Frete
+          </Button>
+          <Button
+            variant="outline"
+            className="h-12 px-3 rounded-xl gap-1.5 font-bold select-none"
+            onClick={handleShare}
+          >
+            <Share2 className="h-4 w-4" />
+            Compartilhar
           </Button>
           {waUrl && (
             <a href={waUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
