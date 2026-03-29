@@ -22,15 +22,15 @@ const CATEGORIES = [
   { label: "Outros", emoji: "📦" },
 ];
 
-const UNITS = [
-  { label: "saco 25kg", emoji: "👜" },
-  { label: "saco 50kg", emoji: "👜" },
-  { label: "litro", emoji: "🧴" },
-  { label: "kg", emoji: "⚖️" },
-  { label: "unidade", emoji: "📦" },
-  { label: "caixa", emoji: "🗃️" },
-  { label: "galão", emoji: "🪣" },
+const SALE_TYPES = [
+  { value: "por embalagem", label: "Por embalagem", emoji: "📦" },
+  { value: "por kg", label: "Por kg", emoji: "⚖️" },
+  { value: "por litro", label: "Por litro", emoji: "🧴" },
+  { value: "por unidade", label: "Por unidade", emoji: "🔢" },
+  { value: "por caixa", label: "Por caixa", emoji: "🗃️" },
 ];
+const PKG_TYPES = ["saco", "pacote", "caixa", "galão", "frasco", "balde", "unidade"];
+const PKG_UNITS = ["kg", "g", "litro", "ml", "unidade"];
 const STOCK = ["Disponível", "Sob encomenda", "Esgotado"];
 
 function FieldBlock({ label, hint, children }) {
@@ -45,7 +45,8 @@ function FieldBlock({ label, hint, children }) {
 
 const EMPTY = {
   product_name: "", category: "", brand: "", description: "",
-  price: "", unit: "", stock_status: "Disponível",
+  price: "", sale_type: "", pkg_type: "saco", pkg_qty: "", pkg_unit: "kg",
+  stock_status: "Disponível",
   pickup_available: true, delivery_available: false, featured: false,
 };
 
@@ -65,7 +66,10 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
         brand: editProduct.brand || "",
         description: editProduct.description || "",
         price: editProduct.price?.toString() || "",
-        unit: editProduct.unit || "",
+        sale_type: editProduct.sale_type || "",
+        pkg_type: editProduct.pkg_type || "saco",
+        pkg_qty: editProduct.pkg_qty?.toString() || "",
+        pkg_unit: editProduct.pkg_unit || "kg",
         stock_status: editProduct.stock_status || "Disponível",
         pickup_available: editProduct.pickup_available !== false,
         delivery_available: !!editProduct.delivery_available,
@@ -86,12 +90,12 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
 
   const handleSave = async () => {
-    if (!form.product_name.trim() || !form.category || !form.price || !form.unit) {
-      toast.error("Preencha nome, categoria, preço e unidade.");
+    if (!form.product_name.trim() || !form.category || !form.price || !form.sale_type) {
+      toast.error("Preencha nome, categoria, preço e tipo de venda.");
       return;
     }
-    if (!supplierProfile) {
-      toast.error("Cadastre o perfil da loja antes de adicionar produtos.");
+    if (form.sale_type === "por embalagem" && (!form.pkg_qty || !form.pkg_type || !form.pkg_unit)) {
+      toast.error("Preencha os dados da embalagem.");
       return;
     }
     setSaving(true);
@@ -100,9 +104,14 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
       const res = await base44.integrations.Core.UploadFile({ file: imageFile });
       image_url = res.file_url;
     }
+    const unitLabel = form.sale_type === "por embalagem" && form.pkg_type && form.pkg_qty && form.pkg_unit
+      ? `${form.pkg_type} ${form.pkg_qty}${form.pkg_unit}`
+      : form.sale_type.replace("por ", "");
     const data = {
       ...form,
       price: parseFloat(form.price),
+      pkg_qty: form.pkg_qty ? parseFloat(form.pkg_qty) : null,
+      unit: unitLabel,
       image_url,
       supplier_id: supplierProfile.id,
       supplier_name: supplierProfile.store_name,
@@ -183,52 +192,85 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
             </div>
           </FieldBlock>
 
-          {/* Price & Unit */}
-          <div className="grid grid-cols-2 gap-3">
-            <FieldBlock label="Preço (R$) *">
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">R$</span>
-                <Input className="h-12 rounded-xl pl-9 text-base" type="number" inputMode="decimal" placeholder="0,00" value={form.price} onChange={e => set("price", e.target.value)} />
-              </div>
-            </FieldBlock>
-            <FieldBlock label="Unidade *">
-              <button
-                type="button"
-                onClick={() => setUnitDrawerOpen(true)}
-                className={`w-full h-12 rounded-xl border px-3 text-sm font-semibold text-left select-none transition-colors ${
-                  form.unit ? "border-input bg-card text-foreground" : "border-input bg-card text-muted-foreground"
-                }`}
-              >
-                {form.unit || "Selecionar unidade"}
-              </button>
-            </FieldBlock>
-          </div>
+          {/* Price */}
+          <FieldBlock label="Preço (R$) *">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">R$</span>
+              <Input className="h-12 rounded-xl pl-9 text-base" type="number" inputMode="decimal" placeholder="0,00" value={form.price} onChange={e => set("price", e.target.value)} />
+            </div>
+          </FieldBlock>
 
-          {/* Unit drawer */}
-          <Drawer open={unitDrawerOpen} onOpenChange={setUnitDrawerOpen}>
-            <DrawerContent>
-              <DrawerHeader><DrawerTitle>Unidade de venda</DrawerTitle></DrawerHeader>
-              <div className="px-4 pb-2 space-y-2">
-                {UNITS.map(({ label, emoji }) => (
-                  <button
-                    key={label}
-                    type="button"
-                    onClick={() => { set("unit", label); setUnitDrawerOpen(false); }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold border transition-colors select-none ${
-                      form.unit === label ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
-                    }`}
-                  >
-                    <span className="text-lg">{emoji}</span> {label}
-                  </button>
-                ))}
+          {/* Sale type */}
+          <FieldBlock label="Tipo de venda *">
+            <div className="grid grid-cols-2 gap-2">
+              {SALE_TYPES.map(({ value, label, emoji }) => (
+                <button key={value} type="button" onClick={() => set("sale_type", value)}
+                  className={`flex items-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold border transition-all select-none ${
+                    form.sale_type === value ? "bg-primary text-primary-foreground border-primary" : "bg-muted/50 border-border text-foreground"
+                  }`}>
+                  <span>{emoji}</span> {label}
+                </button>
+              ))}
+            </div>
+          </FieldBlock>
+
+          {/* Package fields — only when "por embalagem" */}
+          {form.sale_type === "por embalagem" && (
+            <div className="bg-muted/40 rounded-2xl p-4 space-y-3">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Dados da embalagem</p>
+              {/* Package type */}
+              <FieldBlock label="Tipo de embalagem">
+                <div className="flex flex-wrap gap-2">
+                  {PKG_TYPES.map(t => (
+                    <button key={t} type="button" onClick={() => set("pkg_type", t)}
+                      className={`px-3 py-2 rounded-xl text-sm font-semibold border transition-all select-none ${
+                        form.pkg_type === t ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                      }`}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </FieldBlock>
+              {/* Qty + unit */}
+              <div className="grid grid-cols-2 gap-3">
+                <FieldBlock label="Quantidade">
+                  <Input className="h-11 rounded-xl text-base" type="number" inputMode="decimal" placeholder="Ex: 40" value={form.pkg_qty} onChange={e => set("pkg_qty", e.target.value)} />
+                </FieldBlock>
+                <FieldBlock label="Unidade">
+                  <div className="flex flex-wrap gap-2">
+                    {PKG_UNITS.map(u => (
+                      <button key={u} type="button" onClick={() => set("pkg_unit", u)}
+                        className={`px-3 py-2 rounded-xl text-sm font-semibold border transition-all select-none ${
+                          form.pkg_unit === u ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                        }`}>
+                        {u}
+                      </button>
+                    ))}
+                  </div>
+                </FieldBlock>
               </div>
-              <DrawerFooter>
-                <DrawerClose asChild>
-                  <button className="w-full h-11 rounded-xl bg-muted text-muted-foreground font-semibold text-sm select-none">Cancelar</button>
-                </DrawerClose>
-              </DrawerFooter>
-            </DrawerContent>
-          </Drawer>
+              {/* Preview */}
+              {form.price && form.pkg_qty && form.pkg_type && form.pkg_unit && (
+                <div className="bg-card border border-border rounded-xl px-4 py-2.5">
+                  <p className="text-xs text-muted-foreground">Prévia</p>
+                  <p className="text-sm font-bold text-foreground">
+                    R$ {parseFloat(form.price).toFixed(2).replace(".", ",")} por {form.pkg_type} de {form.pkg_qty} {form.pkg_unit}
+                  </p>
+                  {(() => {
+                    const qty = parseFloat(form.pkg_qty);
+                    const price = parseFloat(form.price);
+                    if (!qty || !price) return null;
+                    let divisor = qty;
+                    let unitLabel = form.pkg_unit;
+                    if (form.pkg_unit === "g") { divisor = qty / 1000; unitLabel = "kg"; }
+                    if (form.pkg_unit === "ml") { divisor = qty / 1000; unitLabel = "litro"; }
+                    if (divisor <= 0 || unitLabel === "unidade") return null;
+                    return <p className="text-xs text-muted-foreground">Equivale a R$ {(price / divisor).toFixed(2).replace(".", ",")}/{unitLabel}</p>;
+                  })()}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Brand */}
           <FieldBlock label="Marca" hint='Ex: Guabi, Tortuga, Presence...'>

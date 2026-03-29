@@ -4,6 +4,7 @@ import { MapPin, Store, MessageCircle, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import FreightCalculator from "./FreightCalculator";
+import { formatInsumoPrice, formatEquivalentPrice } from "../utils/insumoPrice";
 
 const categoryEmoji = {
   "Ração": "🌾", "Sal mineral": "🧂", "Adubo": "🌱", "Sementes": "🌻",
@@ -75,11 +76,11 @@ export default function InsumoProductCard({ product, isBest }) {
           <h3 className="font-bold text-foreground text-base leading-snug mb-0.5 line-clamp-2">{product.product_name}</h3>
           {product.brand && <p className="text-xs text-muted-foreground mb-1">{product.brand}</p>}
 
-          <div className="flex items-baseline gap-1 mb-2">
-            <span className="text-green-600 font-extrabold text-xl">
-              R$ {product.price?.toFixed(2).replace(".", ",")}
-            </span>
-            <span className="text-xs text-muted-foreground">/{product.unit}</span>
+          <div className="mb-2">
+            <p className="text-green-600 font-extrabold text-base leading-snug">{formatInsumoPrice(product)}</p>
+            {formatEquivalentPrice(product) && (
+              <p className="text-[10px] text-muted-foreground">{formatEquivalentPrice(product)}</p>
+            )}
           </div>
 
           {/* Supplier & location */}

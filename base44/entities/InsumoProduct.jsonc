@@ -29,18 +29,32 @@
     "price": {
       "type": "number"
     },
-    "unit": {
+    "sale_type": {
       "type": "string",
       "enum": [
-        "saco 25kg",
-        "saco 50kg",
-        "litro",
-        "kg",
-        "unidade",
-        "caixa",
-        "gal\u00e3o"
+        "por embalagem",
+        "por kg",
+        "por litro",
+        "por unidade",
+        "por caixa"
       ],
-      "description": "Unidade de venda"
+      "description": "Tipo de venda"
+    },
+    "pkg_type": {
+      "type": "string",
+      "description": "Tipo de embalagem (saco, gal\u00e3o, etc.) \u2014 preenchido quando sale_type = por embalagem"
+    },
+    "pkg_qty": {
+      "type": "number",
+      "description": "Quantidade na embalagem"
+    },
+    "pkg_unit": {
+      "type": "string",
+      "description": "Unidade da quantidade (kg, g, litro, ml, unidade)"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Label de exibi\u00e7\u00e3o calculado automaticamente"
     },
     "image_url": {
       "type": "string"
@@ -116,7 +130,7 @@
     "product_name",
     "category",
     "price",
-    "unit",
+    "sale_type",
     "supplier_id"
   ],
   "rls": {

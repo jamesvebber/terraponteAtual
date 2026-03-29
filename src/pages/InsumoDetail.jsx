@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { toSlug } from "./SlugRedirect";
+import { formatInsumoPrice, formatEquivalentPrice } from "../utils/insumoPrice";
 
 const categoryEmoji = {
   "Ração": "🌾", "Sal mineral": "🧂", "Adubo": "🌱", "Sementes": "🌻",
@@ -128,11 +129,11 @@ export default function InsumoDetail() {
           </span>
           <h2 className="text-xl font-extrabold text-foreground leading-snug">{product.product_name}</h2>
           {product.brand && <p className="text-sm text-muted-foreground mt-0.5">{product.brand}</p>}
-          <div className="flex items-baseline gap-1.5 mt-2">
-            <span className="text-3xl font-extrabold text-green-600">
-              R$ {product.price?.toFixed(2).replace(".", ",")}
-            </span>
-            <span className="text-sm text-muted-foreground">/{product.unit}</span>
+          <div className="mt-2">
+            <p className="text-2xl font-extrabold text-green-600 leading-snug">{formatInsumoPrice(product)}</p>
+            {formatEquivalentPrice(product) && (
+              <p className="text-sm text-muted-foreground mt-0.5">{formatEquivalentPrice(product)}</p>
+            )}
           </div>
         </div>
 
