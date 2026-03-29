@@ -77,7 +77,7 @@ export default function ListingDetail() {
     const text = `🌾 VENDA - ${listing.title}\n💰 ${price}\n📍 ${location}\n\nVer anúncio:\n${shareUrl}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: listing.title, text, url: shareUrl });
+        await navigator.share({ title: listing.title, text });
         return;
       }
     } catch {

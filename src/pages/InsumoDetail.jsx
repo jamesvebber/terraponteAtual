@@ -62,7 +62,7 @@ export default function InsumoDetail() {
     const text = `🌾 INSUMO - ${product.product_name}\n💰 ${price}\n📍 ${location}\n\nVer produto:\n${shareUrl}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: product.product_name, text, url: shareUrl });
+        await navigator.share({ title: product.product_name, text });
         return;
       }
     } catch {

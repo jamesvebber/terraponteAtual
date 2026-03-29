@@ -49,10 +49,10 @@ function StatCard({ value, label, emoji, loading }) {
   );
 }
 
-function PriceChip({ item }) {
+function PriceRefCard({ item }) {
   const isUp = item.trend === "up";
   return (
-    <div className="flex-shrink-0 bg-card border border-border rounded-2xl px-3 py-2.5 flex flex-col gap-1 min-w-[110px]">
+    <div className="flex-shrink-0 bg-card border border-border rounded-2xl px-3 py-3 flex flex-col gap-1.5 min-w-[130px]">
       <div className="flex items-center justify-between gap-2">
         <span className="text-lg">{item.icon}</span>
         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isUp ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
@@ -64,7 +64,31 @@ function PriceChip({ item }) {
         R$ {item.price.toFixed(2).replace(".", ",")}
         <span className="text-[10px] font-medium text-muted-foreground ml-1">/{item.unit}</span>
       </p>
+      <p className="text-[9px] text-muted-foreground/70 font-medium">Preço de referência</p>
     </div>
+  );
+}
+
+function OpportunityCard({ listing, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex-shrink-0 w-44 bg-card border border-border rounded-2xl overflow-hidden text-left select-none active:scale-95 transition-transform"
+    >
+      <div className="w-full h-24 bg-muted flex items-center justify-center overflow-hidden">
+        {listing.image_url
+          ? <img src={listing.image_url} alt={listing.title} className="w-full h-full object-cover" />
+          : <span className="text-3xl">📦</span>}
+      </div>
+      <div className="p-2.5">
+        <p className="text-xs font-bold text-foreground line-clamp-2 leading-snug mb-1">{listing.title}</p>
+        <p className="text-sm font-extrabold text-green-600">R$ {listing.price?.toFixed(2).replace(".", ",")}</p>
+        <p className="text-[10px] text-muted-foreground truncate">{listing.city}</p>
+        {listing.availability_status && listing.availability_status !== "Disponível" && (
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 mt-1 inline-block">{listing.availability_status}</span>
+        )}
+      </div>
+    </button>
   );
 }
 
@@ -221,20 +245,72 @@ export default function Home() {
         <ActionTile emoji="🏪" label="Lojas" sublabel="Fornecedores da sua região" onClick={() => navigate("/minha-loja")} />
       </div>
 
-      {/* ── Market prices ── */}
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-base font-extrabold text-foreground">Cotações</h2>
-        <span className="text-[11px] text-muted-foreground font-medium">Preços de referência</span>
+      {/* ── Radar do Dia ── */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-base">📡</span>
+          <h2 className="text-base font-extrabold text-foreground">Radar do Dia</h2>
+          {lastUpdated && (
+            <span className="text-[10px] text-muted-foreground font-medium ml-auto">atualizado {timeAgo(lastUpdated)}</span>
+          )}
+        </div>
+
+        {/* A. Novidades de hoje */}
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          {loading ? (
+            [1,2,3].map(i => <div key={i} className="h-16 bg-muted rounded-2xl animate-pulse" />)
+          ) : (
+            <>
+              <div className="bg-primary/10 border border-primary/20 rounded-2xl p-3 flex flex-col items-center">
+                <p className="text-xl font-extrabold text-primary">{newToday ?? 0}</p>
+                <p className="text-[10px] text-primary/70 font-semibold text-center leading-tight">novos hoje</p>
+              </div>
+              <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center">
+                <p className="text-xl font-extrabold text-foreground">{listingCount ?? 0}</p>
+                <p className="text-[10px] text-muted-foreground font-semibold text-center leading-tight">anúncios ativos</p>
+              </div>
+              <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center">
+                <p className="text-xl font-extrabold text-foreground">{storeCount ?? 0}</p>
+                <p className="text-[10px] text-muted-foreground font-semibold text-center leading-tight">lojas parceiras</p>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* B. Oportunidades perto de você */}
+        {!loading && (() => {
+          const opps = recentListings.filter(l => l.image_url && l.availability_status !== "Indisponível").slice(0, 8);
+          if (opps.length === 0) return null;
+          return (
+            <div className="mb-4">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">📍 Perto de você</p>
+              <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-hide">
+                {opps.map(l => <OpportunityCard key={l.id} listing={l} onClick={() => navigate(`/marketplace/${l.id}`)} />)}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* C. Preços de referência */}
+        {!loading && prices.length > 0 && (
+          <div>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">📊 Preços de referência</p>
+            <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-hide">
+              {prices.map((p, i) => <PriceRefCard key={p.id || i} item={p} />)}
+            </div>
+          </div>
+        )}
+        {!loading && prices.length === 0 && (
+          <div className="bg-muted/50 border border-border rounded-2xl px-4 py-3 text-center">
+            <p className="text-xs text-muted-foreground font-medium">Cotação indisponível no momento</p>
+          </div>
+        )}
+        {loading && (
+          <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-1">
+            {[1,2,3].map(i => <div key={i} className="flex-shrink-0 w-32 h-24 bg-muted rounded-2xl animate-pulse" />)}
+          </div>
+        )}
       </div>
-      {loading ? (
-        <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-1 mb-6">
-          {[1,2,3,4].map(i => <div key={i} className="flex-shrink-0 w-28 h-24 bg-muted rounded-2xl animate-pulse" />)}
-        </div>
-      ) : (
-        <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-1 mb-6 scrollbar-hide">
-          {prices.map((p, i) => <PriceChip key={p.id || i} item={p} />)}
-        </div>
-      )}
 
       {/* ── Recent listings ── */}
       <div className="flex items-center justify-between mb-3">
