@@ -59,12 +59,16 @@ export default function ListingDetail() {
     const price = `R$ ${listing.price?.toFixed(2).replace(".", ",")}`;
     const location = [listing.city, listing.region].filter(Boolean).join(" - ");
     const text = `🌾 VENDA - ${listing.title}\n💰 ${price}\n📍 ${location}\n\nVer anúncio:\n${shareUrl}`;
-    if (navigator.share) {
-      await navigator.share({ title: listing.title, text, url: shareUrl });
-    } else {
-      await navigator.clipboard.writeText(text);
-      toast.success("Link copiado!");
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: listing.title, text, url: shareUrl });
+        return;
+      }
+    } catch {
+      // fall through to clipboard
     }
+    await navigator.clipboard.writeText(text);
+    toast.success("Link copiado!");
   };
 
   const waUrl = listing.whatsapp

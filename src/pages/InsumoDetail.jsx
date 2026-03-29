@@ -56,12 +56,16 @@ export default function InsumoDetail() {
     const price = `R$ ${product.price?.toFixed(2).replace(".", ",")}/${product.unit}`;
     const location = [product.city, product.region].filter(Boolean).join(" - ");
     const text = `🌾 INSUMO - ${product.product_name}\n💰 ${price}\n📍 ${location}\n\nVer produto:\n${shareUrl}`;
-    if (navigator.share) {
-      await navigator.share({ title: product.product_name, text, url: shareUrl });
-    } else {
-      await navigator.clipboard.writeText(text);
-      toast.success("Link copiado!");
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: product.product_name, text, url: shareUrl });
+        return;
+      }
+    } catch {
+      // fall through to clipboard
     }
+    await navigator.clipboard.writeText(text);
+    toast.success("Link copiado!");
   };
 
   const waUrl = product.whatsapp
