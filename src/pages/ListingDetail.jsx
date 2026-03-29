@@ -91,9 +91,9 @@ export default function ListingDetail() {
       </div>
 
       {/* Image */}
-      <div className="w-full h-56 bg-muted flex items-center justify-center">
+      <div className="w-full aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden">
         {listing.image_url ? (
-          <img src={listing.image_url} alt={listing.title} className="w-full h-full object-cover" />
+          <img src={listing.image_url} alt={listing.title} className="w-full h-full object-contain" />
         ) : (
           <span className="text-7xl">{categoryEmoji[listing.category] || "📦"}</span>
         )}

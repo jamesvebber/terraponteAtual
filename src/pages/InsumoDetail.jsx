@@ -106,7 +106,7 @@ export default function InsumoDetail() {
       {/* Image */}
       <div className="w-full h-56 bg-muted flex items-center justify-center relative">
         {product.image_url
-          ? <img src={product.image_url} alt={product.product_name} className="w-full h-full object-cover" />
+          ? <img src={product.image_url} alt={product.product_name} className="w-full h-full object-contain" />
           : <span className="text-7xl">{categoryEmoji[product.category] || "📦"}</span>
         }
         <div className="absolute top-3 left-3 flex flex-col gap-1">

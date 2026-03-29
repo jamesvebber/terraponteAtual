@@ -64,11 +64,11 @@ export default function ListingCard({ listing }) {
 
       {/* Image */}
       <div
-        className="w-full h-28 bg-muted flex items-center justify-center cursor-pointer overflow-hidden relative"
-        onClick={() => navigate(`/marketplace/${listing.id}`)}
-      >
-        {listing.image_url ? (
-          <img src={listing.image_url} alt={listing.title} className="w-full h-full object-cover" />
+        className="w-full aspect-[4/3] bg-muted flex items-center justify-center cursor-pointer overflow-hidden relative"
+      onClick={() => navigate(`/marketplace/${listing.id}`)}
+    >
+      {listing.image_url ? (
+        <img src={listing.image_url} alt={listing.title} className="w-full h-full object-contain" />
         ) : (
           <div className="flex flex-col items-center gap-1 opacity-40">
             <span className="text-3xl">{categoryEmoji[listing.category] || "📦"}</span>
