@@ -1,4 +1,4 @@
-import { MapPin, MessageCircle, Store, Clock } from "lucide-react";
+import { MapPin, MessageCircle, Store, Clock, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -63,13 +63,16 @@ export default function ListingCard({ listing }) {
 
       {/* Image */}
       <div
-        className="w-full h-36 bg-muted flex items-center justify-center cursor-pointer"
+        className="w-full h-28 bg-muted flex items-center justify-center cursor-pointer overflow-hidden relative"
         onClick={() => navigate(`/marketplace/${listing.id}`)}
       >
         {listing.image_url ? (
           <img src={listing.image_url} alt={listing.title} className="w-full h-full object-cover" />
         ) : (
-          <span className="text-5xl">{categoryEmoji[listing.category] || "📦"}</span>
+          <div className="flex flex-col items-center gap-1 opacity-40">
+            <span className="text-3xl">{categoryEmoji[listing.category] || "📦"}</span>
+            <span className="text-[10px] text-muted-foreground font-medium">{listing.category || "Produto"}</span>
+          </div>
         )}
       </div>
 
@@ -113,14 +116,14 @@ export default function ListingCard({ listing }) {
         {/* Actions */}
         <div className="flex gap-2">
           <Button
-            className="flex-1 h-10 text-xs font-bold rounded-xl"
+            className="flex-1 h-10 text-xs font-bold rounded-xl bg-green-600 hover:bg-green-700 text-white"
             onClick={() => navigate(`/marketplace/${listing.id}`)}
           >
             Ver anúncio
           </Button>
           {waUrl && (
             <a href={waUrl} target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-green-500 text-green-600 hover:bg-green-50">
+              <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-green-500 text-green-600 hover:bg-green-50">
                 <MessageCircle className="h-4 w-4" />
               </Button>
             </a>

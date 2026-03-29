@@ -3,9 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import ListingCard from "../components/ListingCard";
 import { Button } from "@/components/ui/button";
+import SkeletonCard from "../components/SkeletonCard";
 import {
   ArrowLeft, MessageCircle, MapPin, Store, Calendar, BadgeCheck,
-  Loader2, Leaf, Building2, Handshake, Flag,
+  Leaf, Building2, Handshake, Flag,
 } from "lucide-react";
 import ReportSheet from "../components/ReportSheet";
 
@@ -45,8 +46,25 @@ export default function SellerProfile() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="pb-8">
+        <div className="px-4 pt-5 pb-3">
+          <div className="h-5 w-20 bg-muted rounded animate-pulse" />
+        </div>
+        <div className="mx-4 bg-card border border-border rounded-2xl p-5 mb-4 animate-pulse space-y-3">
+          <div className="flex gap-4">
+            <div className="h-20 w-20 rounded-2xl bg-muted shrink-0" />
+            <div className="flex-1 space-y-2 pt-1">
+              <div className="h-5 w-3/4 bg-muted rounded-full" />
+              <div className="h-4 w-1/2 bg-muted rounded-full" />
+            </div>
+          </div>
+          <div className="h-3 w-full bg-muted rounded-full" />
+          <div className="h-3 w-5/6 bg-muted rounded-full" />
+          <div className="h-11 w-full bg-muted rounded-xl" />
+        </div>
+        <div className="px-4 grid grid-cols-2 gap-3">
+          {[1,2,3,4].map(i => <SkeletonCard key={i} />)}
+        </div>
       </div>
     );
   }

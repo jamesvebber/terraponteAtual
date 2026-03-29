@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { MapPin, TrendingUp, TrendingDown, ShoppingCart, PlusCircle, ShoppingBag, Store, RefreshCw, Loader2, ChevronRight, Clock, Edit2 } from "lucide-react";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import ListingCard from "../components/ListingCard";
+import SkeletonCard from "../components/SkeletonCard";
 
 // ---------- helpers ----------
 function timeAgo(dateStr) {
@@ -123,6 +124,7 @@ export default function Home() {
   const [storeCount, setStoreCount] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [newToday, setNewToday] = useState(null);
 
   const [region, setRegion] = useState(() => localStorage.getItem(REGION_KEY) || "Goiás (estado)");
   const [showRegionSelector, setShowRegionSelector] = useState(false);
@@ -134,9 +136,14 @@ export default function Home() {
       base44.entities.SupplierProfile.list("-created_date", 100),
     ]);
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayCount = listings.filter(l => new Date(l.created_date) >= today).length;
+
     setPrices(priceData.length > 0 ? priceData : DEMO_PRICES);
     setListingCount(listings.length);
     setStoreCount(stores.length);
+    setNewToday(todayCount);
     setRecentListings(listings.slice(0, 6));
     setLastUpdated(new Date().toISOString());
     setLoading(false);
@@ -201,7 +208,8 @@ export default function Home() {
       {/* ── Stats row ── */}
       <div className="flex gap-3 mb-5">
         <StatCard value={listingCount ?? "–"} label="anúncios ativos" emoji="📢" loading={loading} />
-        <StatCard value={storeCount ?? "–"} label="lojas parceiras" emoji="🏪" loading={loading} />
+        <StatCard value={storeCount ?? "–"} label="lojas parceiras" emoji="🏩" loading={loading} />
+        <StatCard value={newToday ?? "–"} label="novos hoje" emoji="✨" loading={loading} />
       </div>
 
       {/* ── Action tiles ── */}
@@ -247,7 +255,10 @@ export default function Home() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
-          {recentListings.map(l => <ListingCard key={l.id} listing={l} />)}
+          {loading
+            ? [1,2,3,4].map(i => <SkeletonCard key={i} />)
+            : recentListings.map(l => <ListingCard key={l.id} listing={l} />)
+          }
         </div>
       )}
 

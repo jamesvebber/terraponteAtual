@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import ListingCard from "../components/ListingCard";
-import { Search, Loader2, SlidersHorizontal, X } from "lucide-react";
+import SkeletonCard from "../components/SkeletonCard";
+import { Search, Loader2, SlidersHorizontal, X } from "lucide-react"; // Loader2 used for pull-to-refresh
 import { Button } from "@/components/ui/button";
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose,
@@ -130,14 +131,13 @@ export default function Marketplace() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="grid grid-cols-2 gap-3">
+          {[1,2,3,4,5,6].map(i => <SkeletonCard key={i} />)}
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState search={search} category={selectedCategory} />
       ) : (
         <>
-          {/* Featured */}
           {featured.length > 0 && selectedCategory === "Todos" && !search && (
             <div className="mb-5">
               <h2 className="text-base font-bold text-foreground mb-3">⭐ Destaques da região</h2>
@@ -150,18 +150,14 @@ export default function Marketplace() {
               </div>
             </div>
           )}
-
-          {/* All listings */}
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-bold text-foreground">
-              {search ? `Resultados para "${search}"` : selectedCategory !== "Todos" ? selectedCategory : "Todos os anúncios"}
+              {search ? `Resultados para “${search}”` : selectedCategory !== "Todos" ? selectedCategory : "Todos os anúncios"}
             </h2>
             <span className="text-xs text-muted-foreground">{filtered.length} anúncio{filtered.length !== 1 ? "s" : ""}</span>
           </div>
           <div className="grid grid-cols-2 gap-3 pb-4">
-            {filtered.map((l) => (
-              <ListingCard key={l.id} listing={l} />
-            ))}
+            {filtered.map((l) => <ListingCard key={l.id} listing={l} />)}
           </div>
         </>
       )}
