@@ -6,6 +6,7 @@ import InsumoProductCard from "../components/InsumoProductCard";
 import SkeletonCard from "../components/SkeletonCard";
 import { slugify } from "../utils/slugify";
 import { PROD_DOMAIN } from "../utils/domain";
+import { setPageMeta, resetPageMeta } from "../utils/pageMeta";
 import {
   MessageCircle, MapPin, Share2, Store, Truck, ShoppingBag, Phone,
 } from "lucide-react";
@@ -34,17 +35,29 @@ export default function PublicStorePage() {
       setProfile(match);
       setProducts(prods);
       setLoading(false);
+
+      // Update OG meta tags for this store
+      const img = match.logo_url || null;
+      const loc = [match.city, match.region].filter(Boolean).join(" - ");
+      setPageMeta({
+        title: match.store_name,
+        description: match.description || `${match.supplier_type || "Loja"} em ${loc}. Veja os produtos no TerraPonte.`,
+        imageUrl: img,
+        canonicalUrl: `${PROD_DOMAIN}/loja/${slug}`,
+      });
     }
     load();
+    return () => resetPageMeta();
   }, [slug]);
 
   const profileUrl = `${PROD_DOMAIN}/loja/${slug}`;
 
   const handleShare = async () => {
     if (!profile) return;
-    const text = `🏪 ${profile.store_name}\n📍 ${[profile.city, profile.region].filter(Boolean).join(" - ")}\n🌾 Veja nossos produtos e insumos no TerraPonte:\n${profileUrl}`;
+    const loc = [profile.city, profile.region].filter(Boolean).join(" - ");
+    const text = `🏪 ${profile.store_name}\n📍 ${loc}\n🌾 Veja nossos produtos no TerraPonte:\n${profileUrl}`;
     try {
-      if (navigator.share) { await navigator.share({ title: profile.store_name, text, url: profileUrl }); return; }
+      if (navigator.share) { await navigator.share({ title: profile.store_name, text }); return; }
     } catch {}
     await navigator.clipboard.writeText(text);
     toast.success("Link copiado!");

@@ -6,6 +6,7 @@ import ListingCard from "../components/ListingCard";
 import SkeletonCard from "../components/SkeletonCard";
 import { slugify } from "../utils/slugify";
 import { PROD_DOMAIN } from "../utils/domain";
+import { setPageMeta, resetPageMeta } from "../utils/pageMeta";
 import {
   MessageCircle, MapPin, Share2, Store, Leaf, Handshake, BadgeCheck, Calendar,
 } from "lucide-react";
@@ -41,17 +42,28 @@ export default function PublicSellerPage() {
       setProfile(match);
       setListings(allListings);
       setLoading(false);
+
+      // Update OG meta tags for this producer
+      const loc = [match.city, match.region].filter(Boolean).join(" - ");
+      setPageMeta({
+        title: match.seller_name,
+        description: match.bio || `${match.seller_type || "Produtor"} em ${loc}. Veja os anúncios no TerraPonte.`,
+        imageUrl: match.photo_url || null,
+        canonicalUrl: `${PROD_DOMAIN}/produtor/${slug}`,
+      });
     }
     load();
+    return () => resetPageMeta();
   }, [slug]);
 
   const profileUrl = `${PROD_DOMAIN}/produtor/${slug}`;
 
   const handleShare = async () => {
     if (!profile) return;
-    const text = `👨‍🌾 ${profile.seller_name}\n📍 ${[profile.city, profile.region].filter(Boolean).join(" - ")}\n🌾 Veja meus anúncios no TerraPonte:\n${profileUrl}`;
+    const loc = [profile.city, profile.region].filter(Boolean).join(" - ");
+    const text = `👨‍🌾 ${profile.seller_name}\n📍 ${loc}\n🌾 Veja meus anúncios no TerraPonte:\n${profileUrl}`;
     try {
-      if (navigator.share) { await navigator.share({ title: profile.seller_name, text, url: profileUrl }); return; }
+      if (navigator.share) { await navigator.share({ title: profile.seller_name, text }); return; }
     } catch {}
     await navigator.clipboard.writeText(text);
     toast.success("Link copiado!");
