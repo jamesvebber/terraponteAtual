@@ -32,15 +32,15 @@
     },
     "sale_format": {
       "type": "string",
-      "description": "Forma de venda (por kg, por cabe\u00e7a, valor total, etc.)"
+      "description": "Forma de venda"
     },
     "pkg_qty": {
       "type": "number",
-      "description": "Quantidade na embalagem/lote (opcional)"
+      "description": "Quantidade na embalagem/lote"
     },
     "pkg_unit": {
       "type": "string",
-      "description": "Unidade da quantidade (kg, g, unidades, etc.)"
+      "description": "Unidade da quantidade"
     },
     "unit": {
       "type": "string",
@@ -48,7 +48,7 @@
     },
     "price_per_kg": {
       "type": "number",
-      "description": "Equivalente por kg (opcional)"
+      "description": "Equivalente por kg"
     },
     "city": {
       "type": "string",
@@ -76,7 +76,14 @@
     },
     "image_url": {
       "type": "string",
-      "description": "URL da imagem principal"
+      "description": "URL da imagem principal (capa)"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs de fotos adicionais"
     },
     "featured": {
       "type": "boolean",

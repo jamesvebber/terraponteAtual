@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   User, LogOut, Trash2, ChevronRight, Moon, Sun, Shield, HelpCircle,
-  Pencil, X, Check, FileText, Store,
+  Pencil, X, Check, FileText, Store, Package,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -183,6 +183,11 @@ export default function Profile() {
             <div className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition-transform ${darkMode ? "translate-x-5" : "translate-x-1"}`} />
           </div>
         </button>
+      </Section>
+
+      {/* My Listings */}
+      <Section title="Meus anúncios">
+        <SettingsRow icon={Package} label="Meus anúncios" sublabel="Edite, pause ou exclua seus anúncios" onClick={() => navigate("/meus-anuncios")} />
       </Section>
 
       {/* Seller profile */}

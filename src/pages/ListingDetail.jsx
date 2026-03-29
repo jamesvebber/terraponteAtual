@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2, Clock, TreePine, Zap, Droplets } from "lucide-react";
+import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2, Clock, Pencil, ChevronLeft } from "lucide-react";
 import { formatListingPrice } from "../utils/listingPrice";
 import { toSlug } from "./SlugRedirect";
 import { toast } from "sonner";
@@ -91,14 +91,39 @@ export default function ListingDetail() {
         </button>
       </div>
 
-      {/* Image */}
-      <div className="w-full aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden">
-        {listing.image_url ? (
-          <img src={listing.image_url} alt={listing.title} className="w-full h-full object-contain" />
-        ) : (
-          <span className="text-7xl">{categoryEmoji[listing.category] || "📦"}</span>
-        )}
-      </div>
+      {/* Photo gallery */}
+      {(() => {
+        const allPhotos = [
+          ...(listing.image_url ? [listing.image_url] : []),
+          ...(listing.photos || []),
+        ];
+        const currentPhoto = allPhotos[photoIndex];
+        return (
+          <div className="w-full aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden relative">
+            {currentPhoto
+              ? <img src={currentPhoto} alt={listing.title} className="w-full h-full object-contain" />
+              : <span className="text-7xl">{categoryEmoji[listing.category] || "📦"}</span>}
+            {allPhotos.length > 1 && (
+              <>
+                <button onClick={() => setPhotoIndex(i => (i - 1 + allPhotos.length) % allPhotos.length)}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 flex items-center justify-center select-none">
+                  <ChevronLeft className="h-5 w-5 text-white" />
+                </button>
+                <button onClick={() => setPhotoIndex(i => (i + 1) % allPhotos.length)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 flex items-center justify-center select-none">
+                  <ChevronRight className="h-5 w-5 text-white" />
+                </button>
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                  {allPhotos.map((_, i) => (
+                    <button key={i} onClick={() => setPhotoIndex(i)}
+                      className={`h-1.5 rounded-full transition-all select-none ${i === photoIndex ? "w-4 bg-white" : "w-1.5 bg-white/50"}`} />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       <div className="px-4 pt-5 space-y-4">
         {/* Tags */}
@@ -209,6 +234,24 @@ export default function ListingDetail() {
             <span>{listing.city}{listing.region ? `, ${listing.region}` : ""}</span>
           </div>
         </div>
+
+        {/* Owner actions */}
+        {user && listing.created_by === user.email && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate(`/editar-anuncio/${listing.id}`)}
+              className="flex-1 flex items-center justify-center gap-1.5 h-10 rounded-xl border border-primary text-primary text-sm font-bold select-none"
+            >
+              <Pencil className="h-4 w-4" /> Editar anúncio
+            </button>
+            <button
+              onClick={() => navigate(`/editar-anuncio/${listing.id}?tab=photos`)}
+              className="h-10 px-4 rounded-xl border border-border text-foreground text-sm font-bold flex items-center gap-1.5 select-none"
+            >
+              📷 Fotos
+            </button>
+          </div>
+        )}
 
         {/* Report listing */}
         <button
