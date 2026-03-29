@@ -17,12 +17,7 @@ const categories = [
 
 const CACHE_KEY = "mkt_listings";
 
-const DEMO_LISTINGS = [
-  { id: "demo1", title: "Bezerros nelore cruzados", category: "Gado e animais", price: 2800, city: "Goiânia", region: "GO", seller_name: "Sítio Boa Vista", seller_type: "Produtor", whatsapp: "62999990001", status: "active", featured: true },
-  { id: "demo2", title: "Leite fresco tipo A", category: "Laticínios", price: 3.20, city: "Anápolis", region: "GO", seller_name: "Fazenda São João", seller_type: "Produtor", whatsapp: "62999990002", status: "active" },
-  { id: "demo3", title: "Milho em grão saca 60kg", category: "Alimentos da roça", price: 72, city: "Rio Verde", region: "GO", seller_name: "Armazém Rural", seller_type: "Loja", whatsapp: "64999990003", status: "active" },
-  { id: "demo4", title: "Roçadeira lateral profissional", category: "Máquinas e ferramentas", price: 1350, city: "Jataí", region: "GO", seller_name: "Agro Sul", seller_type: "Loja", whatsapp: "64999990004", status: "active" },
-];
+
 
 export default function Marketplace() {
   const [listings, setListings] = useState(() => {
@@ -37,10 +32,9 @@ export default function Marketplace() {
 
   const fetchListings = useCallback(async () => {
     const data = await base44.entities.Listing.filter({ status: "active" }, "-created_date");
-    const result = data.length > 0 ? data : DEMO_LISTINGS;
-    setListings(result);
+    setListings(data);
     setLoading(false);
-    if (data.length > 0) sessionStorage.setItem(CACHE_KEY, JSON.stringify(result));
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
   }, []);
 
   useEffect(() => { fetchListings(); }, [fetchListings]);

@@ -140,7 +140,7 @@ export default function Home() {
     today.setHours(0, 0, 0, 0);
     const todayCount = listings.filter(l => new Date(l.created_date) >= today).length;
 
-    setPrices(priceData.length > 0 ? priceData : DEMO_PRICES);
+    setPrices(priceData);
     setListingCount(listings.length);
     setStoreCount(stores.length);
     setNewToday(todayCount);
