@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag } from "lucide-react";
+import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import ReportSheet from "../components/ReportSheet";
 
 const categoryEmoji = {
@@ -51,6 +52,18 @@ export default function ListingDetail() {
       </div>
     );
   }
+
+  const shareUrl = `${window.location.origin}/marketplace/${listing.id}`;
+
+  const handleShare = async () => {
+    const text = `🌾 ${listing.title}\n💰 R$ ${listing.price?.toFixed(2).replace(".", ",")}\n📍 ${listing.city}${listing.region ? `, ${listing.region}` : ""}\n\nVeja no TerraPonte: ${shareUrl}`;
+    if (navigator.share) {
+      await navigator.share({ title: listing.title, text, url: shareUrl });
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast.success("Link copiado!");
+    }
+  };
 
   const waUrl = listing.whatsapp
     ? `https://wa.me/55${listing.whatsapp.replace(/\D/g, "")}?text=Olá! Vi o anúncio "${listing.title}" no TerraPonte e tenho interesse.`
@@ -151,6 +164,13 @@ export default function ListingDetail() {
         className="fixed bottom-16 left-0 right-0 bg-background/95 backdrop-blur border-t border-border p-4 flex gap-3 max-w-lg mx-auto"
         style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
       >
+        <Button
+          variant="outline"
+          className="h-12 px-4 rounded-xl font-bold gap-2 select-none"
+          onClick={handleShare}
+        >
+          <Share2 className="h-5 w-5" /> Compartilhar
+        </Button>
         {waUrl && (
           <a href={waUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
             <Button className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2">
