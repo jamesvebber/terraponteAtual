@@ -7,18 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PlusCircle, Loader2, CheckCircle2, Camera, X, ChevronRight, Eye } from "lucide-react";
+import { LISTING_CATEGORIES, SALE_FORMATS_BY_CATEGORY, FORMATS_WITH_PKG_DETAILS } from "../utils/listingCategories";
+import { formatListingPrice } from "../utils/listingPrice";
 import { toast } from "sonner";
 
-const CATEGORIES = [
-  { value: "Alimentos da roça", emoji: "🍯" },
-  { value: "Laticínios", emoji: "🧀" },
-  { value: "Gado e animais", emoji: "🐂" },
-  { value: "Hortifruti", emoji: "🥬" },
-  { value: "Máquinas e ferramentas", emoji: "🚜" },
-  { value: "Artesanato rural", emoji: "🪵" },
-  { value: "Serviços rurais", emoji: "🔧" },
-  { value: "Outros", emoji: "📦" },
-];
+
 
 const SELLER_TYPES = ["Produtor", "Loja"];
 
@@ -26,22 +19,15 @@ const PROFANITY = ["merda", "porra", "caralho", "puta", "viado", "fdp"];
 const hasProfanity = (t) => PROFANITY.some((w) => t?.toLowerCase().includes(w));
 const validPhone = (p) => p.replace(/\D/g, "").length >= 10;
 
-const UNITS = [
-  { value: "unidade", label: "unidade" },
-  { value: "kg", label: "kg" },
-  { value: "litro", label: "litro" },
-  { value: "saca", label: "saca" },
-  { value: "saco", label: "saco" },
-  { value: "cabeça", label: "cabeça" },
-  { value: "caixa", label: "caixa" },
-  { value: "@", label: "arroba (@)" },
-  { value: "mês", label: "mês" },
-  { value: "hora", label: "hora" },
-];
+
 
 const EMPTY = {
-  title: "", description: "", category: "", price: "", unit: "unidade",
+  title: "", description: "", category: "", price: "",
+  sale_format: "", pkg_qty: "", pkg_unit: "",
   city: "", region: "", seller_name: "", seller_type: "Produtor", whatsapp: "",
+  prop_type: "", prop_purpose: "venda", prop_area: "", prop_area_unit: "hectare",
+  prop_aptitude: "", prop_has_water: false, prop_has_power: false,
+  prop_infrastructure: "", prop_distance_km: "",
 };
 
 function FieldGroup({ label, hint, children, error }) {
@@ -143,6 +129,7 @@ export default function Vender() {
     if (!f.title || f.title.trim().length < 5) e.title = "Mínimo 5 caracteres.";
     if (hasProfanity(f.title)) e.title = "Título contém conteúdo inadequado.";
     if (!f.category) e.category = "Selecione uma categoria.";
+    if (!f.sale_format) e.sale_format = "Selecione a forma de venda.";
     if (!f.price || isNaN(parseFloat(f.price)) || parseFloat(f.price) <= 0) e.price = "Informe um preço válido.";
     if (!f.city || f.city.trim().length < 2) e.city = "Informe a cidade.";
     if (!f.seller_name || f.seller_name.trim().length < 2) e.seller_name = "Informe seu nome ou nome da loja.";
@@ -174,18 +161,35 @@ export default function Vender() {
       image_url = result.file_url;
     }
 
+    const unitLabel = form.pkg_qty && form.pkg_unit
+      ? `${form.sale_format} de ${form.pkg_qty} ${form.pkg_unit}`
+      : form.sale_format;
     const listing = await base44.entities.Listing.create({
       title: form.title.trim(),
       description: form.description.trim(),
       category: form.category,
       price: parseFloat(form.price),
-      unit: form.unit,
+      sale_format: form.sale_format,
+      pkg_qty: form.pkg_qty ? parseFloat(form.pkg_qty) : null,
+      pkg_unit: form.pkg_unit || null,
+      unit: unitLabel,
       city: form.city.trim(),
       region: form.region.trim().toUpperCase(),
       seller_name: form.seller_name.trim(),
       seller_type: form.seller_type,
       whatsapp: form.whatsapp,
       image_url,
+      ...(form.category === "Propriedades rurais" ? {
+        prop_type: form.prop_type,
+        prop_purpose: form.prop_purpose,
+        prop_area: form.prop_area ? parseFloat(form.prop_area) : null,
+        prop_area_unit: form.prop_area_unit,
+        prop_aptitude: form.prop_aptitude,
+        prop_has_water: form.prop_has_water,
+        prop_has_power: form.prop_has_power,
+        prop_infrastructure: form.prop_infrastructure,
+        prop_distance_km: form.prop_distance_km ? parseFloat(form.prop_distance_km) : null,
+      } : {}),
       status: "active",
     });
 
@@ -259,11 +263,11 @@ export default function Vender() {
         {/* Category */}
         <FieldGroup label="Categoria *" error={fieldError("category")}>
           <div className="grid grid-cols-2 gap-2">
-            {CATEGORIES.map((cat) => (
+            {LISTING_CATEGORIES.map((cat) => (
               <button
                 key={cat.value}
                 type="button"
-                onClick={() => set("category", cat.value)}
+                onClick={() => { set("category", cat.value); set("sale_format", ""); }}
                 className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold border transition-colors select-none ${
                   form.category === cat.value
                     ? "bg-primary text-primary-foreground border-primary"
@@ -277,35 +281,137 @@ export default function Vender() {
           </div>
         </FieldGroup>
 
-        {/* Price + unit */}
-        <div className="flex gap-2 items-end">
-          <div className="flex-1">
-            <FieldGroup label="Preço (R$) *" hint='Ex: "35,00"' error={fieldError("price")}>
-              <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">R$</span>
-                <Input
-                  className="h-12 rounded-xl text-base pl-10"
-                  type="number"
-                  inputMode="decimal"
-                  placeholder="0,00"
-                  value={form.price}
-                  onChange={(e) => set("price", e.target.value)}
-                />
+        {/* Price */}
+        <FieldGroup label="Preço (R$) *" hint='Ex: "35,00"' error={fieldError("price")}>
+          <div className="relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">R$</span>
+            <Input
+              className="h-12 rounded-xl text-base pl-10"
+              type="number" inputMode="decimal" placeholder="0,00"
+              value={form.price}
+              onChange={(e) => set("price", e.target.value)}
+            />
+          </div>
+        </FieldGroup>
+
+        {/* Forma de venda */}
+        {form.category && (
+          <FieldGroup label="Como este item é vendido? *" error={fieldError("sale_format")}>
+            <div className="grid grid-cols-2 gap-2">
+              {(SALE_FORMATS_BY_CATEGORY[form.category] || []).map((sf) => (
+                <button
+                  key={sf.value} type="button"
+                  onClick={() => { set("sale_format", sf.value); set("pkg_qty", ""); set("pkg_unit", ""); }}
+                  className={`flex items-center justify-center px-3 py-3 rounded-xl text-sm font-semibold border transition-colors select-none ${
+                    form.sale_format === sf.value
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card border-border text-foreground"
+                  }`}
+                >
+                  {sf.label}
+                </button>
+              ))}
+            </div>
+          </FieldGroup>
+        )}
+
+        {/* Optional package details */}
+        {FORMATS_WITH_PKG_DETAILS.includes(form.sale_format) && (
+          <div className="bg-muted/40 rounded-2xl p-4 space-y-3">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Detalhes da embalagem (opcional)</p>
+            <div className="grid grid-cols-2 gap-3">
+              <FieldGroup label="Quantidade">
+                <Input className="h-11 rounded-xl text-base" type="number" inputMode="decimal" placeholder="Ex: 12" value={form.pkg_qty} onChange={e => set("pkg_qty", e.target.value)} />
+              </FieldGroup>
+              <FieldGroup label="Unidade">
+                <Input className="h-11 rounded-xl text-base" placeholder="Ex: kg, unidades" value={form.pkg_unit} onChange={e => set("pkg_unit", e.target.value)} />
+              </FieldGroup>
+            </div>
+            {form.price && form.pkg_qty && form.pkg_unit && (
+              <div className="bg-card border border-border rounded-xl px-4 py-2">
+                <p className="text-xs text-muted-foreground">Prévia: <span className="font-bold text-foreground">R$ {parseFloat(form.price).toFixed(2).replace(".", ",")} {form.sale_format} de {form.pkg_qty} {form.pkg_unit}</span></p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Property-specific fields */}
+        {form.category === "Propriedades rurais" && (
+          <div className="space-y-4 bg-muted/30 border border-border rounded-2xl p-4">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">🏡 Dados do imóvel</p>
+
+            <FieldGroup label="Tipo do imóvel">
+              <div className="flex flex-wrap gap-2">
+                {["Sítio", "Chácara", "Fazenda", "Lote rural", "Rancho", "Terra para arrendamento"].map(t => (
+                  <button key={t} type="button" onClick={() => set("prop_type", t)}
+                    className={`px-3 py-2 rounded-xl text-sm font-semibold border select-none transition-colors ${
+                      form.prop_type === t ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                    }`}>{t}</button>
+                ))}
               </div>
             </FieldGroup>
-          </div>
-          <div className="w-32">
-            <FieldGroup label="Unidade">
-              <select
-                className="w-full h-12 rounded-xl border border-border bg-card text-sm px-3 focus:outline-none focus:ring-1 focus:ring-ring"
-                value={form.unit}
-                onChange={e => set("unit", e.target.value)}
-              >
-                {UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
-              </select>
+
+            <FieldGroup label="Finalidade">
+              <div className="flex gap-2">
+                {["venda", "arrendamento", "parceria"].map(p => (
+                  <button key={p} type="button" onClick={() => set("prop_purpose", p)}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border capitalize select-none transition-colors ${
+                      form.prop_purpose === p ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                    }`}>{p}</button>
+                ))}
+              </div>
+            </FieldGroup>
+
+            <div className="grid grid-cols-2 gap-3">
+              <FieldGroup label="Área">
+                <Input className="h-11 rounded-xl text-base" type="number" inputMode="decimal" placeholder="Ex: 48" value={form.prop_area} onChange={e => set("prop_area", e.target.value)} />
+              </FieldGroup>
+              <FieldGroup label="Unidade da área">
+                <div className="flex gap-2">
+                  {["hectare", "alqueire"].map(u => (
+                    <button key={u} type="button" onClick={() => set("prop_area_unit", u)}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border select-none transition-colors ${
+                        form.prop_area_unit === u ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                      }`}>{u}</button>
+                  ))}
+                </div>
+              </FieldGroup>
+            </div>
+
+            <FieldGroup label="Aptidão da área">
+              <div className="flex flex-wrap gap-2">
+                {["Pecuária", "Lavoura", "Lazer", "Mista"].map(a => (
+                  <button key={a} type="button" onClick={() => set("prop_aptitude", a)}
+                    className={`px-3 py-2 rounded-xl text-sm font-semibold border select-none transition-colors ${
+                      form.prop_aptitude === a ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                    }`}>{a}</button>
+                ))}
+              </div>
+            </FieldGroup>
+
+            <FieldGroup label="Infraestrutura">
+              <div className="flex gap-2 mb-2">
+                <button type="button" onClick={() => set("prop_has_water", !form.prop_has_water)}
+                  className={`flex-1 py-3 rounded-xl text-sm font-bold border select-none transition-colors ${
+                    form.prop_has_water ? "bg-blue-100 border-blue-400 text-blue-700" : "bg-card border-border text-muted-foreground"
+                  }`}>
+                  💧 {form.prop_has_water ? "Tem água" : "Sem água"}
+                </button>
+                <button type="button" onClick={() => set("prop_has_power", !form.prop_has_power)}
+                  className={`flex-1 py-3 rounded-xl text-sm font-bold border select-none transition-colors ${
+                    form.prop_has_power ? "bg-yellow-100 border-yellow-400 text-yellow-700" : "bg-card border-border text-muted-foreground"
+                  }`}>
+                  ⚡ {form.prop_has_power ? "Tem energia" : "Sem energia"}
+                </button>
+              </div>
+              <Input className="h-11 rounded-xl text-base" placeholder="Benfeitorias, currais, casa sede... (opcional)" value={form.prop_infrastructure} onChange={e => set("prop_infrastructure", e.target.value)} />
+            </FieldGroup>
+
+            <FieldGroup label="Distância da cidade (km, opcional)">
+              <Input className="h-11 rounded-xl text-base" type="number" inputMode="decimal" placeholder="Ex: 15" value={form.prop_distance_km} onChange={e => set("prop_distance_km", e.target.value)} />
             </FieldGroup>
           </div>
-        </div>
+        )}
 
         {/* === Localização === */}
         <SectionHeader emoji="📍" title="Localização" />

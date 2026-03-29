@@ -1,4 +1,5 @@
 import { MapPin, MessageCircle, Store, Clock, Tag } from "lucide-react";
+import { formatListingPrice } from "../utils/listingPrice";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -50,7 +51,7 @@ export default function ListingCard({ listing }) {
   const freshness = timeAgo(listing.updated_date || listing.created_date);
   const isInactive = listing.status && listing.status !== "active";
 
-  const priceLabel = listing.unit ? `R$ ${listing.price?.toFixed(2).replace(".", ",")} / ${listing.unit}` : `R$ ${listing.price?.toFixed(2).replace(".", ",")}`;
+
 
   return (
     <div className={`bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative ${isInactive ? "opacity-60" : ""}`}>
@@ -98,7 +99,7 @@ export default function ListingCard({ listing }) {
         </h3>
 
         {/* Price */}
-        <p className="text-green-600 font-extrabold text-base mb-0.5">{priceLabel}</p>
+        <p className="text-green-600 font-extrabold text-base mb-0.5 leading-snug">{formatListingPrice(listing)}</p>
         {listing.price_per_kg && listing.unit && listing.unit !== "kg" && (
           <p className="text-[10px] text-muted-foreground mb-1">≈ R$ {listing.price_per_kg.toFixed(2).replace(".", ",")}/kg</p>
         )}

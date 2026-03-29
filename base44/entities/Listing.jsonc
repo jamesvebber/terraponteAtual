@@ -15,11 +15,13 @@
       "enum": [
         "Alimentos da ro\u00e7a",
         "Latic\u00ednios",
-        "Gado e animais",
         "Hortifruti",
+        "Carnes e aves",
+        "Gado e animais",
         "M\u00e1quinas e ferramentas",
-        "Artesanato rural",
         "Servi\u00e7os rurais",
+        "Propriedades rurais",
+        "Artesanato rural",
         "Outros"
       ],
       "description": "Categoria"
@@ -28,22 +30,21 @@
       "type": "number",
       "description": "Pre\u00e7o em R$"
     },
+    "sale_format": {
+      "type": "string",
+      "description": "Forma de venda (por kg, por cabe\u00e7a, valor total, etc.)"
+    },
+    "pkg_qty": {
+      "type": "number",
+      "description": "Quantidade na embalagem/lote (opcional)"
+    },
+    "pkg_unit": {
+      "type": "string",
+      "description": "Unidade da quantidade (kg, g, unidades, etc.)"
+    },
     "unit": {
       "type": "string",
-      "enum": [
-        "unidade",
-        "kg",
-        "litro",
-        "saca",
-        "saco",
-        "cabe\u00e7a",
-        "caixa",
-        "@",
-        "m\u00eas",
-        "hora",
-        "di\u00e1ria"
-      ],
-      "description": "Unidade de venda"
+      "description": "Label de exibi\u00e7\u00e3o legado / calculado"
     },
     "price_per_kg": {
       "type": "number",
@@ -96,6 +97,40 @@
       ],
       "default": "active",
       "description": "Status"
+    },
+    "prop_type": {
+      "type": "string",
+      "description": "Tipo do im\u00f3vel rural"
+    },
+    "prop_purpose": {
+      "type": "string",
+      "description": "Finalidade: venda, arrendamento, parceria"
+    },
+    "prop_area": {
+      "type": "number",
+      "description": "\u00c1rea do im\u00f3vel"
+    },
+    "prop_area_unit": {
+      "type": "string",
+      "description": "Unidade da \u00e1rea: hectare ou alqueire"
+    },
+    "prop_aptitude": {
+      "type": "string",
+      "description": "Aptid\u00e3o: pecu\u00e1ria, lavoura, lazer, mista"
+    },
+    "prop_has_water": {
+      "type": "boolean"
+    },
+    "prop_has_power": {
+      "type": "boolean"
+    },
+    "prop_infrastructure": {
+      "type": "string",
+      "description": "Benfeitorias e estrutura"
+    },
+    "prop_distance_km": {
+      "type": "number",
+      "description": "Dist\u00e2ncia da cidade em km"
     },
     "report_count": {
       "type": "number",

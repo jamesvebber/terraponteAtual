@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2, Clock } from "lucide-react";
+import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2, Clock, TreePine, Zap, Droplets } from "lucide-react";
+import { formatListingPrice } from "../utils/listingPrice";
 import { toSlug } from "./SlugRedirect";
 import { toast } from "sonner";
 import ReportSheet from "../components/ReportSheet";
@@ -143,13 +144,7 @@ export default function ListingDetail() {
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Vendido</span>
             )}
           </div>
-          <p className="text-3xl font-extrabold text-green-600">
-            R$ {listing.price?.toFixed(2).replace(".", ",")}
-            {listing.unit && <span className="text-base font-semibold text-muted-foreground ml-1">/ {listing.unit}</span>}
-          </p>
-          {listing.price_per_kg && listing.unit && listing.unit !== "kg" && (
-            <p className="text-sm text-muted-foreground mt-0.5">≈ R$ {listing.price_per_kg.toFixed(2).replace(".", ",")}/kg</p>
-          )}
+          <p className="text-3xl font-extrabold text-green-600 leading-snug">{formatListingPrice(listing)}</p>
         </div>
 
         {/* Description */}
@@ -157,6 +152,23 @@ export default function ListingDetail() {
           <div>
             <h2 className="text-sm font-bold text-foreground mb-1.5">Descrição</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">{listing.description}</p>
+          </div>
+        )}
+
+        {/* Property info */}
+        {listing.category === "Propriedades rurais" && (listing.prop_type || listing.prop_area) && (
+          <div className="bg-muted/50 rounded-2xl p-4 space-y-2">
+            <h2 className="text-sm font-bold text-foreground mb-2">🏡 Dados do imóvel</h2>
+            {listing.prop_type && <p className="text-sm text-foreground font-semibold">{listing.prop_type}</p>}
+            {listing.prop_area && <p className="text-sm text-muted-foreground">{listing.prop_area} {listing.prop_area_unit}</p>}
+            {listing.prop_purpose && <p className="text-sm text-muted-foreground capitalize">Finalidade: {listing.prop_purpose}</p>}
+            {listing.prop_aptitude && <p className="text-sm text-muted-foreground">Aptidão: {listing.prop_aptitude}</p>}
+            <div className="flex gap-2 mt-1">
+              {listing.prop_has_water && <span className="text-xs font-bold px-2 py-1 rounded-full bg-blue-100 text-blue-700">💧 Água</span>}
+              {listing.prop_has_power && <span className="text-xs font-bold px-2 py-1 rounded-full bg-yellow-100 text-yellow-700">⚡ Energia</span>}
+            </div>
+            {listing.prop_infrastructure && <p className="text-sm text-muted-foreground">{listing.prop_infrastructure}</p>}
+            {listing.prop_distance_km && <p className="text-sm text-muted-foreground">{listing.prop_distance_km} km da cidade</p>}
           </div>
         )}
 

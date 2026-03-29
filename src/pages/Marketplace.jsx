@@ -8,17 +8,11 @@ import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose,
 } from "@/components/ui/drawer";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
+import { LISTING_CATEGORIES } from "../utils/listingCategories";
 
 const categories = [
   { label: "Todos", emoji: "🔍" },
-  { label: "Alimentos da roça", emoji: "🍯" },
-  { label: "Laticínios", emoji: "🧀" },
-  { label: "Gado e animais", emoji: "🐂" },
-  { label: "Hortifruti", emoji: "🥬" },
-  { label: "Máquinas e ferramentas", emoji: "🚜" },
-  { label: "Artesanato rural", emoji: "🪵" },
-  { label: "Serviços rurais", emoji: "🔧" },
-  { label: "Outros", emoji: "📦" },
+  ...LISTING_CATEGORIES.map(c => ({ label: c.value, emoji: c.emoji })),
 ];
 
 const CACHE_KEY = "mkt_listings";
