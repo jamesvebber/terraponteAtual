@@ -52,6 +52,9 @@ export default function EditListing() {
         seller_name: l.seller_name || "",
         whatsapp: l.whatsapp || "",
         status: l.status || "active",
+        availability_status: l.availability_status || "Disponível",
+        delivery_type: l.delivery_type || "",
+        freight_info: l.freight_info || "",
       });
       setLoading(false);
     });
@@ -78,6 +81,9 @@ export default function EditListing() {
       region: form.region.trim().toUpperCase(),
       seller_name: form.seller_name.trim(),
       whatsapp: form.whatsapp,
+      availability_status: form.availability_status || "Disponível",
+      delivery_type: form.delivery_type || null,
+      freight_info: form.freight_info || null,
     });
     setSaving(false);
     toast.success("Anúncio atualizado!");
@@ -237,6 +243,39 @@ export default function EditListing() {
 
           <FieldGroup label="Seu nome / loja *">
             <Input className="h-12 rounded-xl text-base" value={form.seller_name} onChange={e => set("seller_name", e.target.value)} />
+          </FieldGroup>
+
+          <FieldGroup label="Disponibilidade">
+            <div className="flex flex-wrap gap-2">
+              {["Disponível", "Sob encomenda", "Indisponível"].map(opt => (
+                <button key={opt} type="button" onClick={() => set("availability_status", opt)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors select-none ${
+                    form.availability_status === opt ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                  }`}>{opt}</button>
+              ))}
+            </div>
+          </FieldGroup>
+
+          <FieldGroup label="Forma de entrega" hint="Opcional">
+            <div className="flex flex-wrap gap-2">
+              {["Retirada no local", "Entrega a combinar", "Entrega disponível"].map(opt => (
+                <button key={opt} type="button" onClick={() => set("delivery_type", form.delivery_type === opt ? "" : opt)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors select-none ${
+                    form.delivery_type === opt ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                  }`}>{opt}</button>
+              ))}
+            </div>
+          </FieldGroup>
+
+          <FieldGroup label="Frete" hint="Opcional">
+            <div className="flex flex-wrap gap-2">
+              {["Sem frete / retirada", "Frete a combinar", "Entrega própria"].map(opt => (
+                <button key={opt} type="button" onClick={() => set("freight_info", form.freight_info === opt ? "" : opt)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors select-none ${
+                    form.freight_info === opt ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                  }`}>{opt}</button>
+              ))}
+            </div>
           </FieldGroup>
 
           <FieldGroup label="WhatsApp *">

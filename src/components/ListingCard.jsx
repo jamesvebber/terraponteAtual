@@ -114,6 +114,20 @@ export default function ListingCard({ listing }) {
           <span className="truncate">{listing.city}{listing.region ? `, ${listing.region}` : ""}</span>
         </div>
 
+        {/* Availability chips */}
+        {(listing.availability_status && listing.availability_status !== "Disponível") || listing.delivery_type ? (
+          <div className="flex gap-1.5 flex-wrap mb-2">
+            {listing.availability_status && listing.availability_status !== "Disponível" && (
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                listing.availability_status === "Sob encomenda" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600"
+              }`}>{listing.availability_status}</span>
+            )}
+            {listing.delivery_type && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{listing.delivery_type}</span>
+            )}
+          </div>
+        ) : null}
+
         {/* Actions */}
         <div className="flex gap-2">
           <Button

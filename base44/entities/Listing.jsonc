@@ -105,6 +105,34 @@
       "default": "active",
       "description": "Status"
     },
+    "availability_status": {
+      "type": "string",
+      "enum": [
+        "Dispon\u00edvel",
+        "Sob encomenda",
+        "Indispon\u00edvel"
+      ],
+      "default": "Dispon\u00edvel",
+      "description": "Disponibilidade do item"
+    },
+    "delivery_type": {
+      "type": "string",
+      "enum": [
+        "Retirada no local",
+        "Entrega a combinar",
+        "Entrega dispon\u00edvel"
+      ],
+      "description": "Tipo de entrega"
+    },
+    "freight_info": {
+      "type": "string",
+      "enum": [
+        "Frete a combinar",
+        "Sem frete / retirada",
+        "Entrega pr\u00f3pria"
+      ],
+      "description": "Informa\u00e7\u00e3o sobre frete"
+    },
     "prop_type": {
       "type": "string",
       "description": "Tipo do im\u00f3vel rural"

@@ -25,6 +25,7 @@ const EMPTY = {
   title: "", description: "", category: "", price: "",
   sale_format: "", pkg_qty: "", pkg_unit: "",
   city: "", region: "", seller_name: "", seller_type: "Produtor", whatsapp: "",
+  availability_status: "Disponível", delivery_type: "", freight_info: "",
   prop_type: "", prop_purpose: "venda", prop_area: "", prop_area_unit: "hectare",
   prop_aptitude: "", prop_has_water: false, prop_has_power: false,
   prop_infrastructure: "", prop_distance_km: "",
@@ -191,6 +192,9 @@ export default function Vender() {
         prop_distance_km: form.prop_distance_km ? parseFloat(form.prop_distance_km) : null,
       } : {}),
       status: "active",
+      availability_status: form.availability_status || "Disponível",
+      delivery_type: form.delivery_type || null,
+      freight_info: form.freight_info || null,
     });
 
     setSubmitting(false);
@@ -469,6 +473,42 @@ export default function Vender() {
               >
                 {t === "Produtor" ? "🌱 Produtor" : "🏪 Loja"}
               </button>
+            ))}
+          </div>
+        </FieldGroup>
+
+        {/* === Disponibilidade e Entrega === */}
+        <SectionHeader emoji="🚚" title="Disponibilidade e Entrega" />
+
+        <FieldGroup label="Disponibilidade">
+          <div className="flex flex-wrap gap-2">
+            {["Disponível", "Sob encomenda", "Indisponível"].map(opt => (
+              <button key={opt} type="button" onClick={() => set("availability_status", opt)}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors select-none ${
+                  form.availability_status === opt ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                }`}>{opt}</button>
+            ))}
+          </div>
+        </FieldGroup>
+
+        <FieldGroup label="Forma de entrega" hint="Opcional — ajuda compradores a se preparar">
+          <div className="flex flex-wrap gap-2">
+            {["Retirada no local", "Entrega a combinar", "Entrega disponível"].map(opt => (
+              <button key={opt} type="button" onClick={() => set("delivery_type", form.delivery_type === opt ? "" : opt)}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors select-none ${
+                  form.delivery_type === opt ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                }`}>{opt}</button>
+            ))}
+          </div>
+        </FieldGroup>
+
+        <FieldGroup label="Frete" hint="Opcional">
+          <div className="flex flex-wrap gap-2">
+            {["Sem frete / retirada", "Frete a combinar", "Entrega própria"].map(opt => (
+              <button key={opt} type="button" onClick={() => set("freight_info", form.freight_info === opt ? "" : opt)}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors select-none ${
+                  form.freight_info === opt ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                }`}>{opt}</button>
             ))}
           </div>
         </FieldGroup>

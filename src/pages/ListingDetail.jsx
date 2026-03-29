@@ -234,6 +234,28 @@ export default function ListingDetail() {
           </div>
         )}
 
+        {/* Availability & Delivery */}
+        {(listing.availability_status || listing.delivery_type || listing.freight_info) && (
+          <div className="bg-muted/50 rounded-2xl p-4">
+            <h2 className="text-sm font-bold text-foreground mb-3">Disponibilidade e entrega</h2>
+            <div className="flex flex-wrap gap-2">
+              {listing.availability_status && (
+                <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${
+                  listing.availability_status === "Disponível" ? "bg-green-100 text-green-700" :
+                  listing.availability_status === "Sob encomenda" ? "bg-amber-100 text-amber-700" :
+                  "bg-red-100 text-red-600"
+                }`}>📦 {listing.availability_status}</span>
+              )}
+              {listing.delivery_type && (
+                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-blue-100 text-blue-700">🚚 {listing.delivery_type}</span>
+              )}
+              {listing.freight_info && (
+                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-muted text-muted-foreground border border-border">{listing.freight_info}</span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Seller info */}
         <div className="bg-muted/50 rounded-2xl p-4 space-y-2">
           <h2 className="text-sm font-bold text-foreground mb-2">Informações do vendedor</h2>
