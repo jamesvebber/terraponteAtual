@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { toSlug } from "./SlugRedirect";
 
 const categoryEmoji = {
   "Ração": "🌾", "Sal mineral": "🧂", "Adubo": "🌱", "Sementes": "🌻",
@@ -50,7 +51,8 @@ export default function InsumoDetail() {
     );
   }
 
-  const shareUrl = `${window.location.origin}/insumos/${product.id}`;
+  const slug = toSlug(product.product_name, product.city);
+  const shareUrl = `${window.location.origin}/p/${slug}`;
 
   const handleShare = async () => {
     const price = `R$ ${product.price?.toFixed(2).replace(".", ",")}/${product.unit}`;

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2 } from "lucide-react";
+import { toSlug } from "./SlugRedirect";
 import { toast } from "sonner";
 import ReportSheet from "../components/ReportSheet";
 
@@ -53,7 +54,8 @@ export default function ListingDetail() {
     );
   }
 
-  const shareUrl = `${window.location.origin}/marketplace/${listing.id}`;
+  const slug = toSlug(listing.title, listing.city);
+  const shareUrl = `${window.location.origin}/p/${slug}`;
 
   const handleShare = async () => {
     const price = `R$ ${listing.price?.toFixed(2).replace(".", ",")}`;

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import OnboardingModal from "./OnboardingModal";
+import Footer from "./Footer";
 import { AnimatePresence, motion } from "framer-motion";
 import BottomNav from "./BottomNav";
 
@@ -54,6 +55,7 @@ export default function Layout() {
             className="min-h-full"
           >
             <Outlet />
+            <Footer />
           </motion.div>
         </AnimatePresence>
       </main>
