@@ -265,12 +265,18 @@ export default function ListingDetail() {
         )}
 
         {/* Report listing */}
-        <button
-          onClick={() => setReportOpen(true)}
-          className="w-full flex items-center gap-2 text-xs text-muted-foreground font-medium py-1 select-none"
-        >
-          <Flag className="h-3.5 w-3.5" /> Denunciar este anúncio
-        </button>
+        <div className="flex items-center justify-between bg-muted/50 border border-border rounded-2xl px-4 py-3">
+          <div>
+            <p className="text-xs font-semibold text-foreground">Algo errado com este anúncio?</p>
+            <p className="text-[11px] text-muted-foreground">Anúncios falsos podem ser removidos.</p>
+          </div>
+          <button
+            onClick={() => setReportOpen(true)}
+            className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs font-bold select-none shrink-0"
+          >
+            <Flag className="h-3.5 w-3.5" /> Reportar
+          </button>
+        </div>
 
         {/* More from seller */}
         <button
