@@ -27,11 +27,19 @@ export default function ListingDetail() {
   const [listing, setListing] = useState(null);
   const [renewing, setRenewing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
 
   useEffect(() => {
+    setLoading(true);
+    setError(false);
+    setPhotoIndex(0);
     base44.entities.Listing.filter({ id }).then((data) => {
       setListing(data[0] || null);
+      setLoading(false);
+    }).catch(() => {
+      setError(true);
       setLoading(false);
     });
   }, [id]);
@@ -44,14 +52,17 @@ export default function ListingDetail() {
     );
   }
 
-  if (!listing) {
+  if (error || (!loading && !listing)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen px-4 text-center">
         <span className="text-5xl mb-4">😕</span>
-        <h2 className="text-lg font-bold text-foreground mb-2">Anúncio não encontrado</h2>
-        <Button onClick={() => navigate("/marketplace")} variant="outline" className="rounded-xl">
-          Voltar ao Marketplace
-        </Button>
+        <h2 className="text-lg font-bold text-foreground mb-2">Não foi possível carregar este anúncio</h2>
+        <p className="text-sm text-muted-foreground mb-6">O anúncio pode ter sido removido ou houve um erro de conexão.</p>
+        <div className="flex flex-col gap-2 w-full max-w-xs">
+          <Button onClick={() => { setLoading(true); setError(false); base44.entities.Listing.filter({ id }).then(data => { setListing(data[0] || null); setLoading(false); }).catch(() => { setError(true); setLoading(false); }); }} className="rounded-xl">Tentar novamente</Button>
+          <Button onClick={() => navigate("/meus-anuncios")} variant="outline" className="rounded-xl">Voltar para meus anúncios</Button>
+          <Button onClick={() => navigate("/marketplace")} variant="ghost" className="rounded-xl">Ir ao Marketplace</Button>
+        </div>
       </div>
     );
   }
