@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import InsumoProductCard from "../components/InsumoProductCard";
 import SkeletonCard from "../components/SkeletonCard";
 import { slugify } from "../utils/slugify";
+import { PROD_DOMAIN } from "../utils/domain";
 import {
   MessageCircle, MapPin, Share2, Store, Truck, ShoppingBag, Phone,
 } from "lucide-react";
@@ -37,7 +38,7 @@ export default function PublicStorePage() {
     load();
   }, [slug]);
 
-  const profileUrl = `${window.location.origin}/loja/${slug}`;
+  const profileUrl = `${PROD_DOMAIN}/loja/${slug}`;
 
   const handleShare = async () => {
     if (!profile) return;

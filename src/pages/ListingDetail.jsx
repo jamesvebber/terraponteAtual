@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2, Clock, Pencil, ChevronLeft } from "lucide-react";
 import { formatListingPrice } from "../utils/listingPrice";
 import { toSlug } from "./SlugRedirect";
+import { PROD_DOMAIN } from "../utils/domain";
 import { toast } from "sonner";
 import ReportSheet from "../components/ReportSheet";
 
@@ -68,7 +69,7 @@ export default function ListingDetail() {
   }
 
   const slug = toSlug(listing.title, listing.city);
-  const shareUrl = `${window.location.origin}/p/${slug}`;
+  const shareUrl = `${PROD_DOMAIN}/p/${slug}`;
 
   const handleShare = async () => {
     const price = `R$ ${listing.price?.toFixed(2).replace(".", ",")}`;

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import ListingCard from "../components/ListingCard";
 import SkeletonCard from "../components/SkeletonCard";
 import { slugify } from "../utils/slugify";
+import { PROD_DOMAIN } from "../utils/domain";
 import {
   MessageCircle, MapPin, Share2, Store, Leaf, Handshake, BadgeCheck, Calendar,
 } from "lucide-react";
@@ -44,7 +45,7 @@ export default function PublicSellerPage() {
     load();
   }, [slug]);
 
-  const profileUrl = `${window.location.origin}/produtor/${slug}`;
+  const profileUrl = `${PROD_DOMAIN}/produtor/${slug}`;
 
   const handleShare = async () => {
     if (!profile) return;

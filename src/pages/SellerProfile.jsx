@@ -9,6 +9,7 @@ import {
   Leaf, Building2, Handshake, Flag, Share2,
 } from "lucide-react";
 import { slugify } from "../utils/slugify";
+import { PROD_DOMAIN } from "../utils/domain";
 import { toast } from "sonner";
 import ReportSheet from "../components/ReportSheet";
 
@@ -173,7 +174,7 @@ export default function SellerProfile() {
         <button
           onClick={async () => {
             const slug = slugify(name);
-            const url = `${window.location.origin}/produtor/${slug}`;
+            const url = `${PROD_DOMAIN}/produtor/${slug}`;
             const text = `👨\u200d🌾 ${name}\n📍 ${[profile?.city, profile?.region].filter(Boolean).join(" - ")}\n🌾 Veja meus anúncios no TerraPonte:\n${url}`;
             try { if (navigator.share) { await navigator.share({ title: name, text, url }); return; } } catch {}
             await navigator.clipboard.writeText(text);

@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { toSlug } from "./SlugRedirect";
+import { PROD_DOMAIN } from "../utils/domain";
 import { formatInsumoPrice, formatEquivalentPrice } from "../utils/insumoPrice";
 
 const categoryEmoji = {
@@ -53,7 +54,7 @@ export default function InsumoDetail() {
   }
 
   const slug = toSlug(product.product_name, product.city);
-  const shareUrl = `${window.location.origin}/p/${slug}`;
+  const shareUrl = `${PROD_DOMAIN}/p/${slug}`;
 
   const handleShare = async () => {
     const price = `R$ ${product.price?.toFixed(2).replace(".", ",")}/${product.unit}`;
