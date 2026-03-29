@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2, Clock } from "lucide-react";
 import { toSlug } from "./SlugRedirect";
 import { toast } from "sonner";
 import ReportSheet from "../components/ReportSheet";
@@ -114,10 +114,42 @@ export default function ListingDetail() {
 
         {/* Title & Price */}
         <div>
-          <h1 className="text-xl font-extrabold text-foreground leading-tight">{listing.title}</h1>
-          <p className="text-3xl font-extrabold text-green-600 mt-2">
+          <div className="flex items-center justify-between mb-1">
+            <h1 className="text-xl font-extrabold text-foreground leading-tight flex-1">{listing.title}</h1>
+          </div>
+          {/* Freshness + status */}
+          <div className="flex items-center gap-2 mb-2">
+            {listing.updated_date && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground font-medium">
+                <Clock className="h-3.5 w-3.5" />
+                {(() => {
+                  const diff = Date.now() - new Date(listing.updated_date).getTime();
+                  const hrs = Math.floor(diff / 3600000);
+                  const days = Math.floor(hrs / 24);
+                  if (hrs < 1) return "publicado agora";
+                  if (hrs < 24) return `atualizado há ${hrs}h`;
+                  if (days === 1) return "atualizado ontem";
+                  return `atualizado há ${days} dias`;
+                })()}
+              </span>
+            )}
+            {listing.status === "active" && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Anúncio ativo</span>
+            )}
+            {listing.status === "paused" && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">⏸ Pausado</span>
+            )}
+            {listing.status === "sold" && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Vendido</span>
+            )}
+          </div>
+          <p className="text-3xl font-extrabold text-green-600">
             R$ {listing.price?.toFixed(2).replace(".", ",")}
+            {listing.unit && <span className="text-base font-semibold text-muted-foreground ml-1">/ {listing.unit}</span>}
           </p>
+          {listing.price_per_kg && listing.unit && listing.unit !== "kg" && (
+            <p className="text-sm text-muted-foreground mt-0.5">≈ R$ {listing.price_per_kg.toFixed(2).replace(".", ",")}/kg</p>
+          )}
         </div>
 
         {/* Description */}

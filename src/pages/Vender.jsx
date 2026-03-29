@@ -26,8 +26,21 @@ const PROFANITY = ["merda", "porra", "caralho", "puta", "viado", "fdp"];
 const hasProfanity = (t) => PROFANITY.some((w) => t?.toLowerCase().includes(w));
 const validPhone = (p) => p.replace(/\D/g, "").length >= 10;
 
+const UNITS = [
+  { value: "unidade", label: "unidade" },
+  { value: "kg", label: "kg" },
+  { value: "litro", label: "litro" },
+  { value: "saca", label: "saca" },
+  { value: "saco", label: "saco" },
+  { value: "cabeça", label: "cabeça" },
+  { value: "caixa", label: "caixa" },
+  { value: "@", label: "arroba (@)" },
+  { value: "mês", label: "mês" },
+  { value: "hora", label: "hora" },
+];
+
 const EMPTY = {
-  title: "", description: "", category: "", price: "",
+  title: "", description: "", category: "", price: "", unit: "unidade",
   city: "", region: "", seller_name: "", seller_type: "Produtor", whatsapp: "",
 };
 
@@ -166,6 +179,7 @@ export default function Vender() {
       description: form.description.trim(),
       category: form.category,
       price: parseFloat(form.price),
+      unit: form.unit,
       city: form.city.trim(),
       region: form.region.trim().toUpperCase(),
       seller_name: form.seller_name.trim(),
@@ -263,20 +277,35 @@ export default function Vender() {
           </div>
         </FieldGroup>
 
-        {/* Price */}
-        <FieldGroup label="Preço (R$) *" hint='Ex: "35" para R$ 35,00' error={fieldError("price")}>
-          <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">R$</span>
-            <Input
-              className="h-12 rounded-xl text-base pl-10"
-              type="number"
-              inputMode="decimal"
-              placeholder="0,00"
-              value={form.price}
-              onChange={(e) => set("price", e.target.value)}
-            />
+        {/* Price + unit */}
+        <div className="flex gap-2 items-end">
+          <div className="flex-1">
+            <FieldGroup label="Preço (R$) *" hint='Ex: "35,00"' error={fieldError("price")}>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">R$</span>
+                <Input
+                  className="h-12 rounded-xl text-base pl-10"
+                  type="number"
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={form.price}
+                  onChange={(e) => set("price", e.target.value)}
+                />
+              </div>
+            </FieldGroup>
           </div>
-        </FieldGroup>
+          <div className="w-32">
+            <FieldGroup label="Unidade">
+              <select
+                className="w-full h-12 rounded-xl border border-border bg-card text-sm px-3 focus:outline-none focus:ring-1 focus:ring-ring"
+                value={form.unit}
+                onChange={e => set("unit", e.target.value)}
+              >
+                {UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+              </select>
+            </FieldGroup>
+          </div>
+        </div>
 
         {/* === Localização === */}
         <SectionHeader emoji="📍" title="Localização" />
