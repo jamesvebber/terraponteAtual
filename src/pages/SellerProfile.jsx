@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import SkeletonCard from "../components/SkeletonCard";
 import {
   ArrowLeft, MessageCircle, MapPin, Store, Calendar, BadgeCheck,
-  Leaf, Building2, Handshake, Flag,
+  Leaf, Building2, Handshake, Flag, Share2,
 } from "lucide-react";
+import { slugify } from "../utils/slugify";
+import { toast } from "sonner";
 import ReportSheet from "../components/ReportSheet";
 
 const typeIcon = { Produtor: Leaf, Loja: Building2, Cooperativa: Handshake };
@@ -166,6 +168,21 @@ export default function SellerProfile() {
             Ver anúncios
           </Button>
         </div>
+
+        {/* Share profile */}
+        <button
+          onClick={async () => {
+            const slug = slugify(name);
+            const url = `${window.location.origin}/produtor/${slug}`;
+            const text = `👨\u200d🌾 ${name}\n📍 ${[profile?.city, profile?.region].filter(Boolean).join(" - ")}\n🌾 Veja meus anúncios no TerraPonte:\n${url}`;
+            try { if (navigator.share) { await navigator.share({ title: name, text, url }); return; } } catch {}
+            await navigator.clipboard.writeText(text);
+            toast.success("Link copiado!");
+          }}
+          className="flex items-center gap-1.5 text-xs text-primary font-bold py-1 select-none"
+        >
+          <Share2 className="h-3.5 w-3.5" /> Compartilhar perfil
+        </button>
 
         {/* Report seller */}
         <button

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { slugify } from "../utils/slugify";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft, Store, Loader2, CheckCircle2, Camera, X,
   PlusCircle, Package, Pencil, Trash2, Eye, EyeOff,
-  Truck, MapPin, Phone, ChevronRight, BadgeCheck,
+  Truck, MapPin, Phone, ChevronRight, BadgeCheck, Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import AddInsumoForm from "../components/AddInsumoForm";
@@ -251,8 +252,23 @@ export default function MinhaLoja() {
           {profile && <p className="text-xs text-muted-foreground truncate">{profile.store_name} · {profile.supplier_type}</p>}
         </div>
         {profile && (
-          <div className="flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full shrink-0">
-            <BadgeCheck className="h-3.5 w-3.5" /> Ativa
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full shrink-0">
+              <BadgeCheck className="h-3.5 w-3.5" /> Ativa
+            </div>
+            <button
+              onClick={async () => {
+                const slug = slugify(profile.store_name);
+                const url = `${window.location.origin}/loja/${slug}`;
+                const text = `🎢 ${profile.store_name}\n📍 ${[profile.city, profile.region].filter(Boolean).join(" - ")}\n🌾 Veja nossos produtos no TerraPonte:\n${url}`;
+                try { if (navigator.share) { await navigator.share({ title: profile.store_name, text, url }); return; } } catch {}
+                await navigator.clipboard.writeText(text);
+                toast.success("Link copiado!");
+              }}
+              className="flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-bold px-2.5 py-1 rounded-full shrink-0 select-none"
+            >
+              <Share2 className="h-3.5 w-3.5" /> Compartilhar
+            </button>
           </div>
         )}
       </div>

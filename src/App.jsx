@@ -22,6 +22,8 @@ import MinhaLoja from './pages/MinhaLoja';
 import InsumoDetail from './pages/InsumoDetail';
 import SlugRedirect from './pages/SlugRedirect';
 import SobreNos from './pages/SobreNos';
+import PublicSellerPage from './pages/PublicSellerPage';
+import PublicStorePage from './pages/PublicStorePage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -62,6 +64,8 @@ const AuthenticatedApp = () => {
         <Route path="/insumos/:id" element={<InsumoDetail />} />
         <Route path="/p/:slug" element={<SlugRedirect />} />
         <Route path="/sobre" element={<SobreNos />} />
+        <Route path="/produtor/:slug" element={<PublicSellerPage />} />
+        <Route path="/loja/:slug" element={<PublicStorePage />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
