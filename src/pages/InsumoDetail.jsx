@@ -53,7 +53,9 @@ export default function InsumoDetail() {
   const shareUrl = `${window.location.origin}/insumos/${product.id}`;
 
   const handleShare = async () => {
-    const text = `Veja este insumo no TerraPonte: ${product.product_name} - R$ ${product.price?.toFixed(2).replace(".", ",")} - ${product.city}${product.region ? `, ${product.region}` : ""} - ${shareUrl}`;
+    const price = `R$ ${product.price?.toFixed(2).replace(".", ",")}/${product.unit}`;
+    const location = [product.city, product.region].filter(Boolean).join(" - ");
+    const text = `🌾 INSUMO - ${product.product_name}\n💰 ${price}\n📍 ${location}\n\nVer produto:\n${shareUrl}`;
     if (navigator.share) {
       await navigator.share({ title: product.product_name, text, url: shareUrl });
     } else {

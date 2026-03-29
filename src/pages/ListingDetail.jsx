@@ -56,7 +56,9 @@ export default function ListingDetail() {
   const shareUrl = `${window.location.origin}/marketplace/${listing.id}`;
 
   const handleShare = async () => {
-    const text = `🌾 ${listing.title}\n💰 R$ ${listing.price?.toFixed(2).replace(".", ",")}\n📍 ${listing.city}${listing.region ? `, ${listing.region}` : ""}\n\nVeja no TerraPonte: ${shareUrl}`;
+    const price = `R$ ${listing.price?.toFixed(2).replace(".", ",")}`;
+    const location = [listing.city, listing.region].filter(Boolean).join(" - ");
+    const text = `🌾 VENDA - ${listing.title}\n💰 ${price}\n📍 ${location}\n\nVer anúncio:\n${shareUrl}`;
     if (navigator.share) {
       await navigator.share({ title: listing.title, text, url: shareUrl });
     } else {
