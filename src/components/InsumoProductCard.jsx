@@ -86,19 +86,20 @@ export default function InsumoProductCard({ product, isBest, isVerified }) {
           {/* Store chip — clickable to store page */}
           <button
             onClick={e => { e.stopPropagation(); navigate(`/loja/${slugify(product.supplier_name)}`); }}
-            className="flex items-center justify-between gap-1.5 w-full bg-primary/8 hover:bg-primary/15 border border-primary/20 rounded-xl px-2.5 py-2 mb-2.5 select-none transition-colors"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', width: '100%', background: 'var(--tw-bg, transparent)', marginBottom: '10px' }}
+            className="bg-primary/8 hover:bg-primary/15 border border-primary/20 rounded-xl px-2.5 py-2 select-none transition-colors"
           >
-            <div className="flex items-center gap-1.5 min-w-0">
-              <Store className="h-3.5 w-3.5 text-primary shrink-0" />
-              <span className="text-xs font-bold text-primary truncate">{product.supplier_name}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1 }}>
+              <Store style={{ width: 14, height: 14, flexShrink: 0, color: 'hsl(var(--primary))' }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'hsl(var(--primary))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{product.supplier_name}</span>
               {isVerified && (
-                <span className="text-green-600 text-[10px] font-bold shrink-0" title="Loja verificada">✔</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'hsl(142 55% 35%)', flexShrink: 0 }} title="Loja verificada">✔</span>
               )}
             </div>
-            <div className="flex items-center gap-0.5 text-muted-foreground shrink-0 overflow-hidden">
-              <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
-              <span className="text-[10px] font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[80px]">{product.city}</span>
-              <ChevronRight className="h-3 w-3 text-primary shrink-0" aria-hidden="true" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
+              <MapPin style={{ width: 12, height: 12, flexShrink: 0, color: 'hsl(var(--muted-foreground))' }} />
+              <span style={{ fontSize: 10, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 80, color: 'hsl(var(--muted-foreground))' }}>{product.city}</span>
+              <ChevronRight style={{ width: 12, height: 12, flexShrink: 0, color: 'hsl(var(--primary))' }} />
             </div>
           </button>
 
