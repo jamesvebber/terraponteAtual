@@ -8,7 +8,7 @@
     },
     "responsible_name": {
       "type": "string",
-      "description": "Nome do respons\u00e1vel"
+      "description": "Nome completo do respons\u00e1vel"
     },
     "supplier_type": {
       "type": "string",
@@ -30,6 +30,10 @@
     },
     "whatsapp": {
       "type": "string"
+    },
+    "cnpj": {
+      "type": "string",
+      "description": "CNPJ da empresa (uso interno/admin)"
     },
     "description": {
       "type": "string",
@@ -88,21 +92,22 @@
       "description": "Status de verifica\u00e7\u00e3o da loja"
     },
     "verified_at": {
-      "type": "string",
-      "description": "Data da verifica\u00e7\u00e3o"
+      "type": "string"
     },
     "verified_by": {
-      "type": "string",
-      "description": "Email do admin que verificou"
+      "type": "string"
     },
     "is_suspended": {
       "type": "boolean",
-      "default": false,
-      "description": "Loja suspensa por admin"
+      "default": false
     },
     "report_count": {
       "type": "number",
       "default": 0
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Motivo da reprova\u00e7\u00e3o (uso interno/admin)"
     }
   },
   "required": [

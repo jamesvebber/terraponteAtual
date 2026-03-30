@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Loader2, Trash2, EyeOff, CheckCircle2, Flag, ArrowLeft, RefreshCw, ShieldCheck, Store } from "lucide-react";
+import { Loader2, Trash2, EyeOff, CheckCircle2, Flag, ArrowLeft, RefreshCw, ShieldCheck, Store, X } from "lucide-react";
+import { formatCNPJ } from "../utils/validators";
 import { toast } from "sonner";
 
 const STATUS_COLORS = {
@@ -22,8 +23,10 @@ export default function AdminModeration() {
   const [listings, setListings] = useState([]);
   const [reports, setReports] = useState([]);
   const [verificationRequests, setVerificationRequests] = useState([]);
+  const [pendingStores, setPendingStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("listings");
+  const [rejectReason, setRejectReason] = useState({});
 
   useEffect(() => {
     if (!isLoadingAuth && user?.role !== "admin") navigate("/");
@@ -31,14 +34,16 @@ export default function AdminModeration() {
 
   const load = async () => {
     setLoading(true);
-    const [ls, rs, vrs] = await Promise.all([
+    const [ls, rs, vrs, stores] = await Promise.all([
       base44.entities.Listing.list("-created_date", 100),
       base44.entities.Report.filter({ status: "pending" }, "-created_date"),
       base44.entities.StoreVerificationRequest.filter({ status: "pendente" }, "-created_date"),
+      base44.entities.SupplierProfile.filter({ verification_status: "nao_verificada" }, "-created_date", 50),
     ]);
     setListings(ls);
     setReports(rs);
     setVerificationRequests(vrs);
+    setPendingStores(stores.filter(s => !s.is_suspended));
     setLoading(false);
   };
 
@@ -85,14 +90,33 @@ export default function AdminModeration() {
   };
 
   const rejectVerification = async (req) => {
-    await base44.entities.SupplierProfile.update(req.store_id, { verification_status: "nao_verificada" });
+    const reason = rejectReason[req.id] || "";
+    await base44.entities.SupplierProfile.update(req.store_id, { verification_status: "nao_verificada", rejection_reason: reason });
     await base44.entities.StoreVerificationRequest.update(req.id, {
       status: "rejeitado",
+      review_notes: reason,
       reviewed_at: new Date().toISOString(),
       reviewed_by: user.email,
     });
     setVerificationRequests(prev => prev.filter(r => r.id !== req.id));
     toast.success("Solicitação rejeitada.");
+  };
+
+  const approveStore = async (store) => {
+    await base44.entities.SupplierProfile.update(store.id, {
+      verification_status: "verificada",
+      verified_at: new Date().toISOString(),
+      verified_by: user.email,
+    });
+    setPendingStores(prev => prev.filter(s => s.id !== store.id));
+    toast.success(`Loja "${store.store_name}" verificada!`);
+  };
+
+  const suspendStore = async (store) => {
+    const reason = rejectReason[store.id] || "";
+    await base44.entities.SupplierProfile.update(store.id, { is_suspended: true, rejection_reason: reason });
+    setPendingStores(prev => prev.filter(s => s.id !== store.id));
+    toast.success("Loja suspensa.");
   };
 
   if (isLoadingAuth || loading) return (
@@ -124,12 +148,13 @@ export default function AdminModeration() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-2 mb-5">
+      <div className="grid grid-cols-3 gap-2 mb-5">
         {[
           { label: "Ativos", value: allActive.length, color: "text-green-600" },
           { label: "Em revisão", value: pendingReview.length, color: "text-blue-600" },
           { label: "Denúncias", value: reports.length, color: "text-orange-600" },
           { label: "Verificações", value: verificationRequests.length, color: "text-purple-600" },
+        { label: "Lojas novas", value: pendingStores.length, color: "text-indigo-600" },
         ].map(s => (
           <div key={s.label} className="bg-card border border-border rounded-2xl p-3 text-center">
             <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
@@ -139,11 +164,12 @@ export default function AdminModeration() {
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-muted rounded-xl p-1 mb-4 gap-1">
+      <div className="flex bg-muted rounded-xl p-1 mb-4 gap-1 flex-wrap">
         {[
           { id: "listings", label: `Anúncios (${listings.length})` },
           { id: "reports", label: `Denúncias (${reports.length})` },
           { id: "verification", label: `Verificações (${verificationRequests.length})` },
+          { id: "stores", label: `Lojas (${pendingStores.length})` },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all select-none ${tab === t.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>
@@ -222,6 +248,49 @@ export default function AdminModeration() {
         </div>
       )}
 
+      {/* Stores tab */}
+      {tab === "stores" && (
+        <div className="space-y-3">
+          {pendingStores.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-4xl mb-3">✅</p>
+              <p className="text-sm font-bold text-foreground">Nenhuma loja nova pendente</p>
+            </div>
+          )}
+          {pendingStores.map(store => (
+            <div key={store.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                {store.logo_url
+                  ? <img src={store.logo_url} alt={store.store_name} className="h-14 w-14 rounded-xl object-cover shrink-0" />
+                  : <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"><Store className="h-6 w-6 text-primary" /></div>}
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-foreground text-sm">{store.store_name}</p>
+                  <p className="text-xs text-muted-foreground">{store.supplier_type} · {[store.city, store.region].filter(Boolean).join(", ")}</p>
+                  {store.responsible_name && <p className="text-xs text-muted-foreground">Resp: {store.responsible_name}</p>}
+                  {store.whatsapp && <p className="text-xs text-muted-foreground">📱 {store.whatsapp}</p>}
+                  {store.cnpj && <p className="text-xs font-mono text-muted-foreground">CNPJ: {formatCNPJ(store.cnpj)}</p>}
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(store.created_date).toLocaleDateString("pt-BR")}</p>
+                </div>
+              </div>
+              <input
+                className="w-full h-9 px-3 rounded-xl border border-border bg-muted/40 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                placeholder="Motivo da reprovação (se suspender)"
+                value={rejectReason[store.id] || ""}
+                onChange={e => setRejectReason(p => ({ ...p, [store.id]: e.target.value }))}
+              />
+              <div className="flex gap-2">
+                <Button size="sm" className="flex-1 rounded-xl text-xs bg-green-600 hover:bg-green-700 gap-1" onClick={() => approveStore(store)}>
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Verificar
+                </Button>
+                <Button size="sm" variant="outline" className="flex-1 rounded-xl text-xs text-red-600 border-red-200" onClick={() => suspendStore(store)}>
+                  <X className="h-3.5 w-3.5" /> Suspender
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Verification tab */}
       {tab === "verification" && (
         <div className="space-y-3">
@@ -239,7 +308,7 @@ export default function AdminModeration() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-foreground">Loja ID: {req.store_id}</p>
-                  <p className="text-xs text-muted-foreground">{req.responsible_name} · {req.cpf_cnpj}</p>
+                  <p className="text-xs text-muted-foreground">{req.responsible_name} · {req.cpf_cnpj && formatCNPJ(req.cpf_cnpj)}</p>
                   <p className="text-xs text-muted-foreground">{req.phone} · {[req.city, req.state].filter(Boolean).join(", ")}</p>
                   <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(req.created_date).toLocaleDateString("pt-BR")}</p>
                 </div>
@@ -250,6 +319,12 @@ export default function AdminModeration() {
                   <img src={req.document_image} alt="Documento" className="w-full max-h-40 object-contain rounded-xl bg-muted" />
                 </a>
               )}
+              <input
+                className="w-full h-9 px-3 rounded-xl border border-border bg-muted/40 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring mb-2"
+                placeholder="Motivo da reprovação (se rejeitar)"
+                value={rejectReason[req.id] || ""}
+                onChange={e => setRejectReason(p => ({ ...p, [req.id]: e.target.value }))}
+              />
               <div className="flex gap-2 flex-wrap">
                 <Button size="sm" className="rounded-xl text-xs bg-green-600 hover:bg-green-700 gap-1" onClick={() => approveVerification(req, "verificada")}>
                   <ShieldCheck className="h-3.5 w-3.5" /> Aprovar

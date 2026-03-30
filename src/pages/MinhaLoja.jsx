@@ -126,7 +126,7 @@ export default function MinhaLoja() {
 
   const [form, setForm] = useState({
     store_name: "", responsible_name: "", supplier_type: "",
-    city: "", region: "", whatsapp: "", description: "",
+    city: "", region: "", whatsapp: "", cnpj: "", description: "",
     pickup_available: true, delivery_available: false,
     delivery_radius_km: "", price_per_km: "", fixed_delivery_fee: "",
     minimum_order_for_delivery: "", free_delivery_above: "", delivery_notes: "",
@@ -165,6 +165,7 @@ export default function MinhaLoja() {
       city: p.city || "",
       region: p.region || "",
       whatsapp: p.whatsapp || "",
+      cnpj: p.cnpj || "",
       description: p.description || "",
       pickup_available: p.pickup_available !== false,
       delivery_available: !!p.delivery_available,
@@ -181,7 +182,23 @@ export default function MinhaLoja() {
 
   const handleSave = async () => {
     if (!form.store_name.trim() || !form.city.trim() || !form.whatsapp.trim() || !form.supplier_type) {
-      toast.error("Preencha nome da loja, tipo, cidade e WhatsApp.");
+      toast.error("Preencha os campos obrigatórios.");
+      return;
+    }
+    if (!validateFullName(form.responsible_name)) {
+      toast.error("Informe o nome completo do responsável.");
+      return;
+    }
+    if (!validatePhone(form.whatsapp)) {
+      toast.error("Telefone inválido. Inclua DDD + número.");
+      return;
+    }
+    if (form.cnpj && form.cnpj.replace(/\D/g,"").length > 0 && !validateCNPJ(form.cnpj)) {
+      toast.error("CNPJ inválido.");
+      return;
+    }
+    if (mediaItems.length === 0) {
+      toast.error("Adicione ao menos 1 foto ou logo da loja.");
       return;
     }
     setSaving(true);
@@ -204,6 +221,7 @@ export default function MinhaLoja() {
       minimum_order_for_delivery: form.minimum_order_for_delivery ? parseFloat(form.minimum_order_for_delivery) : null,
       free_delivery_above: form.free_delivery_above ? parseFloat(form.free_delivery_above) : null,
       logo_url, store_media, owner_email: user.email,
+      cnpj: form.cnpj ? form.cnpj.replace(/\D/g,"") : null,
     };
     if (profile) {
       await base44.entities.SupplierProfile.update(profile.id, data);
@@ -340,8 +358,12 @@ export default function MinhaLoja() {
                 <FieldBlock label="Nome da loja *" hint='Ex: Agropecuária São João'>
                   <Input className="h-12 rounded-xl text-base" placeholder="Nome da sua loja" value={form.store_name} onChange={e => set("store_name", e.target.value)} />
                 </FieldBlock>
-                <FieldBlock label="Nome do responsável">
-                  <Input className="h-12 rounded-xl text-base" placeholder="Quem gerencia a loja" value={form.responsible_name} onChange={e => set("responsible_name", e.target.value)} />
+                <FieldBlock label="Nome completo do responsável *" hint="Informe nome e sobrenome">
+                  <Input
+                    className={`h-12 rounded-xl text-base ${form.responsible_name && !validateFullName(form.responsible_name) ? "border-red-400" : form.responsible_name && validateFullName(form.responsible_name) ? "border-green-400" : ""}`}
+                    placeholder="Nome Sobrenome" value={form.responsible_name} onChange={e => set("responsible_name", e.target.value)}
+                  />
+                  {form.responsible_name && !validateFullName(form.responsible_name) && <p className="text-xs text-red-500 mt-1">Informe seu nome completo</p>}
                 </FieldBlock>
                 <FieldBlock label="Tipo de fornecedor *">
                   <div className="grid grid-cols-2 gap-2">
@@ -370,7 +392,18 @@ export default function MinhaLoja() {
                   </div>
                 </div>
                 <FieldBlock label="WhatsApp *" hint="Compradores entram em contato por aqui.">
-                  <Input className="h-12 rounded-xl text-base" type="tel" placeholder="(62) 99999-9999" value={form.whatsapp} onChange={e => set("whatsapp", e.target.value)} />
+                  <Input
+                    className={`h-12 rounded-xl text-base ${form.whatsapp && !validatePhone(form.whatsapp) ? "border-red-400" : form.whatsapp && validatePhone(form.whatsapp) ? "border-green-400" : ""}`}
+                    type="tel" placeholder="(62) 99999-9999" value={form.whatsapp} onChange={e => set("whatsapp", e.target.value)}
+                  />
+                  {form.whatsapp && !validatePhone(form.whatsapp) && <p className="text-xs text-red-500 mt-1">Telefone inválido</p>}
+                </FieldBlock>
+                <FieldBlock label="CNPJ" hint="Opcional. Usado apenas para verificação interna.">
+                  <Input
+                    className={`h-12 rounded-xl text-base ${form.cnpj && form.cnpj.replace(/\D/g,"").length === 14 && !validateCNPJ(form.cnpj) ? "border-red-400" : form.cnpj && validateCNPJ(form.cnpj) ? "border-green-400" : ""}`}
+                    placeholder="00.000.000/0001-00" value={form.cnpj} onChange={e => set("cnpj", e.target.value)}
+                  />
+                  {form.cnpj && form.cnpj.replace(/\D/g,"").length === 14 && !validateCNPJ(form.cnpj) && <p className="text-xs text-red-500 mt-1">CNPJ inválido</p>}
                 </FieldBlock>
                 <FieldBlock label="Descrição da loja" hint="Fale sobre sua loja, diferenciais e produtos.">
                   <Textarea className="rounded-xl text-base min-h-[80px]" placeholder="Ex: Cooperativa com 20 anos de experiência, atendendo produtores de toda a região..." value={form.description} onChange={e => set("description", e.target.value)} />
