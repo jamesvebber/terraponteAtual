@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import AddInsumoForm from "../components/AddInsumoForm";
+import { AnnouncementsManager } from "../components/StoreAnnouncements";
 import StoreVerificationBlock from "../components/StoreVerificationBlock";
 
 const SUPPLIER_TYPES = ["Agropecuária", "Cooperativa", "Fornecedor de insumos", "Loja", "Revendedor"];
@@ -305,6 +306,7 @@ export default function MinhaLoja() {
               { id: "perfil", label: "📋 Perfil" },
               { id: "produtos", label: `📦 Produtos${products.length ? ` (${products.length})` : ""}` },
               { id: "entrega", label: "🚚 Entrega" },
+              { id: "avisos", label: "📢 Avisos" },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
                 className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all select-none ${tab === t.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>
@@ -558,6 +560,16 @@ export default function MinhaLoja() {
             </div>
           )}
         </>
+      )}
+
+      {tab === "avisos" && profile && (
+        <AnnouncementsManager storeProfile={profile} />
+      )}
+      {tab === "avisos" && !profile && (
+        <div className="text-center py-12 px-4">
+          <p className="text-sm font-semibold text-foreground mb-1">Cadastre o perfil da loja primeiro</p>
+          <Button variant="outline" className="rounded-xl mt-2" onClick={() => setTab("perfil")}>Ir para Perfil</Button>
+        </div>
       )}
 
       <AddInsumoForm

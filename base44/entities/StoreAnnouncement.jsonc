@@ -1,0 +1,57 @@
+{
+  "name": "StoreAnnouncement",
+  "type": "object",
+  "properties": {
+    "store_id": {
+      "type": "string",
+      "description": "ID do SupplierProfile"
+    },
+    "store_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo do aviso"
+    },
+    "body": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o curta"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Foto opcional"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Promo\u00e7\u00e3o",
+        "Novo produto",
+        "Compra de safra",
+        "Evento",
+        "Assist\u00eancia t\u00e9cnica",
+        "Hor\u00e1rio",
+        "Entrega",
+        "Outro"
+      ],
+      "default": "Outro"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "store_id",
+    "title"
+  ],
+  "rls": {
+    "create": {},
+    "read": {},
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

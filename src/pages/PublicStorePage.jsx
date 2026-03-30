@@ -14,6 +14,7 @@ import {
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose,
 } from "@/components/ui/drawer";
+import { AnnouncementsFeed } from "../components/StoreAnnouncements";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -216,6 +217,8 @@ export default function PublicStorePage() {
             )}
           </div>
         )}
+
+        <AnnouncementsFeed storeId={profile.id} />
 
         {/* Trust box */}
         {(() => {
