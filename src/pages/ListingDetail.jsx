@@ -3,7 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2, Clock, Pencil, ChevronLeft } from "lucide-react";
+import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2, Clock, Pencil } from "lucide-react";
+import MediaGallery from "../components/MediaGallery";
 import { formatListingPrice } from "../utils/listingPrice";
 import { toSlug } from "./SlugRedirect";
 import { PROD_DOMAIN } from "../utils/domain";
@@ -30,12 +31,10 @@ export default function ListingDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const [photoIndex, setPhotoIndex] = useState(0);
 
   useEffect(() => {
     setLoading(true);
     setError(false);
-    setPhotoIndex(0);
     base44.entities.Listing.filter({ id }).then((data) => {
       setListing(data[0] || null);
       setLoading(false);
@@ -103,38 +102,22 @@ export default function ListingDetail() {
         </button>
       </div>
 
-      {/* Photo gallery */}
+      {/* Media gallery */}
       {(() => {
-        const allPhotos = [
+        const isVideoUrl = (url) => /\.(mp4|mov|avi|webm|mkv)(\?|$)/i.test(url);
+        const allUrls = [
           ...(listing.image_url ? [listing.image_url] : []),
           ...(listing.photos || []),
         ];
-        const currentPhoto = allPhotos[photoIndex];
-        return (
-          <div className="w-full aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden relative">
-            {currentPhoto
-              ? <img src={currentPhoto} alt={listing.title} className="w-full h-full object-contain" />
-              : <span className="text-7xl">{categoryEmoji[listing.category] || "📦"}</span>}
-            {allPhotos.length > 1 && (
-              <>
-                <button onClick={() => setPhotoIndex(i => (i - 1 + allPhotos.length) % allPhotos.length)}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 flex items-center justify-center select-none">
-                  <ChevronLeft className="h-5 w-5 text-white" />
-                </button>
-                <button onClick={() => setPhotoIndex(i => (i + 1) % allPhotos.length)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 flex items-center justify-center select-none">
-                  <ChevronRight className="h-5 w-5 text-white" />
-                </button>
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                  {allPhotos.map((_, i) => (
-                    <button key={i} onClick={() => setPhotoIndex(i)}
-                      className={`h-1.5 rounded-full transition-all select-none ${i === photoIndex ? "w-4 bg-white" : "w-1.5 bg-white/50"}`} />
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        );
+        if (allUrls.length === 0) {
+          return (
+            <div className="w-full h-64 bg-muted flex items-center justify-center">
+              <span className="text-7xl">{categoryEmoji[listing.category] || "📦"}</span>
+            </div>
+          );
+        }
+        const media = allUrls.map(url => ({ url, type: isVideoUrl(url) ? "video" : "image" }));
+        return <MediaGallery media={media} />;
       })()}
 
       <div className="px-4 pt-5 space-y-4">

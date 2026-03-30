@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PlusCircle, Loader2, CheckCircle2, Camera, X, ChevronRight, Eye } from "lucide-react";
+import { PlusCircle, Loader2, CheckCircle2, ChevronRight, Eye } from "lucide-react";
+import MediaUploader from "../components/MediaUploader";
 import { LISTING_CATEGORIES, SALE_FORMATS_BY_CATEGORY, FORMATS_WITH_PKG_DETAILS } from "../utils/listingCategories";
 import { formatListingPrice } from "../utils/listingPrice";
 import { toast } from "sonner";
@@ -58,8 +59,7 @@ export default function Vender() {
   const scrollRef = useRef(null);
   useScrollOnFocus(scrollRef);
   const [form, setForm] = useState(EMPTY);
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [mediaItems, setMediaItems] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [publishedId, setPublishedId] = useState(null);
   const [errors, setErrors] = useState({});
@@ -114,7 +114,7 @@ export default function Vender() {
           <Button
             variant="outline"
             className="w-full h-12 rounded-xl font-bold gap-2"
-            onClick={() => { setForm(EMPTY); setImageFile(null); setImagePreview(null); setPublishedId(null); setErrors({}); setTouched({}); }}
+            onClick={() => { setForm(EMPTY); setMediaItems([]); setPublishedId(null); setErrors({}); setTouched({}); }}
           >
             <PlusCircle className="h-4 w-4" /> Publicar outro anúncio
           </Button>
@@ -147,11 +147,6 @@ export default function Vender() {
 
   const fieldError = (field) => touched[field] ? liveErrors[field] : undefined;
 
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) { setImageFile(file); setImagePreview(URL.createObjectURL(file)); }
-  };
-
   const handleSubmit = async () => {
     setTouched(Object.fromEntries(Object.keys(form).map(k => [k, true])));
     const e = validate(form);
@@ -159,11 +154,18 @@ export default function Vender() {
     if (Object.keys(e).length > 0) { toast.error("Corrija os campos destacados."); return; }
 
     setSubmitting(true);
-    let image_url = null;
-    if (imageFile) {
-      const result = await base44.integrations.Core.UploadFile({ file: imageFile });
-      image_url = result.file_url;
+    // Upload all media files
+    const uploadedUrls = [];
+    for (const item of mediaItems) {
+      if (item.file) {
+        const result = await base44.integrations.Core.UploadFile({ file: item.file });
+        uploadedUrls.push(result.file_url);
+      } else if (item.url) {
+        uploadedUrls.push(item.url);
+      }
     }
+    const image_url = uploadedUrls[0] || null;
+    const photos = uploadedUrls.slice(1);
 
     const unitLabel = form.pkg_qty && form.pkg_unit
       ? `${form.sale_format} de ${form.pkg_qty} ${form.pkg_unit}`
@@ -183,6 +185,7 @@ export default function Vender() {
       seller_type: form.seller_type,
       whatsapp: form.whatsapp,
       image_url,
+      photos,
       ...(form.category === "Propriedades rurais" ? {
         prop_type: form.prop_type,
         prop_purpose: form.prop_purpose,
@@ -222,29 +225,9 @@ export default function Vender() {
         {/* === Produto === */}
         <SectionHeader emoji="📦" title="Produto" />
 
-        {/* Image */}
-        <FieldGroup label="Foto do produto" hint="Uma boa foto aumenta muito as chances de venda.">
-          <label className="flex flex-col items-center justify-center h-40 rounded-2xl border-2 border-dashed border-border bg-muted/40 cursor-pointer hover:bg-muted transition-colors overflow-hidden relative">
-            {imagePreview ? (
-              <>
-                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); setImageFile(null); setImagePreview(null); }}
-                  className="absolute top-2 right-2 h-7 w-7 rounded-full bg-black/50 flex items-center justify-center"
-                >
-                  <X className="h-4 w-4 text-white" />
-                </button>
-              </>
-            ) : (
-              <div className="flex flex-col items-center gap-1.5">
-                <Camera className="h-8 w-8 text-muted-foreground" />
-                <span className="text-sm font-semibold text-muted-foreground">Toque para adicionar foto</span>
-                <span className="text-xs text-muted-foreground/70">JPG, PNG até 10 MB</span>
-              </div>
-            )}
-            <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-          </label>
+        {/* Media */}
+        <FieldGroup label="Fotos e vídeos" hint="Adicione fotos e vídeo. A primeira foto será a capa do anúncio.">
+          <MediaUploader items={mediaItems} onChange={setMediaItems} />
         </FieldGroup>
 
         {/* Title */}
