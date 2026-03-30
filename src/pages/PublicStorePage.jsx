@@ -42,27 +42,27 @@ export default function PublicStorePage() {
   useEffect(() => {
     async function load() {
       const allProfiles = await base44.entities.SupplierProfile.list();
-      const match = allProfiles.find(p => slugify(p.store_name) === slug);
+      const normalizedSlug = slug.trim().toLowerCase();
+      const match = allProfiles.find(p => slugify((p.store_name || "").trim()) === normalizedSlug);
       if (!match) {
         setNotFound(true);
         setLoading(false);
         return;
       }
+      // Fetch all products for this store — filter status client-side to catch null/undefined too
       const prods = await base44.entities.InsumoProduct.filter(
-        { supplier_id: match.id, status: "active" }, "-created_date"
+        { supplier_id: match.id }, "-created_date"
       );
       setProfile(match);
-      setProducts(prods);
+      setProducts(prods.filter(p => p.status !== "inactive"));
       setLoading(false);
 
-      // Update OG meta tags for this store
-      const img = match.logo_url || null;
       const loc = [match.city, match.region].filter(Boolean).join(" - ");
       setPageMeta({
         title: match.store_name,
         description: match.description || `${match.supplier_type || "Loja"} em ${loc}. Veja os produtos no TerraPonte.`,
-        imageUrl: img,
-        canonicalUrl: `${PROD_DOMAIN}/loja/${slug}`,
+        imageUrl: match.logo_url || null,
+        canonicalUrl: `https://terraponte.app/store/${slug}`,
       });
     }
     load();
@@ -114,7 +114,7 @@ export default function PublicStorePage() {
     ? `https://wa.me/55${profile.whatsapp.replace(/\D/g, "")}?text=Olá! Vi o perfil de ${profile.store_name} no TerraPonte e tenho interesse.`
     : null;
 
-  const activeProducts = products.filter(p => p.status === "active");
+  const activeProducts = products;
   const bestId = [...activeProducts].sort((a, b) => (a.price || 0) - (b.price || 0))[0]?.id;
 
   return (

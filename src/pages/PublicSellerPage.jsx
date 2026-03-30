@@ -29,27 +29,40 @@ export default function PublicSellerPage() {
 
   useEffect(() => {
     async function load() {
+      const normalizedSlug = slug.trim().toLowerCase();
+
+      // Try matching via SellerProfile first
       const allProfiles = await base44.entities.SellerProfile.list();
-      const match = allProfiles.find(p => slugify(p.seller_name) === slug);
+      const match = allProfiles.find(p => slugify((p.seller_name || "").trim()) === normalizedSlug);
+
+      // Fetch all active listings to use for both profile fallback and listing display
+      const allListings = await base44.entities.Listing.filter({ status: "active" }, "-created_date");
+
       if (!match) {
-        setNotFound(true);
+        // Fallback: try to find seller by matching listing seller_name slugs
+        const matchedName = allListings.find(l => slugify((l.seller_name || "").trim()) === normalizedSlug)?.seller_name;
+        if (!matchedName) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
+        setProfile({ seller_name: matchedName, seller_type: allListings.find(l => l.seller_name === matchedName)?.seller_type });
+        setListings(allListings.filter(l => l.seller_name === matchedName));
         setLoading(false);
         return;
       }
-      const allListings = await base44.entities.Listing.filter(
-        { seller_name: match.seller_name, status: "active" }, "-created_date"
-      );
+
+      const sellerListings = allListings.filter(l => l.seller_name === match.seller_name);
       setProfile(match);
-      setListings(allListings);
+      setListings(sellerListings);
       setLoading(false);
 
-      // Update OG meta tags for this producer
       const loc = [match.city, match.region].filter(Boolean).join(" - ");
       setPageMeta({
         title: match.seller_name,
         description: match.bio || `${match.seller_type || "Produtor"} em ${loc}. Veja os anúncios no TerraPonte.`,
         imageUrl: match.photo_url || null,
-        canonicalUrl: `${PROD_DOMAIN}/produtor/${slug}`,
+        canonicalUrl: `https://terraponte.app/user/${slug}`,
       });
     }
     load();
