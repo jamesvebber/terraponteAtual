@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { slugify } from "../utils/slugify";
 import { MapPin, Store, MessageCircle, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -87,7 +88,10 @@ export default function InsumoProductCard({ product, isBest }) {
           <div className="space-y-0.5 mb-2">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Store className="h-3 w-3 shrink-0" />
-              <span className="truncate font-medium text-foreground">{product.supplier_name}</span>
+              <button
+                onClick={e => { e.stopPropagation(); navigate(`/loja/${slugify(product.supplier_name)}`); }}
+                className="truncate font-bold text-primary underline-offset-2 hover:underline select-none text-left"
+              >{product.supplier_name}</button>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <MapPin className="h-3 w-3 shrink-0" />

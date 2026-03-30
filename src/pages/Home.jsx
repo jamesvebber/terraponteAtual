@@ -36,16 +36,20 @@ const GO_CITIES = [
 ];
 
 // ---------- sub-components ----------
-function StatCard({ value, label, emoji, loading }) {
+function StatCard({ value, label, emoji, loading, onClick }) {
+  const Tag = onClick ? "button" : "div";
   return (
-    <div className="flex-1 bg-card border border-border rounded-2xl px-4 py-3 flex flex-col items-center">
+    <Tag
+      onClick={onClick}
+      className={`flex-1 bg-card border border-border rounded-2xl px-4 py-3 flex flex-col items-center ${onClick ? "active:scale-95 transition-transform select-none cursor-pointer" : ""}`}
+    >
       {loading ? (
         <div className="h-7 w-16 bg-muted rounded animate-pulse mb-1" />
       ) : (
         <p className="text-2xl font-extrabold text-foreground">{value}</p>
       )}
       <p className="text-[11px] text-muted-foreground font-medium text-center leading-tight">{emoji} {label}</p>
-    </div>
+    </Tag>
   );
 }
 
@@ -231,9 +235,9 @@ export default function Home() {
 
       {/* ── Stats row ── */}
       <div className="flex gap-3 mb-5">
-        <StatCard value={listingCount ?? "–"} label="anúncios ativos" emoji="📢" loading={loading} />
-        <StatCard value={storeCount ?? "–"} label="lojas parceiras" emoji="🏩" loading={loading} />
-        <StatCard value={newToday ?? "–"} label="novos hoje" emoji="✨" loading={loading} />
+        <StatCard value={listingCount ?? "–"} label="anúncios ativos" emoji="📢" loading={loading} onClick={() => navigate("/marketplace")} />
+        <StatCard value={storeCount ?? "–"} label="lojas parceiras" emoji="🏩" loading={loading} onClick={() => navigate("/insumos")} />
+        <StatCard value={newToday ?? "–"} label="novos hoje" emoji="✨" loading={loading} onClick={() => navigate("/marketplace")} />
       </div>
 
       {/* ── Action tiles ── */}
@@ -242,7 +246,7 @@ export default function Home() {
         <ActionTile emoji="🛒" label="Comprar" sublabel="Anúncios de produtores locais" onClick={() => navigate("/marketplace")} primary />
         <ActionTile emoji="📢" label="Vender" sublabel="Publique e venda pelo WhatsApp" onClick={() => navigate("/vender")} />
         <ActionTile emoji="🌿" label="Insumos" sublabel="Compare preços de lojas" onClick={() => navigate("/insumos")} />
-        <ActionTile emoji="🏪" label="Lojas" sublabel="Fornecedores da sua região" onClick={() => navigate("/minha-loja")} />
+        <ActionTile emoji="🏪" label="Lojas" sublabel="Fornecedores da sua região" onClick={() => navigate("/lojas")} />
       </div>
 
       {/* ── Radar do Dia ── */}
@@ -261,18 +265,18 @@ export default function Home() {
             [1,2,3].map(i => <div key={i} className="h-16 bg-muted rounded-2xl animate-pulse" />)
           ) : (
             <>
-              <div className="bg-primary/10 border border-primary/20 rounded-2xl p-3 flex flex-col items-center">
+              <button onClick={() => navigate("/marketplace")} className="bg-primary/10 border border-primary/20 rounded-2xl p-3 flex flex-col items-center active:scale-95 transition-transform select-none">
                 <p className="text-xl font-extrabold text-primary">{newToday ?? 0}</p>
                 <p className="text-[10px] text-primary/70 font-semibold text-center leading-tight">novos hoje</p>
-              </div>
-              <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center">
+              </button>
+              <button onClick={() => navigate("/marketplace")} className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center active:scale-95 transition-transform select-none">
                 <p className="text-xl font-extrabold text-foreground">{listingCount ?? 0}</p>
                 <p className="text-[10px] text-muted-foreground font-semibold text-center leading-tight">anúncios ativos</p>
-              </div>
-              <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center">
+              </button>
+              <button onClick={() => navigate("/insumos")} className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center active:scale-95 transition-transform select-none">
                 <p className="text-xl font-extrabold text-foreground">{storeCount ?? 0}</p>
                 <p className="text-[10px] text-muted-foreground font-semibold text-center leading-tight">lojas parceiras</p>
-              </div>
+              </button>
             </>
           )}
         </div>

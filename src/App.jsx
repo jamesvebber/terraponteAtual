@@ -26,6 +26,7 @@ import PublicSellerPage from './pages/PublicSellerPage';
 import PublicStorePage from './pages/PublicStorePage';
 import AdminModeration from './pages/AdminModeration';
 import AdminPanel from './pages/AdminPanel';
+import StoresDirectory from './pages/StoresDirectory';
 import MeusAnuncios from './pages/MeusAnuncios';
 import EditListing from './pages/EditListing';
 
@@ -72,6 +73,7 @@ const AuthenticatedApp = () => {
         <Route path="/loja/:slug" element={<PublicStorePage />} />
         <Route path="/admin/moderation" element={<AdminModeration />} />
         <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/lojas" element={<StoresDirectory />} />
         <Route path="/meus-anuncios" element={<MeusAnuncios />} />
         <Route path="/editar-anuncio/:id" element={<EditListing />} />
         {/* Clean share URLs */}
