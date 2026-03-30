@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -166,6 +167,18 @@ export default function AdminPanel() {
           <RefreshCw className="h-4 w-4 text-muted-foreground" />
         </button>
       </div>
+
+      {/* Quick links */}
+      <Link
+        to="/admin/unit-assistant"
+        className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-4 select-none"
+      >
+        <Sparkles className="h-5 w-5 text-amber-600 shrink-0" />
+        <div>
+          <p className="text-sm font-bold text-amber-800">Assistente de correção de unidades</p>
+          <p className="text-xs text-amber-600">Detecta e corrige unidades incorretas em lote com IA</p>
+        </div>
+      </Link>
 
       {/* Search */}
       <div className="relative mb-4">

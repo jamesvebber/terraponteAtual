@@ -25,6 +25,7 @@ import SobreNos from './pages/SobreNos';
 import PublicSellerPage from './pages/PublicSellerPage';
 import PublicStorePage from './pages/PublicStorePage';
 import AdminModeration from './pages/AdminModeration';
+import AdminUnitAssistant from './pages/AdminUnitAssistant';
 import AdminPanel from './pages/AdminPanel';
 import StoresDirectory from './pages/StoresDirectory';
 import MeusAnuncios from './pages/MeusAnuncios';
@@ -73,6 +74,7 @@ const AuthenticatedApp = () => {
         <Route path="/loja/:slug" element={<PublicStorePage />} />
         <Route path="/admin/moderation" element={<AdminModeration />} />
         <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/admin/unit-assistant" element={<AdminUnitAssistant />} />
         <Route path="/lojas" element={<StoresDirectory />} />
         <Route path="/meus-anuncios" element={<MeusAnuncios />} />
         <Route path="/editar-anuncio/:id" element={<EditListing />} />
