@@ -5,7 +5,7 @@ import FreightCalculator from "../components/FreightCalculator";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, MapPin, Store, MessageCircle, Calculator, Package,
-  Truck, ShoppingBag, Phone, Share2,
+  Truck, ShoppingBag, Phone, Share2, ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -139,28 +139,35 @@ export default function InsumoDetail() {
           </div>
         </div>
 
-        {/* Store info */}
-        <div className="bg-card border border-border rounded-2xl p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <Store className="h-4 w-4 text-muted-foreground shrink-0" />
-            <button
-              onClick={() => navigate(`/loja/${slugify(product.supplier_name)}`)}
-              className="font-bold text-primary text-sm underline-offset-2 hover:underline select-none"
-            >
-              {product.supplier_name}
-            </button>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground text-sm">
-            <MapPin className="h-4 w-4 shrink-0" />
-            <span>{product.city}{product.region ? `, ${product.region}` : ""}</span>
-          </div>
-          {product.whatsapp && (
-            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              <Phone className="h-4 w-4 shrink-0" />
-              <span>{product.whatsapp}</span>
+        {/* Store info — prominent navigation block */}
+        <button
+          onClick={() => navigate(`/loja/${slugify(product.supplier_name)}`)}
+          className="w-full bg-card border border-primary/30 rounded-2xl p-4 text-left select-none active:scale-[0.99] transition-transform"
+        >
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-2">Vendido por</p>
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Store className="h-6 w-6 text-primary" />
             </div>
-          )}
-        </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-extrabold text-foreground text-base leading-tight">{product.supplier_name}</p>
+              <div className="flex items-center gap-1 mt-0.5">
+                <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="text-sm text-muted-foreground">{product.city}{product.region ? `, ${product.region}` : ""}</span>
+              </div>
+              {product.whatsapp && (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="text-sm text-muted-foreground">{product.whatsapp}</span>
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col items-center gap-0.5 text-primary shrink-0">
+              <ChevronRight className="h-5 w-5" />
+              <span className="text-[9px] font-bold">Ver loja</span>
+            </div>
+          </div>
+        </button>
 
         {/* Availability */}
         <div className="bg-card border border-border rounded-2xl p-4">
