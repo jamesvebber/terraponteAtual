@@ -204,6 +204,23 @@ export default function MinhaLoja() {
     loadData();
   };
 
+  const handleDeleteStore = async () => {
+    if (!profile) return;
+    const confirmed = window.confirm("Tem certeza que deseja excluir sua loja? Todos os produtos da loja serão removidos.");
+    if (!confirmed) return;
+    // Delete all products first
+    for (const prod of products) {
+      await base44.entities.InsumoProduct.delete(prod.id);
+    }
+    await base44.entities.SupplierProfile.delete(profile.id);
+    setProfile(null);
+    setProducts([]);
+    setShowForm(false);
+    setLogoFile(null);
+    setLogoPreview(null);
+    toast.success("Loja excluída com sucesso.");
+  };
+
   const handleToggleProduct = async (product) => {
     const newStatus = product.status === "active" ? "inactive" : "active";
     // Optimistic update
@@ -376,6 +393,15 @@ export default function MinhaLoja() {
                 {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
                 {saving ? "Salvando..." : profile ? "Salvar alterações" : "Cadastrar loja"}
               </Button>
+
+              {profile && (
+                <button
+                  onClick={handleDeleteStore}
+                  className="w-full h-10 rounded-xl text-sm font-bold text-red-500 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors select-none"
+                >
+                  Excluir loja
+                </button>
+              )}
             </div>
           )}
 
