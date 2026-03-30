@@ -11,28 +11,28 @@ import {
 import { Loader2, CheckCircle2 } from "lucide-react";
 import MediaUploader from "./MediaUploader";
 import { toast } from "sonner";
+import {
+  ALL_UNITS, UNIT_SUGGESTIONS, UNIT_CONTENT_MEASURES,
+  buildUnitLabel, deriveSaleType, hasContentDetail, getUnitExample,
+} from "../utils/insumoUnits";
 
 const CATEGORIES = [
   { label: "Ração", emoji: "🌾" },
   { label: "Sal mineral", emoji: "🧂" },
   { label: "Adubo", emoji: "🌱" },
   { label: "Sementes", emoji: "🌻" },
-  { label: "Defensivos", emoji: "🧪" },
+  { label: "Herbicidas", emoji: "🧪" },
+  { label: "Inseticidas", emoji: "🐛" },
   { label: "Medicamentos veterinários", emoji: "💊" },
+  { label: "Suplementos", emoji: "⚗️" },
   { label: "Ferramentas", emoji: "🔧" },
+  { label: "Selaria", emoji: "🐴" },
+  { label: "Pet shop", emoji: "🐾" },
   { label: "Equipamentos", emoji: "⚙️" },
+  { label: "Peças", emoji: "🔩" },
   { label: "Outros", emoji: "📦" },
 ];
 
-const SALE_TYPES = [
-  { value: "por embalagem", label: "Por embalagem", emoji: "📦" },
-  { value: "por kg", label: "Por kg", emoji: "⚖️" },
-  { value: "por litro", label: "Por litro", emoji: "🧴" },
-  { value: "por unidade", label: "Por unidade", emoji: "🔢" },
-  { value: "por caixa", label: "Por caixa", emoji: "🗃️" },
-];
-const PKG_TYPES = ["saco", "pacote", "caixa", "galão", "frasco", "balde", "unidade"];
-const PKG_UNITS = ["kg", "g", "litro", "ml", "unidade"];
 const STOCK = ["Disponível", "Sob encomenda", "Esgotado"];
 
 function FieldBlock({ label, hint, children }) {
@@ -47,7 +47,8 @@ function FieldBlock({ label, hint, children }) {
 
 const EMPTY = {
   product_name: "", category: "", brand: "", description: "",
-  price: "", sale_type: "", pkg_type: "saco", pkg_qty: "", pkg_unit: "kg",
+  price: "",
+  pkg_type: "", pkg_qty: "", pkg_unit: "",
   stock_status: "Disponível",
   pickup_available: true, delivery_available: false, featured: false,
 };
@@ -56,23 +57,30 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
   const [form, setForm] = useState(EMPTY);
   const [mediaItems, setMediaItems] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [unitDrawerOpen, setUnitDrawerOpen] = useState(false);
+  const [showAllUnits, setShowAllUnits] = useState(false);
   const scrollRef = useRef(null);
   useScrollOnFocus(scrollRef);
 
   useEffect(() => {
     if (!open) return;
     if (editProduct) {
+      // Reconstruct pkg_type from legacy sale_type if needed
+      let pkg_type = editProduct.pkg_type || "";
+      if (!pkg_type && editProduct.sale_type) {
+        if (editProduct.sale_type === "por kg") pkg_type = "kg";
+        else if (editProduct.sale_type === "por litro") pkg_type = "litro";
+        else if (editProduct.sale_type === "por unidade") pkg_type = "unidade";
+        else if (editProduct.sale_type === "por caixa") pkg_type = "caixa";
+      }
       setForm({
         product_name: editProduct.product_name || "",
         category: editProduct.category || "",
         brand: editProduct.brand || "",
         description: editProduct.description || "",
         price: editProduct.price?.toString() || "",
-        sale_type: editProduct.sale_type || "",
-        pkg_type: editProduct.pkg_type || "saco",
+        pkg_type,
         pkg_qty: editProduct.pkg_qty?.toString() || "",
-        pkg_unit: editProduct.pkg_unit || "kg",
+        pkg_unit: editProduct.pkg_unit || "",
         stock_status: editProduct.stock_status || "Disponível",
         pickup_available: editProduct.pickup_available !== false,
         delivery_available: !!editProduct.delivery_available,
@@ -91,17 +99,27 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
       });
       setMediaItems([]);
     }
+    setShowAllUnits(false);
   }, [open, editProduct]);
 
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
 
+  // When category changes, auto-suggest first unit
+  const handleCategoryChange = (cat) => {
+    const suggested = (UNIT_SUGGESTIONS[cat] || [])[0] || "";
+    setForm(p => ({ ...p, category: cat, pkg_type: suggested, pkg_qty: "", pkg_unit: "" }));
+    setShowAllUnits(false);
+  };
+
+  const handleUnitChange = (unit) => {
+    set("pkg_type", unit);
+    set("pkg_qty", "");
+    set("pkg_unit", "");
+  };
+
   const handleSave = async () => {
-    if (!form.product_name.trim() || !form.category || !form.price || !form.sale_type) {
-      toast.error("Preencha nome, categoria, preço e tipo de venda.");
-      return;
-    }
-    if (form.sale_type === "por embalagem" && (!form.pkg_qty || !form.pkg_type || !form.pkg_unit)) {
-      toast.error("Preencha os dados da embalagem.");
+    if (!form.product_name.trim() || !form.category || !form.price || !form.pkg_type) {
+      toast.error("Preencha nome, categoria, preço e unidade de venda.");
       return;
     }
     setSaving(true);
@@ -116,16 +134,27 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
     }
     const image_url = uploadedUrls[0] || null;
     const photos = uploadedUrls.slice(1);
-    const unitLabel = form.sale_type === "por embalagem" && form.pkg_type && form.pkg_qty && form.pkg_unit
-      ? `${form.pkg_type} ${form.pkg_qty}${form.pkg_unit}`
-      : form.sale_type.replace("por ", "");
+
+    const unit = buildUnitLabel(form.pkg_type, form.pkg_qty, form.pkg_unit);
+    const sale_type = deriveSaleType(form.pkg_type);
+
     const data = {
-      ...form,
+      product_name: form.product_name.trim(),
+      category: form.category,
+      brand: form.brand.trim(),
+      description: form.description.trim(),
       price: parseFloat(form.price),
+      sale_type,
+      pkg_type: form.pkg_type,
       pkg_qty: form.pkg_qty ? parseFloat(form.pkg_qty) : null,
-      unit: unitLabel,
+      pkg_unit: form.pkg_unit || null,
+      unit,
       image_url,
       photos,
+      stock_status: form.stock_status,
+      pickup_available: form.pickup_available,
+      delivery_available: form.delivery_available,
+      featured: form.featured,
       supplier_id: supplierProfile.id,
       supplier_name: supplierProfile.store_name,
       supplier_type: supplierProfile.supplier_type,
@@ -150,6 +179,16 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
     onSaved();
   };
 
+  const suggestedUnits = UNIT_SUGGESTIONS[form.category] || UNIT_SUGGESTIONS["Outros"];
+  const otherUnits = ALL_UNITS.filter(u => !suggestedUnits.includes(u));
+  const contentMeasures = UNIT_CONTENT_MEASURES[form.pkg_type] || [];
+  const unitExample = getUnitExample(form.pkg_type, form.pkg_unit);
+
+  // Build live preview label
+  const previewLabel = form.pkg_type
+    ? buildUnitLabel(form.pkg_type, form.pkg_qty, form.pkg_unit)
+    : "";
+
   return (
     <Drawer open={open} onOpenChange={onClose}>
       <DrawerContent>
@@ -166,15 +205,15 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
           </FieldBlock>
 
           {/* Name */}
-          <FieldBlock label="Nome do produto *" hint='Ex: Ração para gado de corte 50kg'>
-            <Input className="h-12 rounded-xl text-base" placeholder="Nome do produto" value={form.product_name} onChange={e => set("product_name", e.target.value)} />
+          <FieldBlock label="Nome do produto *">
+            <Input className="h-12 rounded-xl text-base" placeholder="Ex: Ração para gado de corte" value={form.product_name} onChange={e => set("product_name", e.target.value)} />
           </FieldBlock>
 
           {/* Category */}
           <FieldBlock label="Categoria *">
             <div className="grid grid-cols-2 gap-2">
               {CATEGORIES.map(({ label, emoji }) => (
-                <button key={label} type="button" onClick={() => set("category", label)}
+                <button key={label} type="button" onClick={() => handleCategoryChange(label)}
                   className={`flex items-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold border transition-all select-none ${
                     form.category === label ? "bg-primary text-primary-foreground border-primary" : "bg-muted/50 border-border text-foreground"
                   }`}>
@@ -192,85 +231,88 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
             </div>
           </FieldBlock>
 
-          {/* Sale type */}
-          <FieldBlock label="Tipo de venda *">
-            <div className="grid grid-cols-2 gap-2">
-              {SALE_TYPES.map(({ value, label, emoji }) => (
-                <button key={value} type="button" onClick={() => set("sale_type", value)}
-                  className={`flex items-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold border transition-all select-none ${
-                    form.sale_type === value ? "bg-primary text-primary-foreground border-primary" : "bg-muted/50 border-border text-foreground"
+          {/* Unit selection */}
+          <FieldBlock label="Unidade de venda *" hint={form.category ? `Sugestões para ${form.category}` : "Selecione a categoria primeiro para sugestões"}>
+            <div className="flex flex-wrap gap-2">
+              {suggestedUnits.map(u => (
+                <button key={u} type="button" onClick={() => handleUnitChange(u)}
+                  className={`px-3 py-2 rounded-xl text-sm font-semibold border transition-all select-none ${
+                    form.pkg_type === u ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
                   }`}>
-                  <span>{emoji}</span> {label}
+                  {u}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => setShowAllUnits(v => !v)}
+                className="px-3 py-2 rounded-xl text-sm font-semibold border border-dashed border-border text-muted-foreground select-none"
+              >
+                {showAllUnits ? "▲ menos" : "▼ outras"}
+              </button>
             </div>
+            {showAllUnits && (
+              <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-border">
+                {otherUnits.map(u => (
+                  <button key={u} type="button" onClick={() => { handleUnitChange(u); setShowAllUnits(false); }}
+                    className={`px-3 py-2 rounded-xl text-sm font-semibold border transition-all select-none ${
+                      form.pkg_type === u ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground"
+                    }`}>
+                    {u}
+                  </button>
+                ))}
+              </div>
+            )}
           </FieldBlock>
 
-          {/* Package fields — only when "por embalagem" */}
-          {form.sale_type === "por embalagem" && (
+          {/* Content detail — qty + measure when relevant */}
+          {form.pkg_type && hasContentDetail(form.pkg_type) && (
             <div className="bg-muted/40 rounded-2xl p-4 space-y-3">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Dados da embalagem</p>
-              {/* Package type */}
-              <FieldBlock label="Tipo de embalagem">
-                <div className="flex flex-wrap gap-2">
-                  {PKG_TYPES.map(t => (
-                    <button key={t} type="button" onClick={() => set("pkg_type", t)}
-                      className={`px-3 py-2 rounded-xl text-sm font-semibold border transition-all select-none ${
-                        form.pkg_type === t ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
-                      }`}>
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </FieldBlock>
-              {/* Qty + unit */}
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
+                Conteúdo da {form.pkg_type} <span className="font-normal normal-case text-muted-foreground/70">(opcional)</span>
+              </p>
+              {unitExample && <p className="text-xs text-muted-foreground">{unitExample}</p>}
               <div className="grid grid-cols-2 gap-3">
                 <FieldBlock label="Quantidade">
-                  <Input className="h-11 rounded-xl text-base" type="number" inputMode="decimal" placeholder="Ex: 40" value={form.pkg_qty} onChange={e => set("pkg_qty", e.target.value)} />
+                  <Input
+                    className="h-11 rounded-xl text-base" type="number" inputMode="decimal"
+                    placeholder="Ex: 25"
+                    value={form.pkg_qty}
+                    onChange={e => set("pkg_qty", e.target.value)}
+                  />
                 </FieldBlock>
-                <FieldBlock label="Unidade">
-                  <div className="flex flex-wrap gap-2">
-                    {PKG_UNITS.map(u => (
-                      <button key={u} type="button" onClick={() => set("pkg_unit", u)}
-                        className={`px-3 py-2 rounded-xl text-sm font-semibold border transition-all select-none ${
-                          form.pkg_unit === u ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
+                <FieldBlock label="Medida">
+                  <div className="flex flex-wrap gap-1.5">
+                    {contentMeasures.map(m => (
+                      <button key={m} type="button" onClick={() => set("pkg_unit", m)}
+                        className={`px-2.5 py-2 rounded-lg text-xs font-semibold border transition-all select-none ${
+                          form.pkg_unit === m ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground"
                         }`}>
-                        {u}
+                        {m}
                       </button>
                     ))}
                   </div>
                 </FieldBlock>
               </div>
-              {/* Preview */}
-              {form.price && form.pkg_qty && form.pkg_type && form.pkg_unit && (
-                <div className="bg-card border border-border rounded-xl px-4 py-2.5">
-                  <p className="text-xs text-muted-foreground">Prévia</p>
-                  <p className="text-sm font-bold text-foreground">
-                    R$ {parseFloat(form.price).toFixed(2).replace(".", ",")} por {form.pkg_type} de {form.pkg_qty} {form.pkg_unit}
-                  </p>
-                  {(() => {
-                    const qty = parseFloat(form.pkg_qty);
-                    const price = parseFloat(form.price);
-                    if (!qty || !price) return null;
-                    let divisor = qty;
-                    let unitLabel = form.pkg_unit;
-                    if (form.pkg_unit === "g") { divisor = qty / 1000; unitLabel = "kg"; }
-                    if (form.pkg_unit === "ml") { divisor = qty / 1000; unitLabel = "litro"; }
-                    if (divisor <= 0 || unitLabel === "unidade") return null;
-                    return <p className="text-xs text-muted-foreground">Equivale a R$ {(price / divisor).toFixed(2).replace(".", ",")}/{unitLabel}</p>;
-                  })()}
-                </div>
-              )}
+            </div>
+          )}
+
+          {/* Price preview */}
+          {form.price && form.pkg_type && (
+            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-2.5">
+              <p className="text-xs text-green-700 font-bold">Prévia do preço:</p>
+              <p className="text-sm font-extrabold text-green-800">
+                R$ {parseFloat(form.price).toFixed(2).replace(".", ",")} / {previewLabel}
+              </p>
             </div>
           )}
 
           {/* Brand */}
-          <FieldBlock label="Marca" hint='Ex: Guabi, Tortuga, Presence...'>
+          <FieldBlock label="Marca" hint='Ex: Guabi, Tortuga, Pfizer...'>
             <Input className="h-12 rounded-xl text-base" placeholder="Marca do produto (opcional)" value={form.brand} onChange={e => set("brand", e.target.value)} />
           </FieldBlock>
 
           {/* Description */}
-          <FieldBlock label="Descrição" hint="Indicação, composição, quantidade embalada, etc.">
+          <FieldBlock label="Descrição" hint="Indicação, composição, modo de uso, etc.">
             <Textarea className="rounded-xl text-base min-h-[75px]" placeholder="Descreva o produto..." value={form.description} onChange={e => set("description", e.target.value)} />
           </FieldBlock>
 
@@ -289,7 +331,7 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
           </FieldBlock>
 
           {/* Availability toggles */}
-          <FieldBlock label="Disponibilidade" hint="Define como o comprador pode adquirir este produto.">
+          <FieldBlock label="Disponibilidade">
             <div className="grid grid-cols-3 gap-2">
               {[
                 { field: "pickup_available", label: "🏪 Retirada" },

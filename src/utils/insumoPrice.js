@@ -1,57 +1,70 @@
+import { buildUnitLabel } from "./insumoUnits";
+
 /**
  * Format the main price display label for an InsumoProduct.
  * Examples:
- *   "R$ 79,00 por saco de 40 kg"
- *   "R$ 3,90/kg"
- *   "R$ 12,00/unidade"
+ *   "R$ 20,00 / frasco de 50 mL"
+ *   "R$ 120,00 / saco de 25 kg"
+ *   "R$ 35,00 / caixa com 12 unidades"
+ *   "R$ 3,90 / kg"
  */
 export function formatInsumoPrice(product) {
-  const { price, sale_type, pkg_type, pkg_qty, pkg_unit, unit } = product;
+  const { price, pkg_type, pkg_qty, pkg_unit, sale_type, unit } = product;
   if (!price) return "";
 
   const fmt = (n) => `R$ ${Number(n).toFixed(2).replace(".", ",")}`;
 
-  if (sale_type === "por embalagem" && pkg_type && pkg_qty && pkg_unit) {
-    return `${fmt(price)} por ${pkg_type} de ${pkg_qty} ${pkg_unit}`;
+  // New system: pkg_type present
+  if (pkg_type) {
+    const label = buildUnitLabel(pkg_type, pkg_qty, pkg_unit);
+    return `${fmt(price)} / ${label}`;
   }
 
+  // Legacy: sale_type fallback
   if (sale_type) {
     const label = sale_type.replace("por ", "");
-    return `${fmt(price)}/${label}`;
+    return `${fmt(price)} / ${label}`;
   }
 
-  // Legacy fallback
-  if (unit) return `${fmt(price)}/${unit}`;
+  // Older legacy: unit string
+  if (unit) return `${fmt(price)} / ${unit}`;
   return fmt(price);
 }
 
 /**
- * If sold by package, return equivalent unit price string.
- * Example: "Equivale a R$ 1,98/kg"
+ * If sold by weight/volume package, return equivalent unit price string.
+ * Example: "≈ R$ 1,98/kg"
  */
 export function formatEquivalentPrice(product) {
-  const { price, sale_type, pkg_qty, pkg_unit } = product;
-  if (sale_type !== "por embalagem" || !pkg_qty || !price) return null;
+  const { price, pkg_type, pkg_qty, pkg_unit, sale_type } = product;
+  if (!pkg_qty || !price) return null;
 
-  const unitLabel = pkg_unit === "g" ? "kg" : pkg_unit === "ml" ? "litro" : pkg_unit;
-  let divisor = pkg_qty;
+  // Only show equivalent for weight/volume units
+  const weightVolume = { kg: 1, g: 0.001, tonelada: 1000, litro: 1, mL: 0.001, "ml": 0.001 };
 
-  // Convert g → kg, ml → litro for equivalent
-  if (pkg_unit === "g") divisor = pkg_qty / 1000;
-  if (pkg_unit === "ml") divisor = pkg_qty / 1000;
+  // When pkg_type is itself a weight/vol unit (legacy "por kg" etc.)
+  if (pkg_type && weightVolume[pkg_type]) {
+    return null; // price IS already per unit, no need for equivalent
+  }
 
-  if (divisor <= 0) return null;
-  const equiv = price / divisor;
-  return `Equivale a R$ ${equiv.toFixed(2).replace(".", ",")}/${unitLabel}`;
+  // When there's a content measure that is weight/vol
+  if (pkg_unit && weightVolume[pkg_unit] && pkg_qty) {
+    const qty = parseFloat(pkg_qty);
+    const mult = weightVolume[pkg_unit];
+    const baseQty = qty * mult;
+    if (baseQty <= 0) return null;
+
+    // Normalize to base unit
+    const isWeight = ["kg", "g", "tonelada"].includes(pkg_unit);
+    const baseUnit = isWeight ? "kg" : "litro";
+    const equiv = price / baseQty;
+    return `≈ R$ ${equiv.toFixed(2).replace(".", ",")}/${baseUnit}`;
+  }
+
+  return null;
 }
 
 /**
- * Build the unit display label stored on the entity.
+ * Build the unit display label stored on the entity (for backward compat export).
  */
-export function buildUnitLabel(sale_type, pkg_type, pkg_qty, pkg_unit) {
-  if (sale_type === "por embalagem" && pkg_type && pkg_qty && pkg_unit) {
-    return `${pkg_type} ${pkg_qty}${pkg_unit}`;
-  }
-  if (sale_type) return sale_type.replace("por ", "");
-  return "";
-}
+export { buildUnitLabel };
