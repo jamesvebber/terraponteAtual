@@ -64,6 +64,13 @@
     "image_url": {
       "type": "string"
     },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs de fotos e v\u00eddeos adicionais do produto"
+    },
     "stock_status": {
       "type": "string",
       "enum": [

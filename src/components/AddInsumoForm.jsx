@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose,
 } from "@/components/ui/drawer";
-import { Camera, X, Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
+import MediaUploader from "./MediaUploader";
 import { toast } from "sonner";
 
 const CATEGORIES = [
@@ -53,8 +54,7 @@ const EMPTY = {
 
 export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile, editProduct }) {
   const [form, setForm] = useState(EMPTY);
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [mediaItems, setMediaItems] = useState([]);
   const [saving, setSaving] = useState(false);
   const [unitDrawerOpen, setUnitDrawerOpen] = useState(false);
   const scrollRef = useRef(null);
@@ -78,16 +78,19 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
         delivery_available: !!editProduct.delivery_available,
         featured: !!editProduct.featured,
       });
-      setImagePreview(editProduct.image_url || null);
+      const existingMedia = [
+        ...(editProduct.image_url ? [{ url: editProduct.image_url }] : []),
+        ...((editProduct.photos || []).map(u => ({ url: u }))),
+      ];
+      setMediaItems(existingMedia);
     } else {
       setForm({
         ...EMPTY,
         pickup_available: supplierProfile?.pickup_available !== false,
         delivery_available: !!supplierProfile?.delivery_available,
       });
-      setImagePreview(null);
+      setMediaItems([]);
     }
-    setImageFile(null);
   }, [open, editProduct]);
 
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
@@ -102,11 +105,17 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
       return;
     }
     setSaving(true);
-    let image_url = editProduct?.image_url || null;
-    if (imageFile) {
-      const res = await base44.integrations.Core.UploadFile({ file: imageFile });
-      image_url = res.file_url;
+    const uploadedUrls = [];
+    for (const item of mediaItems) {
+      if (item.file) {
+        const res = await base44.integrations.Core.UploadFile({ file: item.file });
+        uploadedUrls.push(res.file_url);
+      } else if (item.url) {
+        uploadedUrls.push(item.url);
+      }
     }
+    const image_url = uploadedUrls[0] || null;
+    const photos = uploadedUrls.slice(1);
     const unitLabel = form.sale_type === "por embalagem" && form.pkg_type && form.pkg_qty && form.pkg_unit
       ? `${form.pkg_type} ${form.pkg_qty}${form.pkg_unit}`
       : form.sale_type.replace("por ", "");
@@ -116,6 +125,7 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
       pkg_qty: form.pkg_qty ? parseFloat(form.pkg_qty) : null,
       unit: unitLabel,
       image_url,
+      photos,
       supplier_id: supplierProfile.id,
       supplier_name: supplierProfile.store_name,
       supplier_type: supplierProfile.supplier_type,
@@ -150,30 +160,9 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
         </DrawerHeader>
 
         <div ref={scrollRef} className="px-4 space-y-4 pb-4 overflow-y-auto" style={{ maxHeight: '68dvh', overscrollBehavior: 'contain' }}>
-          {/* Image upload */}
-          <FieldBlock label="Foto do produto" hint="Produtos com foto vendem mais.">
-            <label className="relative flex h-36 w-full cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-muted/40 transition-colors hover:bg-muted">
-              {imagePreview ? (
-                <>
-                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                  <button type="button"
-                    onClick={e => { e.preventDefault(); setImageFile(null); setImagePreview(null); }}
-                    className="absolute top-2 right-2 h-7 w-7 rounded-full bg-black/60 flex items-center justify-center">
-                    <X className="h-4 w-4 text-white" />
-                  </button>
-                </>
-              ) : (
-                <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                  <Camera className="h-8 w-8" />
-                  <span className="text-sm font-semibold">Toque para adicionar foto</span>
-                  <span className="text-xs opacity-70">JPG ou PNG</span>
-                </div>
-              )}
-              <input type="file" accept="image/*" className="hidden" onChange={e => {
-                const f = e.target.files?.[0];
-                if (f) { setImageFile(f); setImagePreview(URL.createObjectURL(f)); }
-              }} />
-            </label>
+          {/* Media upload */}
+          <FieldBlock label="Fotos e vídeos" hint="Adicione fotos e vídeo. A primeira foto será a capa.">
+            <MediaUploader items={mediaItems} onChange={setMediaItems} />
           </FieldBlock>
 
           {/* Name */}
