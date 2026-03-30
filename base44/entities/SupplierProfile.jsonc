@@ -37,7 +37,14 @@
     },
     "logo_url": {
       "type": "string",
-      "description": "URL do logo ou foto da loja"
+      "description": "URL do logo ou foto de capa da loja"
+    },
+    "store_media": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs de fotos e v\u00eddeos adicionais da loja"
     },
     "owner_email": {
       "type": "string",

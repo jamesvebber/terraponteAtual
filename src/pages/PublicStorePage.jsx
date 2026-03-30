@@ -11,6 +11,7 @@ import {
   MessageCircle, MapPin, Share2, Store, Truck, ShoppingBag, Phone,
   Shield, BadgeCheck, ShieldCheck, Clock, Flag,
 } from "lucide-react";
+import MediaGallery from "../components/MediaGallery";
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose,
 } from "@/components/ui/drawer";
@@ -130,44 +131,58 @@ export default function PublicStorePage() {
       </div>
 
       <div className="px-4 pt-5">
+        {/* Store media gallery */}
+        {(() => {
+          const isVideoUrl = (url) => /\.(mp4|mov|avi|webm|mkv)(\?|$)/i.test(url);
+          const allUrls = [
+            ...(profile.logo_url ? [profile.logo_url] : []),
+            ...((profile.store_media || [])),
+          ];
+          if (allUrls.length > 0) {
+            const media = allUrls.map(url => ({ url, type: isVideoUrl(url) ? 'video' : 'image' }));
+            return <div className="mb-5"><MediaGallery media={media} /></div>;
+          }
+          return null;
+        })()}
+
         {/* Hero card */}
         <div className="bg-card border border-border rounded-2xl p-5 mb-5">
-          <div className="flex items-start gap-4 mb-4">
-            <div className="h-24 w-24 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
-              {profile.logo_url
-                ? <img src={profile.logo_url} alt={profile.store_name} className="w-full h-full object-cover" />
-                : <Store className="h-10 w-10 text-primary" />}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-1">
-                <h1 className="text-xl font-extrabold text-foreground leading-tight">{profile.store_name}</h1>
-                {(profile.verification_status === "verificada" || profile.verification_status === "representante_oficial") && (
-                  <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[11px] font-bold px-2 py-0.5 rounded-full">
-                    <BadgeCheck className="h-3.5 w-3.5" /> Verificada
-                  </span>
-                )}
-              </div>
-              {profile.supplier_type && (
-                <span className="inline-block bg-primary/10 text-primary text-xs font-bold px-2.5 py-1 rounded-full mb-1.5">
-                  {profile.supplier_type}
+        <div className="flex items-start gap-4 mb-4">
+          <div className="h-24 w-24 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+            {profile.logo_url
+              ? <img src={profile.logo_url} alt={profile.store_name} className="w-full h-full object-cover" />
+              : <Store className="h-10 w-10 text-primary" />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <h1 className="text-xl font-extrabold text-foreground leading-tight">{profile.store_name}</h1>
+              {(profile.verification_status === "verificada" || profile.verification_status === "representante_oficial") && (
+                <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                  <BadgeCheck className="h-3.5 w-3.5" /> Verificada
                 </span>
               )}
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <MapPin className="h-3.5 w-3.5 shrink-0" />
-                <span>{[profile.city, profile.region].filter(Boolean).join(", ")}</span>
-              </div>
-              {profile.whatsapp && (
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
-                  <Phone className="h-3.5 w-3.5 shrink-0" />
-                  <span>{profile.whatsapp}</span>
-                </div>
-              )}
             </div>
+            {profile.supplier_type && (
+              <span className="inline-block bg-primary/10 text-primary text-xs font-bold px-2.5 py-1 rounded-full mb-1.5">
+                {profile.supplier_type}
+              </span>
+            )}
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              <span>{[profile.city, profile.region].filter(Boolean).join(", ")}</span>
+            </div>
+            {profile.whatsapp && (
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
+                <Phone className="h-3.5 w-3.5 shrink-0" />
+                <span>{profile.whatsapp}</span>
+              </div>
+            )}
           </div>
+        </div>
 
-          {profile.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed mb-4">{profile.description}</p>
-          )}
+        {profile.description && (
+          <p className="text-sm text-muted-foreground leading-relaxed mb-4">{profile.description}</p>
+        )}
 
           {/* Delivery / pickup badges */}
           <div className="flex gap-2 mb-4">

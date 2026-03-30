@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  ArrowLeft, Store, Loader2, CheckCircle2, Camera, X,
+  ArrowLeft, Store, Loader2, CheckCircle2,
   PlusCircle, Package, Pencil, Trash2, Eye, EyeOff,
-  Truck, MapPin, Phone, ChevronRight, BadgeCheck, Share2,
+  Truck, MapPin, Phone, BadgeCheck, Share2,
 } from "lucide-react";
+import MediaUploader from "../components/MediaUploader";
 import { toast } from "sonner";
 import AddInsumoForm from "../components/AddInsumoForm";
 import { AnnouncementsManager } from "../components/StoreAnnouncements";
@@ -118,8 +119,7 @@ export default function MinhaLoja() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [logoFile, setLogoFile] = useState(null);
-  const [logoPreview, setLogoPreview] = useState(null);
+  const [mediaItems, setMediaItems] = useState([]);
   const [addProductOpen, setAddProductOpen] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -141,10 +141,15 @@ export default function MinhaLoja() {
     setLoading(true);
     const profiles = await base44.entities.SupplierProfile.filter({ owner_email: user.email });
     if (profiles[0]) {
-      const p = profiles[0];
-      setProfile(p);
-      populateForm(p);
-      if (p.logo_url) setLogoPreview(p.logo_url);
+    const p = profiles[0];
+    setProfile(p);
+    populateForm(p);
+    // Build mediaItems from existing logo + store_media
+    const existing = [
+      ...(p.logo_url ? [{ url: p.logo_url }] : []),
+      ...((p.store_media || []).map(u => ({ url: u }))),
+    ];
+    setMediaItems(existing);
       const prods = await base44.entities.InsumoProduct.filter({ supplier_id: p.id }, "-created_date");
       setProducts(prods);
       setShowForm(true);
@@ -180,11 +185,17 @@ export default function MinhaLoja() {
       return;
     }
     setSaving(true);
-    let logo_url = profile?.logo_url || null;
-    if (logoFile) {
-      const res = await base44.integrations.Core.UploadFile({ file: logoFile });
-      logo_url = res.file_url;
+    const uploadedUrls = [];
+    for (const item of mediaItems) {
+      if (item.file) {
+        const res = await base44.integrations.Core.UploadFile({ file: item.file });
+        uploadedUrls.push(res.file_url);
+      } else if (item.url) {
+        uploadedUrls.push(item.url);
+      }
     }
+    const logo_url = uploadedUrls[0] || null;
+    const store_media = uploadedUrls.slice(1);
     const data = {
       ...form,
       delivery_radius_km: form.delivery_radius_km ? parseFloat(form.delivery_radius_km) : null,
@@ -192,7 +203,7 @@ export default function MinhaLoja() {
       fixed_delivery_fee: form.fixed_delivery_fee ? parseFloat(form.fixed_delivery_fee) : null,
       minimum_order_for_delivery: form.minimum_order_for_delivery ? parseFloat(form.minimum_order_for_delivery) : null,
       free_delivery_above: form.free_delivery_above ? parseFloat(form.free_delivery_above) : null,
-      logo_url, owner_email: user.email,
+      logo_url, store_media, owner_email: user.email,
     };
     if (profile) {
       await base44.entities.SupplierProfile.update(profile.id, data);
@@ -217,8 +228,7 @@ export default function MinhaLoja() {
     setProfile(null);
     setProducts([]);
     setShowForm(false);
-    setLogoFile(null);
-    setLogoPreview(null);
+    setMediaItems([]);
     toast.success("Loja excluída com sucesso.");
   };
 
@@ -320,28 +330,8 @@ export default function MinhaLoja() {
             <div className="space-y-4">
               {/* Logo */}
               <SectionCard title="Identidade visual">
-                <FieldBlock label="Logo da loja" hint="Uma boa foto transmite confiança ao comprador.">
-                  <label className="flex items-center gap-4 cursor-pointer">
-                    <div className="h-20 w-20 rounded-2xl bg-muted flex items-center justify-center overflow-hidden shrink-0 relative">
-                      {logoPreview
-                        ? <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
-                        : <Camera className="h-7 w-7 text-muted-foreground" />}
-                      {logoPreview && (
-                        <button type="button" onClick={e => { e.preventDefault(); setLogoFile(null); setLogoPreview(null); }}
-                          className="absolute top-1 right-1 h-5 w-5 rounded-full bg-black/60 flex items-center justify-center">
-                          <X className="h-3 w-3 text-white" />
-                        </button>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-primary">Escolher foto</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">JPG ou PNG, até 10 MB</p>
-                    </div>
-                    <input type="file" accept="image/*" className="hidden" onChange={e => {
-                      const f = e.target.files?.[0];
-                      if (f) { setLogoFile(f); setLogoPreview(URL.createObjectURL(f)); }
-                    }} />
-                  </label>
+                <FieldBlock label="Fotos e vídeos da loja" hint="A primeira foto vira a capa. Adicione fotos da fachada, produtos e estrutura.">
+                  <MediaUploader items={mediaItems} onChange={setMediaItems} />
                 </FieldBlock>
               </SectionCard>
 
