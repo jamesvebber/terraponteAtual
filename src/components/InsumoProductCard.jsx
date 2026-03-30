@@ -86,20 +86,29 @@ export default function InsumoProductCard({ product, isBest, isVerified }) {
           {/* Store chip — clickable to store page */}
           <button
             onClick={e => { e.stopPropagation(); navigate(`/loja/${slugify(product.supplier_name)}`); }}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', width: '100%', background: 'var(--tw-bg, transparent)', marginBottom: '10px' }}
-            className="bg-primary/8 hover:bg-primary/15 border border-primary/20 rounded-xl px-2.5 py-2 select-none transition-colors"
+            className="w-full bg-primary/8 hover:bg-primary/15 border border-primary/20 rounded-xl px-2.5 py-2 mb-2.5 select-none transition-colors text-left"
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1 }}>
-              <Store style={{ width: 14, height: 14, flexShrink: 0, color: 'hsl(var(--primary))' }} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'hsl(var(--primary))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{product.supplier_name}</span>
-              {isVerified && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: 'hsl(142 55% 35%)', flexShrink: 0 }} title="Loja verificada">✔</span>
-              )}
+            {/* Row 1: store icon + name */}
+            <div className="flex items-center gap-1.5 min-w-0 mb-1">
+              <Store className="h-3.5 w-3.5 shrink-0 text-primary" />
+              <span className="text-xs font-bold text-primary truncate min-w-0">{product.supplier_name}</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
-              <MapPin style={{ width: 12, height: 12, flexShrink: 0, color: 'hsl(var(--muted-foreground))' }} />
-              <span style={{ fontSize: 10, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 80, color: 'hsl(var(--muted-foreground))' }}>{product.city}</span>
-              <ChevronRight style={{ width: 12, height: 12, flexShrink: 0, color: 'hsl(var(--primary))' }} />
+            {/* Row 2: verified badge (only if verified) */}
+            {isVerified && (
+              <div className="flex items-center gap-1 mb-1">
+                <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                  <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Verificada
+                </span>
+              </div>
+            )}
+            {/* Row 3: location + chevron */}
+            <div className="flex items-center justify-between gap-1">
+              <div className="flex items-center gap-1 min-w-0">
+                <MapPin className="h-3 w-3 shrink-0 text-muted-foreground" />
+                <span className="text-[10px] font-medium text-muted-foreground truncate min-w-0">{product.city}</span>
+              </div>
+              <ChevronRight className="h-3 w-3 shrink-0 text-primary" />
             </div>
           </button>
 
