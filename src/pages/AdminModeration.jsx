@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Loader2, Trash2, EyeOff, CheckCircle2, Flag, ArrowLeft, RefreshCw, ShieldCheck, Store, X } from "lucide-react";
+import { Loader2, Trash2, EyeOff, CheckCircle2, Flag, ArrowLeft, RefreshCw, ShieldCheck, Store, X, User, Building2 } from "lucide-react";
 import { formatCNPJ } from "../utils/validators";
 import { toast } from "sonner";
 
@@ -102,21 +102,28 @@ export default function AdminModeration() {
     toast.success("Solicitação rejeitada.");
   };
 
-  const approveStore = async (store) => {
+  const approveStore = async (store, level) => {
+    const isRep = store.registration_type === "representante";
+    const verLevel = level || (isRep ? "representante_oficial" : "verificada");
     await base44.entities.SupplierProfile.update(store.id, {
-      verification_status: "verificada",
+      verification_status: verLevel,
+      moderation_status: "aprovado",
       verified_at: new Date().toISOString(),
       verified_by: user.email,
     });
     setPendingStores(prev => prev.filter(s => s.id !== store.id));
-    toast.success(`Loja "${store.store_name}" verificada!`);
+    toast.success(`"${store.store_name}" aprovado!`);
   };
 
   const suspendStore = async (store) => {
     const reason = rejectReason[store.id] || "";
-    await base44.entities.SupplierProfile.update(store.id, { is_suspended: true, rejection_reason: reason });
+    await base44.entities.SupplierProfile.update(store.id, {
+      is_suspended: true,
+      moderation_status: "rejeitado",
+      rejection_reason: reason,
+    });
     setPendingStores(prev => prev.filter(s => s.id !== store.id));
-    toast.success("Loja suspensa.");
+    toast.success("Cadastro rejeitado.");
   };
 
   if (isLoadingAuth || loading) return (
@@ -257,37 +264,56 @@ export default function AdminModeration() {
               <p className="text-sm font-bold text-foreground">Nenhuma loja nova pendente</p>
             </div>
           )}
-          {pendingStores.map(store => (
-            <div key={store.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                {store.logo_url
-                  ? <img src={store.logo_url} alt={store.store_name} className="h-14 w-14 rounded-xl object-cover shrink-0" />
-                  : <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"><Store className="h-6 w-6 text-primary" /></div>}
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-foreground text-sm">{store.store_name}</p>
-                  <p className="text-xs text-muted-foreground">{store.supplier_type} · {[store.city, store.region].filter(Boolean).join(", ")}</p>
-                  {store.responsible_name && <p className="text-xs text-muted-foreground">Resp: {store.responsible_name}</p>}
-                  {store.whatsapp && <p className="text-xs text-muted-foreground">📱 {store.whatsapp}</p>}
-                  {store.cnpj && <p className="text-xs font-mono text-muted-foreground">CNPJ: {formatCNPJ(store.cnpj)}</p>}
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(store.created_date).toLocaleDateString("pt-BR")}</p>
+          {pendingStores.map(store => {
+            const isRep = store.registration_type === "representante";
+            return (
+              <div key={store.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  {store.logo_url
+                    ? <img src={store.logo_url} alt={store.store_name} className="h-14 w-14 rounded-xl object-cover shrink-0" />
+                    : <div className={`h-14 w-14 rounded-xl flex items-center justify-center shrink-0 ${isRep ? "bg-blue-100" : "bg-primary/10"}`}>
+                        {isRep ? <User className="h-6 w-6 text-blue-600" /> : <Building2 className="h-6 w-6 text-primary" />}
+                      </div>}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                      <p className="font-bold text-foreground text-sm">{store.store_name}</p>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isRep ? "bg-blue-100 text-blue-700" : "bg-primary/10 text-primary"}`}>
+                        {isRep ? "Representante" : "Empresa"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{store.supplier_type} · {[store.city, store.region].filter(Boolean).join(", ")}</p>
+                    {store.responsible_name && <p className="text-xs text-muted-foreground">Resp: {store.responsible_name}{store.cargo ? ` (${store.cargo})` : ""}</p>}
+                    {store.whatsapp && <p className="text-xs text-muted-foreground">📱 {store.whatsapp}</p>}
+                    {store.cnpj && <p className="text-xs font-mono text-muted-foreground">CNPJ: {formatCNPJ(store.cnpj)}</p>}
+                    {store.cpf && <p className="text-xs font-mono text-muted-foreground">CPF: {store.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")}</p>}
+                    {store.linked_cnpj && <p className="text-xs font-mono text-muted-foreground">CNPJ vinculado: {formatCNPJ(store.linked_cnpj)}</p>}
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(store.created_date).toLocaleDateString("pt-BR")}</p>
+                  </div>
+                </div>
+                <input
+                  className="w-full h-9 px-3 rounded-xl border border-border bg-muted/40 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                  placeholder="Motivo da reprovação (se rejeitar)"
+                  value={rejectReason[store.id] || ""}
+                  onChange={e => setRejectReason(p => ({ ...p, [store.id]: e.target.value }))}
+                />
+                <div className="flex gap-2 flex-wrap">
+                  {!isRep && (
+                    <Button size="sm" className="rounded-xl text-xs bg-green-600 hover:bg-green-700 gap-1" onClick={() => approveStore(store, "verificada")}>
+                      <Building2 className="h-3.5 w-3.5" /> Loja verificada
+                    </Button>
+                  )}
+                  {isRep && (
+                    <Button size="sm" className="rounded-xl text-xs bg-blue-600 hover:bg-blue-700 gap-1" onClick={() => approveStore(store, "representante_oficial")}>
+                      <User className="h-3.5 w-3.5" /> Repr. verificado
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" className="rounded-xl text-xs text-red-600 border-red-200" onClick={() => suspendStore(store)}>
+                    <X className="h-3.5 w-3.5" /> Rejeitar
+                  </Button>
                 </div>
               </div>
-              <input
-                className="w-full h-9 px-3 rounded-xl border border-border bg-muted/40 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                placeholder="Motivo da reprovação (se suspender)"
-                value={rejectReason[store.id] || ""}
-                onChange={e => setRejectReason(p => ({ ...p, [store.id]: e.target.value }))}
-              />
-              <div className="flex gap-2">
-                <Button size="sm" className="flex-1 rounded-xl text-xs bg-green-600 hover:bg-green-700 gap-1" onClick={() => approveStore(store)}>
-                  <CheckCircle2 className="h-3.5 w-3.5" /> Verificar
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1 rounded-xl text-xs text-red-600 border-red-200" onClick={() => suspendStore(store)}>
-                  <X className="h-3.5 w-3.5" /> Suspender
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

@@ -10,13 +10,17 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft, Store, Loader2, CheckCircle2,
   PlusCircle, Package, Pencil, Trash2, Eye, EyeOff,
-  Truck, MapPin, Phone, BadgeCheck, Share2,
+  Truck, MapPin, Phone, BadgeCheck, Share2, User, Building2,
 } from "lucide-react";
 import MediaUploader from "../components/MediaUploader";
 import { toast } from "sonner";
 import AddInsumoForm from "../components/AddInsumoForm";
 import { AnnouncementsManager } from "../components/StoreAnnouncements";
 import StoreVerificationBlock from "../components/StoreVerificationBlock";
+import {
+  validateCPF, validateCNPJ, validatePhone, validateFullName,
+  formatCPF, formatCNPJ,
+} from "../utils/validators";
 
 const SUPPLIER_TYPES = ["Agropecuária", "Cooperativa", "Fornecedor de insumos", "Loja", "Revendedor"];
 
@@ -57,6 +61,24 @@ function DeliveryToggle({ label, sub, enabled, onToggle }) {
         <div className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition-transform ${enabled ? "translate-x-5" : "translate-x-1"}`} />
       </div>
     </button>
+  );
+}
+
+// ─── Validated input ───────────────────────────────────────────────
+function ValidatedInput({ value, onChange, isValid, isInvalid, errorMsg, ...props }) {
+  return (
+    <div>
+      <Input
+        {...props}
+        value={value}
+        onChange={onChange}
+        className={`h-12 rounded-xl text-base ${
+          isInvalid ? "border-red-400 focus-visible:ring-red-300" :
+          isValid ? "border-green-400 focus-visible:ring-green-300" : ""
+        } ${props.className || ""}`}
+      />
+      {isInvalid && errorMsg && <p className="text-xs text-red-500 mt-1">{errorMsg}</p>}
+    </div>
   );
 }
 
@@ -110,6 +132,17 @@ function OnboardingBanner({ onStart }) {
 }
 
 // ─── Main component ────────────────────────────────────────────────
+const EMPTY_FORM = {
+  registration_type: "",
+  store_name: "", responsible_name: "", supplier_type: "",
+  cargo: "", city: "", region: "",
+  whatsapp: "", cnpj: "", cpf: "", linked_cnpj: "",
+  instagram: "", description: "",
+  pickup_available: true, delivery_available: false,
+  delivery_radius_km: "", price_per_km: "", fixed_delivery_fee: "",
+  minimum_order_for_delivery: "", free_delivery_above: "", delivery_notes: "",
+};
+
 export default function MinhaLoja() {
   const { user, isAuthenticated, isLoadingAuth } = useAuth();
   const navigate = useNavigate();
@@ -123,14 +156,7 @@ export default function MinhaLoja() {
   const [addProductOpen, setAddProductOpen] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
   const [showForm, setShowForm] = useState(false);
-
-  const [form, setForm] = useState({
-    store_name: "", responsible_name: "", supplier_type: "",
-    city: "", region: "", whatsapp: "", cnpj: "", description: "",
-    pickup_available: true, delivery_available: false,
-    delivery_radius_km: "", price_per_km: "", fixed_delivery_fee: "",
-    minimum_order_for_delivery: "", free_delivery_above: "", delivery_notes: "",
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -141,15 +167,14 @@ export default function MinhaLoja() {
     setLoading(true);
     const profiles = await base44.entities.SupplierProfile.filter({ owner_email: user.email });
     if (profiles[0]) {
-    const p = profiles[0];
-    setProfile(p);
-    populateForm(p);
-    // Build mediaItems from existing logo + store_media
-    const existing = [
-      ...(p.logo_url ? [{ url: p.logo_url }] : []),
-      ...((p.store_media || []).map(u => ({ url: u }))),
-    ];
-    setMediaItems(existing);
+      const p = profiles[0];
+      setProfile(p);
+      populateForm(p);
+      const existing = [
+        ...(p.logo_url ? [{ url: p.logo_url }] : []),
+        ...((p.store_media || []).map(u => ({ url: u }))),
+      ];
+      setMediaItems(existing);
       const prods = await base44.entities.InsumoProduct.filter({ supplier_id: p.id }, "-created_date");
       setProducts(prods);
       setShowForm(true);
@@ -159,13 +184,18 @@ export default function MinhaLoja() {
 
   const populateForm = (p) => {
     setForm({
+      registration_type: p.registration_type || "empresa",
       store_name: p.store_name || "",
       responsible_name: p.responsible_name || "",
       supplier_type: p.supplier_type || "",
+      cargo: p.cargo || "",
       city: p.city || "",
       region: p.region || "",
       whatsapp: p.whatsapp || "",
       cnpj: p.cnpj || "",
+      cpf: p.cpf || "",
+      linked_cnpj: p.linked_cnpj || "",
+      instagram: p.instagram || "",
       description: p.description || "",
       pickup_available: p.pickup_available !== false,
       delivery_available: !!p.delivery_available,
@@ -180,25 +210,56 @@ export default function MinhaLoja() {
 
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
 
+  const isEmpresa = form.registration_type === "empresa";
+  const isRepresentante = form.registration_type === "representante";
+
+  // ─── Computed validations ──────────────────────────────────────
+  const nameValid = validateFullName(form.responsible_name);
+  const nameInvalid = form.responsible_name.length > 0 && !nameValid;
+
+  const phoneValid = validatePhone(form.whatsapp);
+  const phoneInvalid = form.whatsapp.length > 0 && !phoneValid;
+
+  const cnpjDigits = form.cnpj.replace(/\D/g, "");
+  const cnpjValid = validateCNPJ(form.cnpj);
+  const cnpjInvalid = cnpjDigits.length > 0 && !cnpjValid;
+
+  const cpfDigits = form.cpf.replace(/\D/g, "");
+  const cpfValid = validateCPF(form.cpf);
+  const cpfInvalid = cpfDigits.length > 0 && !cpfValid;
+
+  const linkedCnpjDigits = form.linked_cnpj.replace(/\D/g, "");
+  const linkedCnpjValid = validateCNPJ(form.linked_cnpj);
+  const linkedCnpjInvalid = linkedCnpjDigits.length > 0 && !linkedCnpjValid;
+
+  const formIsValid = (() => {
+    if (!form.registration_type) return false;
+    if (!form.store_name.trim()) return false;
+    if (!nameValid) return false;
+    if (!form.supplier_type) return false;
+    if (!form.city.trim()) return false;
+    if (!phoneValid) return false;
+    if (mediaItems.length === 0) return false;
+    if (isEmpresa && !cnpjValid) return false;
+    if (isRepresentante && !cpfValid) return false;
+    if (isRepresentante && !form.cargo.trim()) return false;
+    if (linkedCnpjDigits.length > 0 && !linkedCnpjValid) return false;
+    return true;
+  })();
+
   const handleSave = async () => {
-    if (!form.store_name.trim() || !form.city.trim() || !form.whatsapp.trim() || !form.supplier_type) {
-      toast.error("Preencha os campos obrigatórios.");
-      return;
-    }
-    if (!validateFullName(form.responsible_name)) {
-      toast.error("Informe o nome completo do responsável.");
-      return;
-    }
-    if (!validatePhone(form.whatsapp)) {
-      toast.error("Telefone inválido. Inclua DDD + número.");
-      return;
-    }
-    if (form.cnpj && form.cnpj.replace(/\D/g,"").length > 0 && !validateCNPJ(form.cnpj)) {
-      toast.error("CNPJ inválido.");
-      return;
-    }
-    if (mediaItems.length === 0) {
-      toast.error("Adicione ao menos 1 foto ou logo da loja.");
+    if (!formIsValid) {
+      if (!form.registration_type) { toast.error("Selecione o tipo de cadastro."); return; }
+      if (!form.store_name.trim()) { toast.error("Informe o nome da loja."); return; }
+      if (!nameValid) { toast.error("Informe o nome completo (nome e sobrenome)."); return; }
+      if (!form.supplier_type) { toast.error("Selecione o tipo de fornecedor."); return; }
+      if (!form.city.trim()) { toast.error("Informe a cidade."); return; }
+      if (!phoneValid) { toast.error("WhatsApp inválido. Informe DDD + número."); return; }
+      if (isEmpresa && !cnpjValid) { toast.error("CNPJ inválido ou obrigatório para empresas."); return; }
+      if (isRepresentante && !cpfValid) { toast.error("CPF inválido ou obrigatório para representantes."); return; }
+      if (isRepresentante && !form.cargo.trim()) { toast.error("Informe seu cargo ou vínculo."); return; }
+      if (mediaItems.length === 0) { toast.error("Adicione ao menos 1 foto ou logo."); return; }
+      toast.error("Verifique os campos obrigatórios.");
       return;
     }
     setSaving(true);
@@ -214,21 +275,36 @@ export default function MinhaLoja() {
     const logo_url = uploadedUrls[0] || null;
     const store_media = uploadedUrls.slice(1);
     const data = {
-      ...form,
+      registration_type: form.registration_type,
+      store_name: form.store_name.trim(),
+      responsible_name: form.responsible_name.trim(),
+      supplier_type: form.supplier_type,
+      cargo: form.cargo.trim() || null,
+      city: form.city.trim(),
+      region: form.region.trim(),
+      whatsapp: form.whatsapp.trim(),
+      cnpj: isEmpresa ? form.cnpj.replace(/\D/g, "") : null,
+      cpf: isRepresentante ? form.cpf.replace(/\D/g, "") : null,
+      linked_cnpj: form.linked_cnpj ? form.linked_cnpj.replace(/\D/g, "") : null,
+      instagram: form.instagram.trim() || null,
+      description: form.description.trim(),
+      pickup_available: form.pickup_available,
+      delivery_available: form.delivery_available,
       delivery_radius_km: form.delivery_radius_km ? parseFloat(form.delivery_radius_km) : null,
       price_per_km: form.price_per_km ? parseFloat(form.price_per_km) : null,
       fixed_delivery_fee: form.fixed_delivery_fee ? parseFloat(form.fixed_delivery_fee) : null,
       minimum_order_for_delivery: form.minimum_order_for_delivery ? parseFloat(form.minimum_order_for_delivery) : null,
       free_delivery_above: form.free_delivery_above ? parseFloat(form.free_delivery_above) : null,
+      delivery_notes: form.delivery_notes.trim() || null,
       logo_url, store_media, owner_email: user.email,
-      cnpj: form.cnpj ? form.cnpj.replace(/\D/g,"") : null,
+      moderation_status: profile ? profile.moderation_status : "pendente",
     };
     if (profile) {
       await base44.entities.SupplierProfile.update(profile.id, data);
       toast.success("Perfil atualizado!");
     } else {
       await base44.entities.SupplierProfile.create(data);
-      toast.success("Loja cadastrada com sucesso!");
+      toast.success("Cadastro enviado para análise!");
     }
     setSaving(false);
     loadData();
@@ -236,9 +312,8 @@ export default function MinhaLoja() {
 
   const handleDeleteStore = async () => {
     if (!profile) return;
-    const confirmed = window.confirm("Tem certeza que deseja excluir sua loja? Todos os produtos da loja serão removidos.");
+    const confirmed = window.confirm("Tem certeza que deseja excluir seu cadastro? Todos os produtos serão removidos.");
     if (!confirmed) return;
-    // Delete all products first
     for (const prod of products) {
       await base44.entities.InsumoProduct.delete(prod.id);
     }
@@ -247,17 +322,16 @@ export default function MinhaLoja() {
     setProducts([]);
     setShowForm(false);
     setMediaItems([]);
-    toast.success("Loja excluída com sucesso.");
+    setForm(EMPTY_FORM);
+    toast.success("Cadastro excluído com sucesso.");
   };
 
   const handleToggleProduct = async (product) => {
     const newStatus = product.status === "active" ? "inactive" : "active";
-    // Optimistic update
     setProducts(ps => ps.map(p => p.id === product.id ? { ...p, status: newStatus } : p));
     try {
       await base44.entities.InsumoProduct.update(product.id, { status: newStatus });
     } catch {
-      // Rollback
       setProducts(ps => ps.map(p => p.id === product.id ? { ...p, status: product.status } : p));
       toast.error("Não foi possível atualizar o produto. Tente novamente.");
     }
@@ -265,13 +339,11 @@ export default function MinhaLoja() {
 
   const handleDeleteProduct = async (id) => {
     const backup = products.find(p => p.id === id);
-    // Optimistic update
     setProducts(ps => ps.filter(p => p.id !== id));
     toast.success("Produto removido.");
     try {
       await base44.entities.InsumoProduct.delete(id);
     } catch {
-      // Rollback
       if (backup) setProducts(ps => [backup, ...ps]);
       toast.error("Não foi possível remover. Tente novamente.");
     }
@@ -287,6 +359,13 @@ export default function MinhaLoja() {
 
   if (!isAuthenticated) return <GuestScreen />;
 
+  // ─── Moderation status badge ────────────────────────────────────
+  const moderationBadge = profile ? {
+    pendente: { label: "Em análise", cls: "bg-amber-100 text-amber-700" },
+    aprovado: { label: "Ativo", cls: "bg-green-100 text-green-700" },
+    rejeitado: { label: "Rejeitado", cls: "bg-red-100 text-red-600" },
+  }[profile.moderation_status || "pendente"] : null;
+
   return (
     <div className="px-4 pt-6 pb-16">
       {/* Header */}
@@ -300,14 +379,16 @@ export default function MinhaLoja() {
         </div>
         {profile && (
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full shrink-0">
-              <BadgeCheck className="h-3.5 w-3.5" /> Ativa
-            </div>
+            {moderationBadge && (
+              <span className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ${moderationBadge.cls}`}>
+                <BadgeCheck className="h-3.5 w-3.5" /> {moderationBadge.label}
+              </span>
+            )}
             <button
               onClick={async () => {
                 const slug = slugify(profile.store_name);
                 const url = `https://terraponte.app/store/${slug}`;
-                const text = `🎢 ${profile.store_name}\n📍 ${[profile.city, profile.region].filter(Boolean).join(" - ")}\n🌾 Veja nossos produtos no TerraPonte:\n${url}`;
+                const text = `🌾 ${profile.store_name}\n📍 ${[profile.city, profile.region].filter(Boolean).join(" - ")}\n\nVeja nossos produtos no TerraPonte:\n${url}`;
                 try { if (navigator.share) { await navigator.share({ title: profile.store_name, text, url }); return; } } catch {}
                 await navigator.clipboard.writeText(text);
                 toast.success("Link copiado!");
@@ -319,6 +400,15 @@ export default function MinhaLoja() {
           </div>
         )}
       </div>
+
+      {/* Rejection notice */}
+      {profile?.moderation_status === "rejeitado" && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4">
+          <p className="text-sm font-bold text-red-700 mb-1">⚠️ Cadastro rejeitado</p>
+          {profile.rejection_reason && <p className="text-xs text-red-600">{profile.rejection_reason}</p>}
+          <p className="text-xs text-red-600 mt-1">Corrija os dados abaixo e salve novamente para reenviar à análise.</p>
+        </div>
+      )}
 
       {/* Onboarding */}
       {!showForm && !profile && (
@@ -346,86 +436,230 @@ export default function MinhaLoja() {
           {/* ─── TAB: PERFIL ─── */}
           {tab === "perfil" && (
             <div className="space-y-4">
-              {/* Logo */}
-              <SectionCard title="Identidade visual">
-                <FieldBlock label="Fotos e vídeos da loja" hint="A primeira foto vira a capa. Adicione fotos da fachada, produtos e estrutura.">
-                  <MediaUploader items={mediaItems} onChange={setMediaItems} />
-                </FieldBlock>
-              </SectionCard>
 
-              {/* Basic info */}
-              <SectionCard title="Informações da loja">
-                <FieldBlock label="Nome da loja *" hint='Ex: Agropecuária São João'>
-                  <Input className="h-12 rounded-xl text-base" placeholder="Nome da sua loja" value={form.store_name} onChange={e => set("store_name", e.target.value)} />
-                </FieldBlock>
-                <FieldBlock label="Nome completo do responsável *" hint="Informe nome e sobrenome">
-                  <Input
-                    className={`h-12 rounded-xl text-base ${form.responsible_name && !validateFullName(form.responsible_name) ? "border-red-400" : form.responsible_name && validateFullName(form.responsible_name) ? "border-green-400" : ""}`}
-                    placeholder="Nome Sobrenome" value={form.responsible_name} onChange={e => set("responsible_name", e.target.value)}
-                  />
-                  {form.responsible_name && !validateFullName(form.responsible_name) && <p className="text-xs text-red-500 mt-1">Informe seu nome completo</p>}
-                </FieldBlock>
-                <FieldBlock label="Tipo de fornecedor *">
-                  <div className="grid grid-cols-2 gap-2">
-                    {SUPPLIER_TYPES.map(t => (
-                      <button key={t} type="button" onClick={() => set("supplier_type", t)}
-                        className={`py-3 px-3 rounded-xl text-sm font-semibold border transition-all select-none text-left ${form.supplier_type === t ? "bg-primary text-primary-foreground border-primary" : "bg-muted/50 border-border text-foreground"}`}>
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                </FieldBlock>
-              </SectionCard>
-
-              {/* Location & contact */}
-              <SectionCard title="Localização e contato">
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="col-span-2">
-                    <FieldBlock label="Cidade *">
-                      <Input className="h-12 rounded-xl text-base" placeholder="Sua cidade" value={form.city} onChange={e => set("city", e.target.value)} />
-                    </FieldBlock>
-                  </div>
-                  <div>
-                    <FieldBlock label="UF">
-                      <Input className="h-12 rounded-xl text-base" placeholder="GO" maxLength={2} value={form.region} onChange={e => set("region", e.target.value.toUpperCase())} />
-                    </FieldBlock>
-                  </div>
+              {/* ── TIPO DE CADASTRO ── */}
+              <SectionCard title="Tipo de cadastro *">
+                <p className="text-xs text-muted-foreground -mt-2">Selecione como você vai anunciar no TerraPonte</p>
+                <div className="grid grid-cols-1 gap-3">
+                  {[
+                    {
+                      value: "empresa",
+                      icon: Building2,
+                      title: "Empresa / Loja / Cooperativa",
+                      desc: "Anuncio em nome de uma empresa com CNPJ",
+                    },
+                    {
+                      value: "representante",
+                      icon: User,
+                      title: "Representante / Funcionário / Comissionado",
+                      desc: "Anuncio em nome de uma empresa, mas sou pessoa física",
+                    },
+                  ].map(({ value, icon: Icon, title, desc }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => set("registration_type", value)}
+                      className={`flex items-start gap-3 p-4 rounded-2xl border-2 text-left transition-all select-none ${
+                        form.registration_type === value
+                          ? "border-primary bg-primary/5"
+                          : "border-border bg-card hover:border-primary/40"
+                      }`}
+                    >
+                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
+                        form.registration_type === value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                      }`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className={`font-bold text-sm ${form.registration_type === value ? "text-primary" : "text-foreground"}`}>{title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-                <FieldBlock label="WhatsApp *" hint="Compradores entram em contato por aqui.">
-                  <Input
-                    className={`h-12 rounded-xl text-base ${form.whatsapp && !validatePhone(form.whatsapp) ? "border-red-400" : form.whatsapp && validatePhone(form.whatsapp) ? "border-green-400" : ""}`}
-                    type="tel" placeholder="(62) 99999-9999" value={form.whatsapp} onChange={e => set("whatsapp", e.target.value)}
-                  />
-                  {form.whatsapp && !validatePhone(form.whatsapp) && <p className="text-xs text-red-500 mt-1">Telefone inválido</p>}
-                </FieldBlock>
-                <FieldBlock label="CNPJ" hint="Opcional. Usado apenas para verificação interna.">
-                  <Input
-                    className={`h-12 rounded-xl text-base ${form.cnpj && form.cnpj.replace(/\D/g,"").length === 14 && !validateCNPJ(form.cnpj) ? "border-red-400" : form.cnpj && validateCNPJ(form.cnpj) ? "border-green-400" : ""}`}
-                    placeholder="00.000.000/0001-00" value={form.cnpj} onChange={e => set("cnpj", e.target.value)}
-                  />
-                  {form.cnpj && form.cnpj.replace(/\D/g,"").length === 14 && !validateCNPJ(form.cnpj) && <p className="text-xs text-red-500 mt-1">CNPJ inválido</p>}
-                </FieldBlock>
-                <FieldBlock label="Descrição da loja" hint="Fale sobre sua loja, diferenciais e produtos.">
-                  <Textarea className="rounded-xl text-base min-h-[80px]" placeholder="Ex: Cooperativa com 20 anos de experiência, atendendo produtores de toda a região..." value={form.description} onChange={e => set("description", e.target.value)} />
-                </FieldBlock>
               </SectionCard>
 
-              {profile && (
-                <StoreVerificationBlock profile={profile} onRefresh={loadData} />
-              )}
+              {/* Only show rest of form after type selected */}
+              {form.registration_type && (
+                <>
+                  {/* Media */}
+                  <SectionCard title="Fotos *">
+                    <FieldBlock hint="A primeira foto vira a capa. Adicione fotos da fachada, produtos e estrutura.">
+                      <MediaUploader items={mediaItems} onChange={setMediaItems} />
+                    </FieldBlock>
+                    {mediaItems.length === 0 && <p className="text-xs text-red-500">Adicione ao menos 1 foto</p>}
+                  </SectionCard>
 
-              <Button className="w-full h-13 text-base rounded-xl font-bold gap-2" onClick={handleSave} disabled={saving}>
-                {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
-                {saving ? "Salvando..." : profile ? "Salvar alterações" : "Cadastrar loja"}
-              </Button>
+                  {/* Basic info */}
+                  <SectionCard title={isEmpresa ? "Informações da empresa" : "Informações do representante"}>
+                    <FieldBlock label={isEmpresa ? "Nome da loja / empresa *" : "Nome da loja que representa *"}
+                      hint={isRepresentante ? "Nome da agropecuária, cooperativa ou empresa onde trabalha" : ""}>
+                      <Input
+                        className="h-12 rounded-xl text-base"
+                        placeholder={isEmpresa ? "Ex: Agropecuária São João" : "Ex: Cooperativa Sul Goiano"}
+                        value={form.store_name}
+                        onChange={e => set("store_name", e.target.value)}
+                      />
+                    </FieldBlock>
 
-              {profile && (
-                <button
-                  onClick={handleDeleteStore}
-                  className="w-full h-10 rounded-xl text-sm font-bold text-red-500 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors select-none"
-                >
-                  Excluir loja
-                </button>
+                    <FieldBlock label="Seu nome completo *" hint="Nome e sobrenome">
+                      <ValidatedInput
+                        placeholder="Nome Sobrenome"
+                        value={form.responsible_name}
+                        onChange={e => set("responsible_name", e.target.value)}
+                        isValid={nameValid}
+                        isInvalid={nameInvalid}
+                        errorMsg="Informe nome e sobrenome"
+                      />
+                    </FieldBlock>
+
+                    {isRepresentante && (
+                      <FieldBlock label="Cargo / vínculo *" hint="Ex: Vendedor, Representante, Comissionado, Funcionário">
+                        <Input
+                          className={`h-12 rounded-xl text-base ${form.cargo.trim() ? "border-green-400" : ""}`}
+                          placeholder="Ex: Vendedor externo"
+                          value={form.cargo}
+                          onChange={e => set("cargo", e.target.value)}
+                        />
+                      </FieldBlock>
+                    )}
+
+                    <FieldBlock label="Tipo de fornecedor *">
+                      <div className="grid grid-cols-2 gap-2">
+                        {SUPPLIER_TYPES.map(t => (
+                          <button key={t} type="button" onClick={() => set("supplier_type", t)}
+                            className={`py-3 px-3 rounded-xl text-sm font-semibold border transition-all select-none text-left ${
+                              form.supplier_type === t ? "bg-primary text-primary-foreground border-primary" : "bg-muted/50 border-border text-foreground"
+                            }`}>
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </FieldBlock>
+                  </SectionCard>
+
+                  {/* Documents */}
+                  <SectionCard title="Documentos (uso interno)">
+                    <p className="text-xs text-muted-foreground -mt-2">Estas informações são sigilosas e nunca serão exibidas publicamente.</p>
+
+                    {isEmpresa && (
+                      <FieldBlock label="CNPJ da empresa *">
+                        <ValidatedInput
+                          placeholder="00.000.000/0001-00"
+                          value={form.cnpj}
+                          onChange={e => set("cnpj", e.target.value)}
+                          isValid={cnpjValid}
+                          isInvalid={cnpjInvalid}
+                          errorMsg="CNPJ inválido"
+                        />
+                      </FieldBlock>
+                    )}
+
+                    {isRepresentante && (
+                      <>
+                        <FieldBlock label="CPF do representante *">
+                          <ValidatedInput
+                            placeholder="000.000.000-00"
+                            value={form.cpf}
+                            onChange={e => set("cpf", e.target.value)}
+                            isValid={cpfValid}
+                            isInvalid={cpfInvalid}
+                            errorMsg="CPF inválido"
+                          />
+                        </FieldBlock>
+                        <FieldBlock label="CNPJ da empresa vinculada" hint="Opcional — se souber o CNPJ da empresa onde trabalha">
+                          <ValidatedInput
+                            placeholder="00.000.000/0001-00"
+                            value={form.linked_cnpj}
+                            onChange={e => set("linked_cnpj", e.target.value)}
+                            isValid={linkedCnpjValid}
+                            isInvalid={linkedCnpjInvalid}
+                            errorMsg="CNPJ inválido"
+                          />
+                        </FieldBlock>
+                      </>
+                    )}
+
+                    {isEmpresa && (
+                      <FieldBlock label="CPF do responsável" hint="Opcional">
+                        <ValidatedInput
+                          placeholder="000.000.000-00"
+                          value={form.cpf}
+                          onChange={e => set("cpf", e.target.value)}
+                          isValid={cpfValid}
+                          isInvalid={cpfInvalid}
+                          errorMsg="CPF inválido"
+                        />
+                      </FieldBlock>
+                    )}
+                  </SectionCard>
+
+                  {/* Location & contact */}
+                  <SectionCard title="Localização e contato">
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="col-span-2">
+                        <FieldBlock label="Cidade *">
+                          <Input className="h-12 rounded-xl text-base" placeholder="Sua cidade" value={form.city} onChange={e => set("city", e.target.value)} />
+                        </FieldBlock>
+                      </div>
+                      <div>
+                        <FieldBlock label="UF">
+                          <Input className="h-12 rounded-xl text-base" placeholder="GO" maxLength={2} value={form.region} onChange={e => set("region", e.target.value.toUpperCase())} />
+                        </FieldBlock>
+                      </div>
+                    </div>
+                    <FieldBlock label="WhatsApp *" hint="Compradores entram em contato por aqui.">
+                      <ValidatedInput
+                        type="tel"
+                        placeholder="(62) 99999-9999"
+                        value={form.whatsapp}
+                        onChange={e => set("whatsapp", e.target.value)}
+                        isValid={phoneValid}
+                        isInvalid={phoneInvalid}
+                        errorMsg="Telefone inválido. Informe DDD + número."
+                      />
+                    </FieldBlock>
+                    <FieldBlock label="Instagram" hint="Opcional. Ex: @minha_loja">
+                      <Input className="h-12 rounded-xl text-base" placeholder="@minha_loja" value={form.instagram} onChange={e => set("instagram", e.target.value)} />
+                    </FieldBlock>
+                    <FieldBlock label="Descrição" hint="Fale sobre sua loja, produtos e diferenciais.">
+                      <Textarea
+                        className="rounded-xl text-base min-h-[80px]"
+                        placeholder={isEmpresa
+                          ? "Ex: Cooperativa com 20 anos de experiência, atendendo produtores de toda a região..."
+                          : "Ex: Representante da Cooperativa Sul Goiano, atendendo produtores de Quirinópolis e região..."}
+                        value={form.description}
+                        onChange={e => set("description", e.target.value)}
+                      />
+                    </FieldBlock>
+                  </SectionCard>
+
+                  {profile && (
+                    <StoreVerificationBlock profile={profile} onRefresh={loadData} />
+                  )}
+
+                  <Button
+                    className="w-full h-12 text-base rounded-xl font-bold gap-2"
+                    onClick={handleSave}
+                    disabled={saving || !formIsValid}
+                  >
+                    {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
+                    {saving ? "Salvando..." : profile ? "Salvar alterações" : "Enviar para análise"}
+                  </Button>
+
+                  {!formIsValid && !saving && (
+                    <p className="text-xs text-center text-muted-foreground">Preencha todos os campos obrigatórios (*) para continuar</p>
+                  )}
+
+                  {profile && (
+                    <button
+                      onClick={handleDeleteStore}
+                      className="w-full h-10 rounded-xl text-sm font-bold text-red-500 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors select-none"
+                    >
+                      Excluir cadastro
+                    </button>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -461,13 +695,11 @@ export default function MinhaLoja() {
                       {products.map(prod => (
                         <div key={prod.id} className={`bg-card border rounded-2xl overflow-hidden transition-all ${prod.status === "inactive" ? "opacity-60 border-border" : "border-border"}`}>
                           <div className="flex gap-3 p-3">
-                            {/* Thumb */}
                             <div className="h-20 w-20 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden">
                               {prod.image_url
                                 ? <img src={prod.image_url} alt={prod.product_name} className="w-full h-full object-cover" />
                                 : <Package className="h-7 w-7 text-muted-foreground/40" />}
                             </div>
-                            {/* Info */}
                             <div className="flex-1 min-w-0 py-0.5">
                               <div className="flex items-start justify-between gap-1 mb-0.5">
                                 <h3 className="font-bold text-foreground text-sm leading-tight">{prod.product_name}</h3>
@@ -484,7 +716,6 @@ export default function MinhaLoja() {
                               </p>
                             </div>
                           </div>
-                          {/* Stock & actions */}
                           <div className="border-t border-border px-3 py-2.5 flex items-center justify-between">
                             <span className={`text-xs font-semibold ${prod.stock_status === "Esgotado" ? "text-red-500" : prod.stock_status === "Sob encomenda" ? "text-amber-600" : "text-green-600"}`}>
                               {prod.stock_status === "Esgotado" ? "🔴" : prod.stock_status === "Sob encomenda" ? "🟡" : "🟢"} {prod.stock_status || "Disponível"}
@@ -564,8 +795,8 @@ export default function MinhaLoja() {
                       <Input className="h-11 rounded-xl pl-8" type="number" inputMode="decimal" placeholder="Ex: 1000" value={form.free_delivery_above} onChange={e => set("free_delivery_above", e.target.value)} />
                     </div>
                   </FieldBlock>
-                  <FieldBlock label="Observações sobre entrega" hint="Dias de entrega, restrições, combinações, etc.">
-                    <Textarea className="rounded-xl text-sm min-h-[75px]" placeholder="Ex: Entregamos às terças e quintas. Ligue para confirmar disponibilidade." value={form.delivery_notes} onChange={e => set("delivery_notes", e.target.value)} />
+                  <FieldBlock label="Observações sobre entrega" hint="Dias de entrega, restrições, etc.">
+                    <Textarea className="rounded-xl text-sm min-h-[75px]" placeholder="Ex: Entregamos às terças e quintas." value={form.delivery_notes} onChange={e => set("delivery_notes", e.target.value)} />
                   </FieldBlock>
                 </SectionCard>
               )}
