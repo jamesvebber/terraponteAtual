@@ -47,7 +47,7 @@ export default function InsumoProductCard({ product, isBest }) {
         {/* Image */}
         <div className="relative w-full h-32 bg-muted flex items-center justify-center shrink-0">
           {product.image_url
-            ? <img src={product.image_url} alt={product.product_name} className="w-full h-full object-contain" />
+            ? <img src={product.image_url} alt={product.product_name} className="w-full h-full object-contain" loading="lazy" decoding="async" />
             : <span className="text-4xl">{categoryEmoji[product.category] || "📦"}</span>}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {isBest && (

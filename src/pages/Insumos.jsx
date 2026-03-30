@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import InsumoProductCard from "../components/InsumoProductCard";
+import SkeletonCard from "../components/SkeletonCard";
 import { Loader2, ShoppingBag, Store, Search, SlidersHorizontal, X, Settings, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
@@ -26,6 +27,7 @@ const CATEGORIES = [
   { label: "Outros", emoji: "📦" },
 ];
 const CACHE_KEY = "insumos_products";
+const PAGE_SIZE = 12;
 
 
 
@@ -42,6 +44,8 @@ export default function Insumos() {
   const [selectedCity, setSelectedCity] = useState("Todas");
   const [deliveryOnly, setDeliveryOnly] = useState(false);
   const [pickupOnly, setPickupOnly] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef(null);
 
   const fetchProducts = useCallback(async () => {
     const data = await base44.entities.InsumoProduct.filter({ status: "active" }, "-created_date");
@@ -51,6 +55,21 @@ export default function Insumos() {
   }, []);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
+
+  // Reset visible count when filters/search change
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [search, selectedCategory, selectedCity, deliveryOnly, pickupOnly]);
+
+  // Infinite scroll sentinel
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisibleCount(v => v + PAGE_SIZE); },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [sentinelRef.current]);
 
   const { isPulling, pullActive, onTouchStart, onTouchMove, onTouchEnd } = usePullToRefresh(fetchProducts);
 
@@ -74,8 +93,10 @@ export default function Insumos() {
     return true;
   }), [products, selectedCategory, selectedCity, deliveryOnly, pickupOnly, search]);
 
-  const sorted = [...filtered].sort((a, b) => (a.price || 0) - (b.price || 0));
+  const sorted = useMemo(() => [...filtered].sort((a, b) => (a.price || 0) - (b.price || 0)), [filtered]);
   const bestId = sorted[0]?.id;
+  const visible = sorted.slice(0, visibleCount);
+  const hasMore = visibleCount < sorted.length;
 
   return (
     <div
@@ -154,8 +175,8 @@ export default function Insumos() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="grid grid-cols-2 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : sorted.length === 0 ? (
         <div className="text-center py-16 px-4">
@@ -172,10 +193,19 @@ export default function Insumos() {
             {sorted.length} produto{sorted.length !== 1 ? "s" : ""} · ordenado por menor preço
           </p>
           <div className="grid grid-cols-2 gap-3">
-            {sorted.map((item) => (
+            {visible.map((item) => (
               <InsumoProductCard key={item.id} product={item} isBest={item.id === bestId} />
             ))}
           </div>
+          {/* Infinite scroll sentinel */}
+          {hasMore && (
+            <div ref={sentinelRef} className="flex justify-center py-6">
+              <Loader2 className="h-5 w-5 animate-spin text-primary opacity-60" />
+            </div>
+          )}
+          {!hasMore && sorted.length > PAGE_SIZE && (
+            <p className="text-center text-xs text-muted-foreground py-4">Todos os {sorted.length} produtos carregados</p>
+          )}
         </>
       )}
 
