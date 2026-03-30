@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { toSlug } from "./SlugRedirect";
 import { PROD_DOMAIN } from "../utils/domain";
+import { slugify } from "../utils/slugify";
 import { formatInsumoPrice, formatEquivalentPrice } from "../utils/insumoPrice";
 
 const categoryEmoji = {
@@ -142,7 +143,12 @@ export default function InsumoDetail() {
         <div className="bg-card border border-border rounded-2xl p-4 space-y-2">
           <div className="flex items-center gap-2">
             <Store className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span className="font-bold text-foreground text-sm">{product.supplier_name}</span>
+            <button
+              onClick={() => navigate(`/loja/${slugify(product.supplier_name)}`)}
+              className="font-bold text-primary text-sm underline-offset-2 hover:underline select-none"
+            >
+              {product.supplier_name}
+            </button>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <MapPin className="h-4 w-4 shrink-0" />
