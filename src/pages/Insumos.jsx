@@ -24,6 +24,8 @@ const CATEGORIES = [
   { label: "Pet shop", emoji: "🐾" },
   { label: "Equipamentos", emoji: "⚙️" },
   { label: "Peças", emoji: "🔩" },
+  { label: "Vestuário rural", emoji: "👕" },
+  { label: "Calçados", emoji: "👢" },
   { label: "Outros", emoji: "📦" },
 ];
 const CACHE_KEY = "insumos_products";

@@ -11,7 +11,8 @@ const categoryEmoji = {
   "Ração": "🌾", "Sal mineral": "🧂", "Adubo": "🌱", "Sementes": "🌻",
   "Herbicidas": "🧪", "Inseticidas": "🐛", "Medicamentos veterinários": "💊",
   "Suplementos": "⚗️", "Ferramentas": "🔧", "Selaria": "🐴",
-  "Pet shop": "🐾", "Equipamentos": "⚙️", "Peças": "🔩", "Outros": "📦",
+  "Pet shop": "🐾", "Equipamentos": "⚙️", "Peças": "🔩",
+  "Vestuário rural": "👕", "Calçados": "👢", "Outros": "📦",
 };
 
 export default function InsumoProductCard({ product, isBest, isVerified }) {

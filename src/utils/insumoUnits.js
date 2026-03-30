@@ -29,6 +29,8 @@ export const UNIT_SUGGESTIONS = {
   "Pet shop":                    ["unidade", "pacote", "frasco", "caixa", "kg"],
   "Equipamentos":                ["unidade", "kit", "peça"],
   "Peças":                       ["unidade", "peça", "kit", "par"],
+  "Vestuário rural":              ["unidade", "par", "kit"],
+  "Calçados":                    ["par", "unidade"],
   "Outros":                      ["unidade", "kg", "caixa", "pacote", "litro"],
 };
 
