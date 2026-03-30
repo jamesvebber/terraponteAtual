@@ -8,7 +8,23 @@ import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 
-const CATEGORIES = ["Todos", "Ração", "Sal mineral", "Adubo", "Sementes", "Defensivos", "Medicamentos veterinários", "Ferramentas", "Equipamentos", "Outros"];
+const CATEGORIES = [
+  { label: "Todos", emoji: "🔍" },
+  { label: "Ração", emoji: "🌾" },
+  { label: "Sal mineral", emoji: "🧂" },
+  { label: "Adubo", emoji: "🌱" },
+  { label: "Sementes", emoji: "🌻" },
+  { label: "Herbicidas", emoji: "🧪" },
+  { label: "Inseticidas", emoji: "🐛" },
+  { label: "Medicamentos veterinários", emoji: "💊" },
+  { label: "Suplementos", emoji: "⚗️" },
+  { label: "Ferramentas", emoji: "🔧" },
+  { label: "Selaria", emoji: "🐴" },
+  { label: "Pet shop", emoji: "🐾" },
+  { label: "Equipamentos", emoji: "⚙️" },
+  { label: "Peças", emoji: "🔩" },
+  { label: "Outros", emoji: "📦" },
+];
 const CACHE_KEY = "insumos_products";
 
 
@@ -48,7 +64,12 @@ export default function Insumos() {
     if (pickupOnly && p.pickup_available === false) return false;
     if (search) {
       const q = search.toLowerCase();
-      if (!p.product_name?.toLowerCase().includes(q) && !p.supplier_name?.toLowerCase().includes(q) && !p.category?.toLowerCase().includes(q)) return false;
+      if (
+        !p.product_name?.toLowerCase().includes(q) &&
+        !p.supplier_name?.toLowerCase().includes(q) &&
+        !p.category?.toLowerCase().includes(q) &&
+        !p.city?.toLowerCase().includes(q)
+      ) return false;
     }
     return true;
   }), [products, selectedCategory, selectedCity, deliveryOnly, pickupOnly, search]);
@@ -123,11 +144,11 @@ export default function Insumos() {
       {/* Category chips */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 mb-4 scrollbar-hide">
         {CATEGORIES.map(cat => (
-          <button key={cat} onClick={() => setSelectedCategory(cat)}
-            className={`flex-shrink-0 px-3 py-2 rounded-full text-xs font-bold border transition-colors select-none ${
-              selectedCategory === cat ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border"
+          <button key={cat.label} onClick={() => setSelectedCategory(cat.label)}
+            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold border transition-colors select-none ${
+              selectedCategory === cat.label ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border"
             }`}>
-            {cat}
+            <span>{cat.emoji}</span><span>{cat.label}</span>
           </button>
         ))}
       </div>

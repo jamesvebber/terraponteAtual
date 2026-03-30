@@ -50,7 +50,12 @@ export default function Marketplace() {
       if (selectedCity !== "Todas" && l.city !== selectedCity) return false;
       if (search) {
         const q = search.toLowerCase();
-        if (!l.title?.toLowerCase().includes(q) && !l.description?.toLowerCase().includes(q) && !l.seller_name?.toLowerCase().includes(q)) return false;
+        if (
+          !l.title?.toLowerCase().includes(q) &&
+          !l.description?.toLowerCase().includes(q) &&
+          !l.seller_name?.toLowerCase().includes(q) &&
+          !l.city?.toLowerCase().includes(q)
+        ) return false;
       }
       return true;
     });
