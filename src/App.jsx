@@ -72,6 +72,10 @@ const AuthenticatedApp = () => {
         <Route path="/admin/moderation" element={<AdminModeration />} />
         <Route path="/meus-anuncios" element={<MeusAnuncios />} />
         <Route path="/editar-anuncio/:id" element={<EditListing />} />
+        {/* Clean share URLs */}
+        <Route path="/store/:slug" element={<PublicStorePage />} />
+        <Route path="/product/:slug" element={<SlugRedirect />} />
+        <Route path="/user/:slug" element={<PublicSellerPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

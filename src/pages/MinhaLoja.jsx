@@ -277,7 +277,7 @@ export default function MinhaLoja() {
             <button
               onClick={async () => {
                 const slug = slugify(profile.store_name);
-                const url = `${window.location.origin}/loja/${slug}`;
+                const url = `https://terraponte.app/store/${slug}`;
                 const text = `🎢 ${profile.store_name}\n📍 ${[profile.city, profile.region].filter(Boolean).join(" - ")}\n🌾 Veja nossos produtos no TerraPonte:\n${url}`;
                 try { if (navigator.share) { await navigator.share({ title: profile.store_name, text, url }); return; } } catch {}
                 await navigator.clipboard.writeText(text);

@@ -174,7 +174,7 @@ export default function SellerProfile() {
         <button
           onClick={async () => {
             const slug = slugify(name);
-            const url = `${PROD_DOMAIN}/produtor/${slug}`;
+            const url = `https://terraponte.app/user/${slug}`;
             const text = `👨\u200d🌾 ${name}\n📍 ${[profile?.city, profile?.region].filter(Boolean).join(" - ")}\n🌾 Veja meus anúncios no TerraPonte:\n${url}`;
             try { if (navigator.share) { await navigator.share({ title: name, text }); return; } } catch {}
             await navigator.clipboard.writeText(text);

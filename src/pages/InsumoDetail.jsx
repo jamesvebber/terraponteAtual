@@ -55,7 +55,7 @@ export default function InsumoDetail() {
   }
 
   const slug = toSlug(product.product_name, product.city);
-  const shareUrl = `${PROD_DOMAIN}/p/${slug}`;
+  const shareUrl = `https://terraponte.app/product/${slug}`;
 
   const handleShare = async () => {
     const price = `R$ ${product.price?.toFixed(2).replace(".", ",")}/${product.unit}`;

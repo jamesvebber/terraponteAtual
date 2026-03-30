@@ -69,7 +69,7 @@ export default function PublicStorePage() {
     return () => resetPageMeta();
   }, [slug]);
 
-  const profileUrl = `${PROD_DOMAIN}/loja/${slug}`;
+  const profileUrl = `https://terraponte.app/store/${slug}`;
 
   const handleShare = async () => {
     if (!profile) return;

@@ -56,7 +56,7 @@ export default function PublicSellerPage() {
     return () => resetPageMeta();
   }, [slug]);
 
-  const profileUrl = `${PROD_DOMAIN}/produtor/${slug}`;
+  const profileUrl = `https://terraponte.app/user/${slug}`;
 
   const handleShare = async () => {
     if (!profile) return;
