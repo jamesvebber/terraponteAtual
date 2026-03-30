@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useScrollOnFocus } from "../hooks/useScrollOnFocus";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,8 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
   const [imagePreview, setImagePreview] = useState(null);
   const [saving, setSaving] = useState(false);
   const [unitDrawerOpen, setUnitDrawerOpen] = useState(false);
+  const scrollRef = useRef(null);
+  useScrollOnFocus(scrollRef);
 
   useEffect(() => {
     if (!open) return;
@@ -146,7 +149,7 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
           </DrawerTitle>
         </DrawerHeader>
 
-        <div className="px-4 space-y-4 pb-2 overflow-y-auto max-h-[72vh]">
+        <div ref={scrollRef} className="px-4 space-y-4 pb-4 overflow-y-auto" style={{ maxHeight: '68dvh', overscrollBehavior: 'contain' }}>
           {/* Image upload */}
           <FieldBlock label="Foto do produto" hint="Produtos com foto vendem mais.">
             <label className="relative flex h-36 w-full cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-muted/40 transition-colors hover:bg-muted">

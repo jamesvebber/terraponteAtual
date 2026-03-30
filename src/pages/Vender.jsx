@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useScrollOnFocus } from "../hooks/useScrollOnFocus";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -54,6 +55,8 @@ function SectionHeader({ emoji, title }) {
 export default function Vender() {
   const { isAuthenticated, isLoadingAuth } = useAuth();
   const navigate = useNavigate();
+  const scrollRef = useRef(null);
+  useScrollOnFocus(scrollRef);
   const [form, setForm] = useState(EMPTY);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -202,7 +205,7 @@ export default function Vender() {
   };
 
   return (
-    <div className="px-4 pt-6 pb-10">
+    <div ref={scrollRef} className="px-4 pt-6 pb-10">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
