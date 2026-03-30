@@ -13,6 +13,7 @@ import { toSlug } from "./SlugRedirect";
 import { PROD_DOMAIN } from "../utils/domain";
 import { slugify } from "../utils/slugify";
 import { formatInsumoPrice, formatEquivalentPrice } from "../utils/insumoPrice";
+import MediaGallery from "../components/MediaGallery";
 
 const categoryEmoji = {
   "Ração": "🌾", "Sal mineral": "🧂", "Adubo": "🌱", "Sementes": "🌻",
@@ -110,23 +111,23 @@ export default function InsumoDetail() {
         </h1>
       </div>
 
-      {/* Image */}
-      <div className="w-full h-56 bg-muted flex items-center justify-center relative">
-        {product.image_url
-          ? <img src={product.image_url} alt={product.product_name} className="w-full h-full object-contain" />
-          : <span className="text-7xl">{categoryEmoji[product.category] || "📦"}</span>
+      {/* Media Gallery */}
+      {(() => {
+        const isVideoUrl = (url) => /\.(mp4|mov|avi|webm|mkv)(\?|$)/i.test(url);
+        const allUrls = [
+          ...(product.image_url ? [product.image_url] : []),
+          ...(product.photos || []),
+        ];
+        if (allUrls.length > 0) {
+          const media = allUrls.map(url => ({ url, type: isVideoUrl(url) ? 'video' : 'image' }));
+          return <MediaGallery media={media} />;
         }
-        <div className="absolute top-3 left-3 flex flex-col gap-1">
-          {product.featured && (
-            <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">⭐ Destaque</span>
-          )}
-        </div>
-        {product.stock_status && (
-          <span className={`absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full ${stockColor}`}>
-            {product.stock_status}
-          </span>
-        )}
-      </div>
+        return (
+          <div className="w-full h-56 bg-muted flex items-center justify-center">
+            <span className="text-7xl">{categoryEmoji[product.category] || "📦"}</span>
+          </div>
+        );
+      })()}
 
       <div className="px-4 pt-4 pb-24 space-y-5">
         {/* Title & Price */}
