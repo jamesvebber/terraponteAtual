@@ -92,7 +92,7 @@ export default function InsumoProductCard({ product, isBest, isVerified }) {
               <Store className="h-3.5 w-3.5 text-primary shrink-0" />
               <span className="text-xs font-bold text-primary truncate">{product.supplier_name}</span>
               {isVerified && (
-                <span className="flex items-center gap-0.5 bg-green-100 text-green-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0">✔ Verificada</span>
+                <span className="text-green-600 text-[10px] font-bold shrink-0" title="Loja verificada">✔</span>
               )}
             </div>
             <div className="flex items-center gap-0.5 text-muted-foreground shrink-0">
