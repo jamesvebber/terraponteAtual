@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trash2, EyeOff, CheckCircle2, Flag, ArrowLeft, RefreshCw, ShieldCheck, Store, X, User, Building2 } from "lucide-react";
+import UnitBulkFixer from "../components/admin/UnitBulkFixer";
 import { formatCNPJ } from "../utils/validators";
 import { toast } from "sonner";
 
@@ -24,9 +25,7 @@ export default function AdminModeration() {
   const [reports, setReports] = useState([]);
   const [verificationRequests, setVerificationRequests] = useState([]);
   const [pendingStores, setPendingStores] = useState([]);
-  const [allProducts, setAllProducts] = useState([]);
-  const [productUnitEdit, setProductUnitEdit] = useState({});
-  const [productSearch, setProductSearch] = useState("");
+  // Products state removed — now handled by UnitBulkFixer component
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("listings");
   const [rejectReason, setRejectReason] = useState({});
@@ -37,18 +36,16 @@ export default function AdminModeration() {
 
   const load = async () => {
     setLoading(true);
-    const [ls, rs, vrs, stores, prods] = await Promise.all([
+    const [ls, rs, vrs, stores] = await Promise.all([
       base44.entities.Listing.list("-created_date", 100),
       base44.entities.Report.filter({ status: "pending" }, "-created_date"),
       base44.entities.StoreVerificationRequest.filter({ status: "pendente" }, "-created_date"),
       base44.entities.SupplierProfile.filter({ verification_status: "nao_verificada" }, "-created_date", 50),
-      base44.entities.InsumoProduct.list("-created_date", 200),
     ]);
     setListings(ls);
     setReports(rs);
     setVerificationRequests(vrs);
     setPendingStores(stores.filter(s => !s.is_suspended));
-    setAllProducts(prods);
     setLoading(false);
   };
 
@@ -263,55 +260,8 @@ export default function AdminModeration() {
 
       {/* Produtos / Unidades tab */}
       {tab === "produtos" && (
-        <div className="space-y-3">
-          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-            <p className="text-xs font-bold text-amber-700">🔧 Correção de unidades</p>
-            <p className="text-xs text-amber-600 mt-0.5">Edite a unidade de cada produto individualmente. Salve após cada alteração.</p>
-          </div>
-          <input
-            className="w-full h-10 px-3 rounded-xl border border-border bg-card text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            placeholder="Buscar produto ou loja..."
-            value={productSearch}
-            onChange={e => setProductSearch(e.target.value)}
-          />
-          {allProducts
-            .filter(p => !productSearch || p.product_name?.toLowerCase().includes(productSearch.toLowerCase()) || p.supplier_name?.toLowerCase().includes(productSearch.toLowerCase()))
-            .map(prod => {
-              const currentUnit = productUnitEdit[prod.id] !== undefined ? productUnitEdit[prod.id] : (prod.pkg_type || "");
-              const saved = productUnitEdit[prod.id] === undefined;
-              return (
-                <div key={prod.id} className="bg-card border border-border rounded-xl p-3 flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-foreground text-xs leading-tight truncate">{prod.product_name}</p>
-                    <p className="text-[10px] text-muted-foreground">{prod.category} · {prod.supplier_name}</p>
-                    <p className="text-[10px] text-muted-foreground">Unidade atual: <span className="font-bold text-foreground">{prod.pkg_type || "(vazia)"}</span></p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <input
-                      className="w-24 h-8 px-2 rounded-lg border border-border bg-muted/50 text-xs text-center focus:outline-none focus:ring-1 focus:ring-ring"
-                      placeholder="unidade"
-                      value={currentUnit}
-                      onChange={e => setProductUnitEdit(prev => ({ ...prev, [prod.id]: e.target.value }))}
-                    />
-                    <button
-                      disabled={saved}
-                      onClick={async () => {
-                        const newUnit = productUnitEdit[prod.id];
-                        await base44.entities.InsumoProduct.update(prod.id, { pkg_type: newUnit, unit: newUnit });
-                        setAllProducts(ps => ps.map(p => p.id === prod.id ? { ...p, pkg_type: newUnit, unit: newUnit } : p));
-                        setProductUnitEdit(prev => { const n = { ...prev }; delete n[prod.id]; return n; });
-                        toast.success("Unidade salva!");
-                      }}
-                      className={`h-8 px-3 rounded-lg text-xs font-bold transition-colors ${
-                        saved ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90"
-                      }`}
-                    >
-                      {saved ? "OK" : "Salvar"}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+        <div>
+          <UnitBulkFixer />
         </div>
       )}
 

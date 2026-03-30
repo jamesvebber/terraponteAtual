@@ -56,9 +56,10 @@ const COUNT_MEASURES = new Set(["unidades", "comprimidos", "peças", "cartelas",
 
 /**
  * Build human-readable label: "frasco de 50 mL", "saco de 25 kg", "cartela com 10 comprimidos", "par"
+ * Returns empty string if no pkg_type — never defaults to "saco" or "unidade".
  */
 export function buildUnitLabel(pkg_type, pkg_qty, pkg_unit) {
-  if (!pkg_type) return "unidade";
+  if (!pkg_type || !pkg_type.trim()) return "";
   if (!pkg_qty || !pkg_unit) return pkg_type;
   const prep = COUNT_MEASURES.has(pkg_unit) ? "com" : "de";
   return `${pkg_type} ${prep} ${pkg_qty} ${pkg_unit}`;
