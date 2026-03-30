@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import AddInsumoForm from "../components/AddInsumoForm";
+import StoreVerificationBlock from "../components/StoreVerificationBlock";
 
 const SUPPLIER_TYPES = ["Agropecuária", "Cooperativa", "Fornecedor de insumos", "Loja", "Revendedor"];
 
@@ -366,6 +367,10 @@ export default function MinhaLoja() {
                   <Textarea className="rounded-xl text-base min-h-[80px]" placeholder="Ex: Cooperativa com 20 anos de experiência, atendendo produtores de toda a região..." value={form.description} onChange={e => set("description", e.target.value)} />
                 </FieldBlock>
               </SectionCard>
+
+              {profile && (
+                <StoreVerificationBlock profile={profile} onRefresh={loadData} />
+              )}
 
               <Button className="w-full h-13 text-base rounded-xl font-bold gap-2" onClick={handleSave} disabled={saving}>
                 {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}

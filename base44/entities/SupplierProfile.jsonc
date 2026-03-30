@@ -68,6 +68,34 @@
     },
     "delivery_notes": {
       "type": "string"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "nao_verificada",
+        "em_analise",
+        "verificada",
+        "representante_oficial"
+      ],
+      "default": "nao_verificada",
+      "description": "Status de verifica\u00e7\u00e3o da loja"
+    },
+    "verified_at": {
+      "type": "string",
+      "description": "Data da verifica\u00e7\u00e3o"
+    },
+    "verified_by": {
+      "type": "string",
+      "description": "Email do admin que verificou"
+    },
+    "is_suspended": {
+      "type": "boolean",
+      "default": false,
+      "description": "Loja suspensa por admin"
+    },
+    "report_count": {
+      "type": "number",
+      "default": 0
     }
   },
   "required": [

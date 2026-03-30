@@ -1,0 +1,106 @@
+{
+  "name": "StoreVerificationRequest",
+  "type": "object",
+  "properties": {
+    "store_id": {
+      "type": "string",
+      "description": "ID do SupplierProfile"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email do dono da loja"
+    },
+    "responsible_name": {
+      "type": "string"
+    },
+    "cpf_cnpj": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "document_image": {
+      "type": "string",
+      "description": "URL do documento enviado"
+    },
+    "storefront_image": {
+      "type": "string",
+      "description": "URL da foto da fachada (opcional)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es do solicitante"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "aprovado",
+        "rejeitado"
+      ],
+      "default": "pendente"
+    },
+    "review_notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es do admin"
+    },
+    "reviewed_at": {
+      "type": "string"
+    },
+    "reviewed_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "store_id",
+    "owner_email",
+    "responsible_name",
+    "cpf_cnpj",
+    "phone"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "$and": [
+            {
+              "data.owner_email": "{{user.email}}"
+            },
+            {
+              "data.status": "pendente"
+            }
+          ]
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

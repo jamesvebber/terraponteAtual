@@ -9,8 +9,22 @@ import { PROD_DOMAIN } from "../utils/domain";
 import { setPageMeta, resetPageMeta } from "../utils/pageMeta";
 import {
   MessageCircle, MapPin, Share2, Store, Truck, ShoppingBag, Phone,
+  Shield, BadgeCheck, ShieldCheck, Clock, Flag,
 } from "lucide-react";
+import {
+  Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose,
+} from "@/components/ui/drawer";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+
+const BADGE_CONFIG = {
+  nao_verificada: { label: "Não verificada", color: "bg-gray-100 text-gray-500", icon: Shield },
+  em_analise: { label: "Em análise", color: "bg-blue-100 text-blue-700", icon: Clock },
+  verificada: { label: "Loja verificada", color: "bg-green-100 text-green-700", icon: BadgeCheck },
+  representante_oficial: { label: "Representante oficial", color: "bg-amber-100 text-amber-700", icon: ShieldCheck },
+};
+
+const REPORT_REASONS = ["Loja falsa", "Produto não entregue", "Informações incorretas", "Comportamento suspeito", "Outro"];
 
 export default function PublicStorePage() {
   const { slug } = useParams();
@@ -19,6 +33,11 @@ export default function PublicStorePage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportDetails, setReportDetails] = useState("");
+  const [reporting, setReporting] = useState(false);
+  const [reportDone, setReportDone] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -198,6 +217,45 @@ export default function PublicStorePage() {
           </div>
         )}
 
+        {/* Trust box */}
+        {(() => {
+          const status = profile.verification_status || "nao_verificada";
+          const badge = BADGE_CONFIG[status] || BADGE_CONFIG.nao_verificada;
+          const BadgeIcon = badge.icon;
+          const joinDate = profile.created_date
+            ? new Date(profile.created_date).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
+            : null;
+          return (
+            <div className="mt-5 bg-card border border-border rounded-2xl p-4 space-y-3">
+              <p className="text-xs font-extrabold text-muted-foreground uppercase tracking-wide">Confiança e segurança</p>
+
+              {status === "nao_verificada" && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                  <p className="text-xs text-amber-700 font-semibold">⚠️ Confira os dados da loja antes de realizar pagamento.</p>
+                </div>
+              )}
+
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${badge.color}`}>
+                <BadgeIcon className="h-3.5 w-3.5" />
+                {badge.label}
+              </div>
+
+              <div className="space-y-1.5 text-xs text-muted-foreground">
+                {profile.whatsapp && <p>📱 WhatsApp: <span className="font-semibold text-foreground">{profile.whatsapp}</span></p>}
+                {(profile.city || profile.region) && <p>📍 <span className="font-semibold text-foreground">{[profile.city, profile.region].filter(Boolean).join(", ")}</span></p>}
+                {joinDate && <p>📅 Membro desde <span className="font-semibold text-foreground">{joinDate}</span></p>}
+              </div>
+
+              <button
+                onClick={() => setReportOpen(true)}
+                className="flex items-center gap-1.5 text-xs text-red-500 font-semibold select-none mt-1"
+              >
+                <Flag className="h-3.5 w-3.5" /> Reportar loja
+              </button>
+            </div>
+          );
+        })()}
+
         {/* Footer CTA */}
         <div className="mt-8 text-center">
           <p className="text-xs text-muted-foreground mb-2">Cadastre sua loja gratuitamente no TerraPonte</p>
@@ -206,6 +264,59 @@ export default function PublicStorePage() {
           </button>
         </div>
       </div>
+
+      {/* Report drawer */}
+      <Drawer open={reportOpen} onOpenChange={v => { setReportOpen(v); if (!v) { setReportReason(""); setReportDetails(""); setReportDone(false); } }}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="flex items-center gap-2">
+              <Flag className="h-4 w-4 text-red-500" /> Reportar loja
+            </DrawerTitle>
+          </DrawerHeader>
+          {reportDone ? (
+            <div className="px-4 py-8 flex flex-col items-center text-center">
+              <BadgeCheck className="h-12 w-12 text-green-600 mb-3" />
+              <p className="font-bold text-foreground mb-1">Reporte enviado</p>
+              <p className="text-sm text-muted-foreground">Nossa equipe vai analisar em breve.</p>
+            </div>
+          ) : (
+            <div className="px-4 space-y-3 pb-2">
+              <p className="text-sm text-muted-foreground">Selecione o motivo:</p>
+              {REPORT_REASONS.map(r => (
+                <button key={r} onClick={() => setReportReason(r)}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold border transition-colors select-none ${
+                    reportReason === r ? "bg-red-50 border-red-400 text-red-700" : "bg-card border-border text-foreground"
+                  }`}>{r}</button>
+              ))}
+            </div>
+          )}
+          <DrawerFooter>
+            {reportDone ? (
+              <Button className="w-full rounded-xl" onClick={() => setReportOpen(false)}>Fechar</Button>
+            ) : (
+              <>
+                <Button className="w-full rounded-xl bg-red-600 hover:bg-red-700" disabled={!reportReason || reporting}
+                  onClick={async () => {
+                    setReporting(true);
+                    await base44.entities.StoreReport.create({
+                      store_id: profile.id,
+                      store_name: profile.store_name,
+                      reason: reportReason,
+                      details: reportDetails,
+                    });
+                    setReporting(false);
+                    setReportDone(true);
+                  }}>
+                  {reporting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enviar reporte"}
+                </Button>
+                <DrawerClose asChild>
+                  <Button variant="ghost" className="w-full rounded-xl text-muted-foreground">Cancelar</Button>
+                </DrawerClose>
+              </>
+            )}
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

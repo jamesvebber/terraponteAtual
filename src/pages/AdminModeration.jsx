@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Loader2, Trash2, EyeOff, CheckCircle2, Flag, ArrowLeft, RefreshCw } from "lucide-react";
+import { Loader2, Trash2, EyeOff, CheckCircle2, Flag, ArrowLeft, RefreshCw, ShieldCheck, Store } from "lucide-react";
 import { toast } from "sonner";
 
 const STATUS_COLORS = {
@@ -21,6 +21,7 @@ export default function AdminModeration() {
   const { user, isLoadingAuth } = useAuth();
   const [listings, setListings] = useState([]);
   const [reports, setReports] = useState([]);
+  const [verificationRequests, setVerificationRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("listings");
 
@@ -30,12 +31,14 @@ export default function AdminModeration() {
 
   const load = async () => {
     setLoading(true);
-    const [ls, rs] = await Promise.all([
+    const [ls, rs, vrs] = await Promise.all([
       base44.entities.Listing.list("-created_date", 100),
       base44.entities.Report.filter({ status: "pending" }, "-created_date"),
+      base44.entities.StoreVerificationRequest.filter({ status: "pendente" }, "-created_date"),
     ]);
     setListings(ls);
     setReports(rs);
+    setVerificationRequests(vrs);
     setLoading(false);
   };
 
@@ -66,6 +69,32 @@ export default function AdminModeration() {
     toast.success("Anúncio rejeitado e denúncia resolvida.");
   };
 
+  const approveVerification = async (req, level = "verificada") => {
+    await base44.entities.SupplierProfile.update(req.store_id, {
+      verification_status: level,
+      verified_at: new Date().toISOString(),
+      verified_by: user.email,
+    });
+    await base44.entities.StoreVerificationRequest.update(req.id, {
+      status: "aprovado",
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: user.email,
+    });
+    setVerificationRequests(prev => prev.filter(r => r.id !== req.id));
+    toast.success(`Loja aprovada como "${level === "representante_oficial" ? "Representante oficial" : "Loja verificada"}".`);
+  };
+
+  const rejectVerification = async (req) => {
+    await base44.entities.SupplierProfile.update(req.store_id, { verification_status: "nao_verificada" });
+    await base44.entities.StoreVerificationRequest.update(req.id, {
+      status: "rejeitado",
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: user.email,
+    });
+    setVerificationRequests(prev => prev.filter(r => r.id !== req.id));
+    toast.success("Solicitação rejeitada.");
+  };
+
   if (isLoadingAuth || loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -87,7 +116,7 @@ export default function AdminModeration() {
         </button>
         <div className="flex-1">
           <h1 className="text-xl font-extrabold text-foreground">Moderação</h1>
-          <p className="text-xs text-muted-foreground">{listings.length} anúncios · {reports.length} denúncias pendentes</p>
+          <p className="text-xs text-muted-foreground">{listings.length} anúncios · {reports.length} denúncias · {verificationRequests.length} verificações</p>
         </div>
         <button onClick={load} className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center">
           <RefreshCw className="h-4 w-4 text-muted-foreground" />
@@ -95,11 +124,12 @@ export default function AdminModeration() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-2 mb-5">
+      <div className="grid grid-cols-4 gap-2 mb-5">
         {[
           { label: "Ativos", value: allActive.length, color: "text-green-600" },
           { label: "Em revisão", value: pendingReview.length, color: "text-blue-600" },
           { label: "Denúncias", value: reports.length, color: "text-orange-600" },
+          { label: "Verificações", value: verificationRequests.length, color: "text-purple-600" },
         ].map(s => (
           <div key={s.label} className="bg-card border border-border rounded-2xl p-3 text-center">
             <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
@@ -113,6 +143,7 @@ export default function AdminModeration() {
         {[
           { id: "listings", label: `Anúncios (${listings.length})` },
           { id: "reports", label: `Denúncias (${reports.length})` },
+          { id: "verification", label: `Verificações (${verificationRequests.length})` },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all select-none ${tab === t.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>
@@ -184,6 +215,50 @@ export default function AdminModeration() {
                 </Button>
                 <Button size="sm" className="flex-1 rounded-xl text-xs bg-red-600 hover:bg-red-700" onClick={() => resolveReport(r)}>
                   Remover anúncio
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Verification tab */}
+      {tab === "verification" && (
+        <div className="space-y-3">
+          {verificationRequests.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-4xl mb-3">✅</p>
+              <p className="text-sm font-bold text-foreground">Nenhuma solicitação pendente</p>
+            </div>
+          )}
+          {verificationRequests.map(req => (
+            <div key={req.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Store className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-foreground">Loja ID: {req.store_id}</p>
+                  <p className="text-xs text-muted-foreground">{req.responsible_name} · {req.cpf_cnpj}</p>
+                  <p className="text-xs text-muted-foreground">{req.phone} · {[req.city, req.state].filter(Boolean).join(", ")}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(req.created_date).toLocaleDateString("pt-BR")}</p>
+                </div>
+              </div>
+              {req.notes && <p className="text-xs text-muted-foreground italic">"{req.notes}"</p>}
+              {req.document_image && (
+                <a href={req.document_image} target="_blank" rel="noopener noreferrer">
+                  <img src={req.document_image} alt="Documento" className="w-full max-h-40 object-contain rounded-xl bg-muted" />
+                </a>
+              )}
+              <div className="flex gap-2 flex-wrap">
+                <Button size="sm" className="rounded-xl text-xs bg-green-600 hover:bg-green-700 gap-1" onClick={() => approveVerification(req, "verificada")}>
+                  <ShieldCheck className="h-3.5 w-3.5" /> Aprovar
+                </Button>
+                <Button size="sm" className="rounded-xl text-xs bg-amber-600 hover:bg-amber-700 gap-1" onClick={() => approveVerification(req, "representante_oficial")}>
+                  <ShieldCheck className="h-3.5 w-3.5" /> Rep. Oficial
+                </Button>
+                <Button size="sm" variant="outline" className="rounded-xl text-xs text-red-600 border-red-200" onClick={() => rejectVerification(req)}>
+                  Rejeitar
                 </Button>
               </div>
             </div>
