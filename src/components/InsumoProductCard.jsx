@@ -95,10 +95,10 @@ export default function InsumoProductCard({ product, isBest, isVerified }) {
                 <span className="text-green-600 text-[10px] font-bold shrink-0" title="Loja verificada">✔</span>
               )}
             </div>
-            <div className="flex items-center gap-0.5 text-muted-foreground shrink-0">
-              <MapPin className="h-3 w-3" />
-              <span className="text-[10px] font-medium">{product.city}</span>
-              <ChevronRight className="h-3 w-3 text-primary" />
+            <div className="flex items-center gap-0.5 text-muted-foreground shrink-0 overflow-hidden">
+              <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
+              <span className="text-[10px] font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[80px]">{product.city}</span>
+              <ChevronRight className="h-3 w-3 text-primary shrink-0" aria-hidden="true" />
             </div>
           </button>
 
