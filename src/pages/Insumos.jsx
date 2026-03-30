@@ -37,6 +37,9 @@ export default function Insumos() {
   const [products, setProducts] = useState(() => {
     try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null") || []; } catch { return []; }
   });
+  const [verifiedStoreIds, setVerifiedStoreIds] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem("insumos_verified") || "null") || []; } catch { return []; }
+  });
   const [loading, setLoading] = useState(() => !sessionStorage.getItem(CACHE_KEY));
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todos");
@@ -48,10 +51,16 @@ export default function Insumos() {
   const sentinelRef = useRef(null);
 
   const fetchProducts = useCallback(async () => {
-    const data = await base44.entities.InsumoProduct.filter({ status: "active" }, "-created_date");
+    const [data, stores] = await Promise.all([
+      base44.entities.InsumoProduct.filter({ status: "active" }, "-created_date"),
+      base44.entities.SupplierProfile.filter({ verification_status: "verificada" }),
+    ]);
+    const ids = stores.map(s => s.id);
     setProducts(data);
+    setVerifiedStoreIds(ids);
     setLoading(false);
     sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    sessionStorage.setItem("insumos_verified", JSON.stringify(ids));
   }, []);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
@@ -194,7 +203,7 @@ export default function Insumos() {
           </p>
           <div className="grid grid-cols-2 gap-3">
             {visible.map((item) => (
-              <InsumoProductCard key={item.id} product={item} isBest={item.id === bestId} />
+              <InsumoProductCard key={item.id} product={item} isBest={item.id === bestId} isVerified={verifiedStoreIds.includes(item.supplier_id)} />
             ))}
           </div>
           {/* Infinite scroll sentinel */}

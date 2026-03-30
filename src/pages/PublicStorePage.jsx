@@ -139,7 +139,14 @@ export default function PublicStorePage() {
                 : <Store className="h-10 w-10 text-primary" />}
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-extrabold text-foreground leading-tight mb-1">{profile.store_name}</h1>
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <h1 className="text-xl font-extrabold text-foreground leading-tight">{profile.store_name}</h1>
+                {(profile.verification_status === "verificada" || profile.verification_status === "representante_oficial") && (
+                  <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                    <BadgeCheck className="h-3.5 w-3.5" /> Verificada
+                  </span>
+                )}
+              </div>
               {profile.supplier_type && (
                 <span className="inline-block bg-primary/10 text-primary text-xs font-bold px-2.5 py-1 rounded-full mb-1.5">
                   {profile.supplier_type}
@@ -198,7 +205,7 @@ export default function PublicStorePage() {
             </h2>
             <div className="grid grid-cols-2 gap-3">
               {activeProducts.map(p => (
-                <InsumoProductCard key={p.id} product={p} isBest={p.id === bestId} />
+                <InsumoProductCard key={p.id} product={p} isBest={p.id === bestId} isVerified={profile.verification_status === "verificada" || profile.verification_status === "representante_oficial"} />
               ))}
             </div>
           </>

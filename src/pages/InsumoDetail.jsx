@@ -5,7 +5,7 @@ import FreightCalculator from "../components/FreightCalculator";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, MapPin, Store, MessageCircle, Calculator, Package,
-  Truck, ShoppingBag, Phone, Share2, ChevronRight,
+  Truck, ShoppingBag, Phone, Share2, ChevronRight, CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -24,12 +24,17 @@ export default function InsumoDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
+  const [supplierVerified, setSupplierVerified] = useState(false);
   const [loading, setLoading] = useState(true);
   const [freightOpen, setFreightOpen] = useState(false);
 
   useEffect(() => {
-    base44.entities.InsumoProduct.filter({ id }).then(([p]) => {
+    base44.entities.InsumoProduct.filter({ id }).then(async ([p]) => {
       setProduct(p || null);
+      if (p?.supplier_id) {
+        const [store] = await base44.entities.SupplierProfile.filter({ id: p.supplier_id });
+        setSupplierVerified(store?.verification_status === "verificada" || store?.verification_status === "representante_oficial");
+      }
       setLoading(false);
     });
   }, [id]);
@@ -150,7 +155,14 @@ export default function InsumoDetail() {
               <Store className="h-6 w-6 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-extrabold text-foreground text-base leading-tight">{product.supplier_name}</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-extrabold text-foreground text-base leading-tight">{product.supplier_name}</p>
+                {supplierVerified && (
+                  <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    <CheckCircle2 className="h-3 w-3" /> Verificada
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-1 mt-0.5">
                 <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <span className="text-sm text-muted-foreground">{product.city}{product.region ? `, ${product.region}` : ""}</span>
