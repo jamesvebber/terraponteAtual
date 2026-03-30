@@ -106,10 +106,15 @@ export default function AddInsumoForm({ open, onClose, onSaved, supplierProfile,
 
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
 
-  // When category changes, auto-suggest first unit
+  // When category changes, only clear unit if it's not compatible with new category
+  // Never auto-select a unit — user must choose explicitly
   const handleCategoryChange = (cat) => {
-    const suggested = (UNIT_SUGGESTIONS[cat] || [])[0] || "";
-    setForm(p => ({ ...p, category: cat, pkg_type: suggested, pkg_qty: "", pkg_unit: "" }));
+    setForm(p => ({
+      ...p,
+      category: cat,
+      // Keep existing unit if user already chose one; otherwise clear
+      // This prevents overwriting a "frasco" with "saco" when re-editing
+    }));
     setShowAllUnits(false);
   };
 

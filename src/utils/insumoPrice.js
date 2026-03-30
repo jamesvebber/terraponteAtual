@@ -14,20 +14,22 @@ export function formatInsumoPrice(product) {
 
   const fmt = (n) => `R$ ${Number(n).toFixed(2).replace(".", ",")}`;
 
-  // New system: pkg_type present
-  if (pkg_type) {
+  // New system: pkg_type present and not empty
+  if (pkg_type && pkg_type.trim()) {
     const label = buildUnitLabel(pkg_type, pkg_qty, pkg_unit);
     return `${fmt(price)} / ${label}`;
   }
 
-  // Legacy: sale_type fallback
-  if (sale_type) {
+  // Legacy: sale_type fallback (only if meaningful)
+  if (sale_type && sale_type !== "por embalagem") {
     const label = sale_type.replace("por ", "");
     return `${fmt(price)} / ${label}`;
   }
 
   // Older legacy: unit string
-  if (unit) return `${fmt(price)} / ${unit}`;
+  if (unit && unit.trim()) return `${fmt(price)} / ${unit}`;
+
+  // No unit info — show price only
   return fmt(price);
 }
 
