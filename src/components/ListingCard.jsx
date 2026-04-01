@@ -68,7 +68,15 @@ export default function ListingCard({ listing }) {
       onClick={() => navigate(`/marketplace/${listing.id}`)}
     >
       {listing.image_url ? (
-        <img src={listing.image_url} alt={listing.title} className="w-full h-full object-contain" />
+        <img
+          src={listing.image_url}
+          alt={listing.title}
+          className="w-full h-full object-contain"
+          loading="lazy"
+          decoding="async"
+          style={{ opacity: 0, transition: 'opacity 0.3s ease' }}
+          onLoad={e => { e.target.style.opacity = '1'; }}
+        />
         ) : (
           <div className="flex flex-col items-center gap-1 opacity-40">
             <span className="text-3xl">{categoryEmoji[listing.category] || "📦"}</span>

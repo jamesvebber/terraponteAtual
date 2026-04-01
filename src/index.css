@@ -87,6 +87,38 @@
     @apply bg-background text-foreground font-inter;
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  /* Prevent text resize on orientation change */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Smooth image loading */
+  img {
+    @apply transition-opacity duration-300;
+  }
+  img[loading="lazy"] {
+    opacity: 0;
+  }
+  img[loading="lazy"].loaded {
+    opacity: 1;
+  }
+
+  /* Better tap targets for mobile — only for interactive elements that are small */
+  nav button, nav a {
+    min-height: 44px;
+  }
+
+  /* Active state feedback */
+  button:active, [role="button"]:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
   }
 
   button, [role="button"], [role="tab"], nav a {

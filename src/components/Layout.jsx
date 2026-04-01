@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import OnboardingModal from "./OnboardingModal";
 import Footer from "./Footer";
@@ -20,6 +20,15 @@ export default function Layout() {
   const location = useLocation();
   const mainRef = useRef(null);
   const isRoot = ROOT_PATHS.includes(location.pathname);
+  const [offline, setOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const on = () => setOffline(false);
+    const off = () => setOffline(true);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
 
   useEffect(() => {
     const el = mainRef.current;
@@ -39,6 +48,11 @@ export default function Layout() {
       className="min-h-screen bg-background flex flex-col"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
+      {offline && (
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-white text-xs font-bold text-center py-2 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.5rem)' }}>
+          📶 Sem conexão — alguns conteúdos podem estar desatualizados
+        </div>
+      )}
       <main
         ref={mainRef}
         className="flex-1 overflow-y-auto max-w-lg mx-auto w-full"
