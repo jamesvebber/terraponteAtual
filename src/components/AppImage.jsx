@@ -1,10 +1,3 @@
-/**
- * AppImage — reliable image component that handles:
- * - Cached images (onLoad won't fire, checked via img.complete)
- * - Loading skeleton
- * - Error fallback with custom placeholder
- * - Lazy loading + async decoding
- */
 import { useState, useEffect, useRef } from "react";
 import { ImageOff } from "lucide-react";
 
@@ -15,35 +8,27 @@ export default function AppImage({
   containerClassName = "",
   fallbackEmoji = null,
   fallbackLabel = null,
-  objectFit = "cover",   // "cover" | "contain"
+  objectFit = "cover",
   onClick,
 }) {
   const imgRef = useRef(null);
-  const [status, setStatus] = useState("loading"); // "loading" | "loaded" | "error"
+  const [status, setStatus] = useState(() => (!src ? "error" : "loading"));
 
+  // Reset when src changes
   useEffect(() => {
     if (!src) { setStatus("error"); return; }
     setStatus("loading");
-
-    const img = new Image();
-    img.src = src;
-
-    const handleLoad = () => setStatus("loaded");
-    const handleError = () => setStatus("error");
-
-    if (img.complete && img.naturalWidth > 0) {
-      // Already cached — no event fires
-      setStatus("loaded");
-      return;
-    }
-
-    img.addEventListener("load", handleLoad);
-    img.addEventListener("error", handleError);
-    return () => {
-      img.removeEventListener("load", handleLoad);
-      img.removeEventListener("error", handleError);
-    };
   }, [src]);
+
+  // After render, check if the img is already complete (cached)
+  useEffect(() => {
+    if (!src) return;
+    const el = imgRef.current;
+    if (el && el.complete) {
+      if (el.naturalWidth > 0) setStatus("loaded");
+      else setStatus("error");
+    }
+  });
 
   const fitClass = objectFit === "contain" ? "object-contain" : "object-cover";
 
@@ -65,6 +50,8 @@ export default function AppImage({
           } ${className}`}
           loading="lazy"
           decoding="async"
+          onLoad={() => setStatus("loaded")}
+          onError={() => setStatus("error")}
         />
       )}
 
