@@ -99,15 +99,9 @@
     text-size-adjust: 100%;
   }
 
-  /* Smooth image loading */
+  /* Smooth image loading — only apply to images that explicitly opt-in */
   img {
     @apply transition-opacity duration-300;
-  }
-  img[loading="lazy"] {
-    opacity: 0;
-  }
-  img[loading="lazy"].loaded {
-    opacity: 1;
   }
 
   /* Better tap targets for mobile — only for interactive elements that are small */
