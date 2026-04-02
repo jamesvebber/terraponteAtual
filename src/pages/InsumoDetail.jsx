@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import AppImage from "../components/AppImage";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import FreightCalculator from "../components/FreightCalculator";
@@ -123,9 +124,11 @@ export default function InsumoDetail() {
           return <MediaGallery media={media} />;
         }
         return (
-          <div className="w-full h-56 bg-muted flex items-center justify-center">
-            <span className="text-7xl">{categoryEmoji[product.category] || "📦"}</span>
-          </div>
+          <AppImage
+            src={null}
+            containerClassName="w-full h-56"
+            fallbackEmoji={categoryEmoji[product.category] || "📦"}
+          />
         );
       })()}
 

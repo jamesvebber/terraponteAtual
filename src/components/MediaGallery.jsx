@@ -3,6 +3,7 @@
  * Supports images and videos. Works on mobile (Safari + Android).
  */
 import { useState, useRef, useCallback } from "react";
+import AppImage from "./AppImage";
 import { ChevronLeft, ChevronRight, X, Play, Expand, ZoomIn } from "lucide-react";
 
 function VideoThumb({ url, onClick }) {
@@ -67,14 +68,13 @@ function FullscreenModal({ media, index: initialIndex, onClose }) {
             className="max-w-full max-h-full object-contain"
           />
         ) : (
-          <img
+          <AppImage
             key={item.url}
             src={item.url}
             alt=""
-            className="max-w-full max-h-full object-contain select-none"
-            draggable={false}
-            loading="lazy"
-            decoding="async"
+            containerClassName="max-w-full max-h-full flex items-center justify-center"
+            className="max-h-[80vh] w-auto"
+            objectFit="contain"
           />
         )}
 
@@ -156,12 +156,11 @@ export default function MediaGallery({ media }) {
           {item.type === "video" ? (
             <VideoThumb url={item.url} onClick={() => setFullscreen(true)} />
           ) : (
-            <img
+            <AppImage
               src={item.url}
               alt=""
-              className="w-full h-full object-contain"
-              loading="lazy"
-              decoding="async"
+              containerClassName="w-full h-full"
+              objectFit="contain"
             />
           )}
 
@@ -219,7 +218,7 @@ export default function MediaGallery({ media }) {
                   <Play className="h-5 w-5 text-white fill-white" />
                 </div>
               ) : (
-                <img src={m.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                <AppImage src={m.url} alt="" containerClassName="w-full h-full" />
               )}
             </button>
           ))}

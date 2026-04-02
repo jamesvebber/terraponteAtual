@@ -12,6 +12,7 @@ import {
   Shield, BadgeCheck, ShieldCheck, Clock, Flag,
 } from "lucide-react";
 import MediaGallery from "../components/MediaGallery";
+import AppImage from "../components/AppImage";
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose,
 } from "@/components/ui/drawer";
@@ -148,10 +149,10 @@ export default function PublicStorePage() {
         {/* Hero card */}
         <div className="bg-card border border-border rounded-2xl p-5 mb-5">
         <div className="flex items-start gap-4 mb-4">
-          <div className="h-24 w-24 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+          <div className="h-24 w-24 rounded-2xl bg-primary/10 overflow-hidden shrink-0">
             {profile.logo_url
-              ? <img src={profile.logo_url} alt={profile.store_name} className="w-full h-full object-cover" />
-              : <Store className="h-10 w-10 text-primary" />}
+              ? <AppImage src={profile.logo_url} alt={profile.store_name} containerClassName="w-full h-full" />
+              : <div className="w-full h-full flex items-center justify-center"><Store className="h-10 w-10 text-primary" /></div>}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">

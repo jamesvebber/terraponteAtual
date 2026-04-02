@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { slugify } from "../utils/slugify";
 import { MapPin, Store, MessageCircle, Calculator, ChevronRight } from "lucide-react";
+import AppImage from "./AppImage";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import FreightCalculator from "./FreightCalculator";
@@ -46,18 +47,14 @@ export default function InsumoProductCard({ product, isBest, isVerified }) {
         onClick={() => navigate(`/insumos/${product.id}`)}
       >
         {/* Image */}
-        <div className="relative w-full h-32 bg-muted flex items-center justify-center shrink-0">
-          {product.image_url
-            ? <img
-                src={product.image_url}
-                alt={product.product_name}
-                className="w-full h-full object-contain"
-                loading="lazy"
-                decoding="async"
-                style={{ opacity: 0, transition: 'opacity 0.3s ease' }}
-                onLoad={e => { e.target.style.opacity = '1'; }}
-              />
-            : <span className="text-4xl">{categoryEmoji[product.category] || "📦"}</span>}
+        <div className="relative w-full h-32 shrink-0">
+          <AppImage
+            src={product.image_url}
+            alt={product.product_name}
+            containerClassName="w-full h-full"
+            objectFit="contain"
+            fallbackEmoji={categoryEmoji[product.category] || "📦"}
+          />
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {isBest && (
               <span className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">

@@ -112,7 +112,7 @@ export default function ListingDetail() {
         if (allUrls.length === 0) {
           return (
             <div className="w-full h-64 bg-muted flex items-center justify-center">
-              <span className="text-7xl">{categoryEmoji[listing.category] || "📦"}</span>
+              <span className="text-6xl">{categoryEmoji[listing.category] || "📦"}</span>
             </div>
           );
         }

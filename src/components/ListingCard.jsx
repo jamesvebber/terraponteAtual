@@ -1,4 +1,5 @@
-import { MapPin, MessageCircle, Store, Clock, Tag } from "lucide-react";
+import { MapPin, MessageCircle, Store, Clock } from "lucide-react";
+import AppImage from "./AppImage";
 import { formatListingPrice } from "../utils/listingPrice";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -64,25 +65,16 @@ export default function ListingCard({ listing }) {
 
       {/* Image */}
       <div
-        className="w-full aspect-[4/3] bg-muted flex items-center justify-center cursor-pointer overflow-hidden relative"
-      onClick={() => navigate(`/marketplace/${listing.id}`)}
-    >
-      {listing.image_url ? (
-        <img
+        className="w-full aspect-[4/3] cursor-pointer overflow-hidden relative"
+        onClick={() => navigate(`/marketplace/${listing.id}`)}
+      >
+        <AppImage
           src={listing.image_url}
           alt={listing.title}
-          className="w-full h-full object-contain"
-          loading="lazy"
-          decoding="async"
-          style={{ opacity: 0, transition: 'opacity 0.3s ease' }}
-          onLoad={e => { e.target.style.opacity = '1'; }}
+          containerClassName="w-full h-full"
+          fallbackEmoji={categoryEmoji[listing.category] || "📦"}
+          fallbackLabel={listing.category || "Produto"}
         />
-        ) : (
-          <div className="flex flex-col items-center gap-1 opacity-40">
-            <span className="text-3xl">{categoryEmoji[listing.category] || "📦"}</span>
-            <span className="text-[10px] text-muted-foreground font-medium">{listing.category || "Produto"}</span>
-          </div>
-        )}
       </div>
 
       <div className="p-3">
