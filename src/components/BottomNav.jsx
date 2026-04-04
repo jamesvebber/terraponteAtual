@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Store, ShoppingBag, UserCircle, PlusCircle } from "lucide-react";
+import AnunciarModal from "./AnunciarModal";
 import { cn } from "@/lib/utils";
 
 const TAB_ROOTS = [
@@ -20,6 +22,7 @@ const tabLastPath = {
 export default function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [anunciarOpen, setAnunciarOpen] = useState(false);
 
   // Track current path into the correct tab bucket
   const currentPath = location.pathname;
@@ -37,13 +40,15 @@ export default function BottomNav() {
   };
 
   const handleTabPress = (root, isAction) => {
-    if (isAction) { navigate(root); return; }
+    if (isAction) { setAnunciarOpen(true); return; }
     const dest = tabLastPath[root] ?? root;
     if (currentPath === dest) return;
     navigate(dest);
   };
 
   return (
+    <>
+    <AnunciarModal open={anunciarOpen} onClose={() => setAnunciarOpen(false)} />
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border select-none"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
@@ -87,5 +92,6 @@ export default function BottomNav() {
         })}
       </div>
     </nav>
+    </>
   );
 }
