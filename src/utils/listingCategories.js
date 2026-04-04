@@ -4,6 +4,7 @@ export const LISTING_CATEGORIES = [
   { value: "Hortifruti", emoji: "🥬" },
   { value: "Carnes e aves", emoji: "🍗" },
   { value: "Gado e animais", emoji: "🐂" },
+  { value: "Silagem e feno", emoji: "🌿" },
   { value: "Máquinas e ferramentas", emoji: "🚜" },
   { value: "Serviços rurais", emoji: "🔧" },
   { value: "Propriedades rurais", emoji: "🏡" },
@@ -66,6 +67,16 @@ export const SALE_FORMATS_BY_CATEGORY = {
     { value: "por kit", label: "Por kit" },
     { value: "por peça", label: "Por peça" },
   ],
+  "Silagem e feno": [
+    { value: "por tonelada", label: "Por tonelada" },
+    { value: "por fardo", label: "Por fardo" },
+    { value: "por bag", label: "Por bag" },
+    { value: "por saco", label: "Por saco" },
+    { value: "por kg", label: "Por kg" },
+    { value: "por carga", label: "Por carga" },
+    { value: "por m³", label: "Por m³ (metro cúbico)" },
+    { value: "por unidade", label: "Por unidade" },
+  ],
   "Outros": [
     { value: "por unidade", label: "Por unidade" },
     { value: "por kg", label: "Por kg" },
@@ -78,5 +89,5 @@ export const SALE_FORMATS_BY_CATEGORY = {
 
 // Sale formats that support optional package details (qty + unit)
 export const FORMATS_WITH_PKG_DETAILS = [
-  "por caixa", "por saco", "por peça", "por kit", "por lote",
+  "por caixa", "por saco", "por peça", "por kit", "por lote", "por fardo", "por bag",
 ];
