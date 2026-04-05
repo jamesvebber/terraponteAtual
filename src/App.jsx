@@ -30,6 +30,7 @@ import AdminPanel from './pages/AdminPanel';
 import StoresDirectory from './pages/StoresDirectory';
 import MeusAnuncios from './pages/MeusAnuncios';
 import EditListing from './pages/EditListing';
+import AdminEmailPanel from './pages/AdminEmailPanel';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -75,6 +76,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/moderation" element={<AdminModeration />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/admin/unit-assistant" element={<AdminUnitAssistant />} />
+        <Route path="/admin/email" element={<AdminEmailPanel />} />
         <Route path="/lojas" element={<StoresDirectory />} />
         <Route path="/meus-anuncios" element={<MeusAnuncios />} />
         <Route path="/editar-anuncio/:id" element={<EditListing />} />

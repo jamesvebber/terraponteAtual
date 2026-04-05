@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
+import EmailPreferences from "../components/EmailPreferences";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -207,6 +208,12 @@ export default function Profile() {
           onClick={() => navigate("/support")}
         />
       </Section>
+
+      {/* E-mail preferences */}
+      <div className="mb-4">
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-1 mb-1.5">E-mails</p>
+        <EmailPreferences userEmail={user?.email} />
+      </div>
 
       {/* Conta */}
       <Section title="Conta">

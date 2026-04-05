@@ -1,0 +1,106 @@
+{
+  "name": "EmailCampaign",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Nome interno da campanha"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Assunto do e-mail"
+    },
+    "template_type": {
+      "type": "string",
+      "enum": [
+        "reactivation",
+        "announce_call",
+        "new_offer",
+        "new_store",
+        "weekly_digest",
+        "custom"
+      ],
+      "default": "custom"
+    },
+    "body_title": {
+      "type": "string",
+      "description": "T\u00edtulo vis\u00edvel no e-mail"
+    },
+    "body_text": {
+      "type": "string",
+      "description": "Texto principal"
+    },
+    "cta_label": {
+      "type": "string",
+      "description": "Texto do bot\u00e3o",
+      "default": "Abrir no TerraPonte"
+    },
+    "cta_url": {
+      "type": "string",
+      "description": "URL do bot\u00e3o",
+      "default": "https://terraponte.app"
+    },
+    "filter_city": {
+      "type": "string"
+    },
+    "filter_region": {
+      "type": "string"
+    },
+    "filter_inactive_days": {
+      "type": "number",
+      "description": "Usu\u00e1rios inativos h\u00e1 X dias"
+    },
+    "filter_never_listed": {
+      "type": "boolean",
+      "description": "Usu\u00e1rios que nunca anunciaram"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "failed"
+      ],
+      "default": "draft"
+    },
+    "sent_count": {
+      "type": "number",
+      "default": 0
+    },
+    "error_count": {
+      "type": "number",
+      "default": 0
+    },
+    "sent_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "subject",
+    "body_title",
+    "body_text"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

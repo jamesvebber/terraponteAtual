@@ -1,0 +1,85 @@
+{
+  "name": "EmailPreference",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "E-mail do usu\u00e1rio"
+    },
+    "receive_general": {
+      "type": "boolean",
+      "default": true,
+      "description": "Novidades gerais"
+    },
+    "receive_regional_offers": {
+      "type": "boolean",
+      "default": true,
+      "description": "Ofertas da regi\u00e3o"
+    },
+    "receive_new_stores": {
+      "type": "boolean",
+      "default": true,
+      "description": "Novas lojas"
+    },
+    "receive_announce_reminder": {
+      "type": "boolean",
+      "default": true,
+      "description": "Lembrete para anunciar"
+    },
+    "receive_weekly_digest": {
+      "type": "boolean",
+      "default": true,
+      "description": "Resumo semanal"
+    },
+    "unsubscribed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Cancelou todos os e-mails"
+    },
+    "last_email_sent_at": {
+      "type": "string",
+      "description": "Data do \u00faltimo e-mail enviado"
+    },
+    "city": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
