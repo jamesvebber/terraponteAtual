@@ -150,10 +150,11 @@ export default function Home() {
   const [prices, setPrices] = useState([]);
   const [recentListings, setRecentListings] = useState([]);
   const [listingCount, setListingCount] = useState(null);
+  const [insumoCount, setInsumoCount] = useState(null);
   const [storeCount, setStoreCount] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [newToday, setNewToday] = useState(null);
+  const [recentCount, setRecentCount] = useState(null);
 
   const [region, setRegion] = useState(() => localStorage.getItem(REGION_KEY) || "Goiás (estado)");
   const [showRegionSelector, setShowRegionSelector] = useState(false);
@@ -167,9 +168,13 @@ export default function Home() {
       base44.entities.InsumoProduct.filter({ status: "active" }, "-created_date", 30),
     ]);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayCount = listings.filter(l => new Date(l.created_date) >= today).length;
+    // Count items added in last 7 days (real data)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+    const recentListings = listings.filter(l => new Date(l.created_date) >= sevenDaysAgo).length;
+    const recentInsumos = insumos.filter(p => new Date(p.created_date) >= sevenDaysAgo).length;
+    const totalRecent = recentListings + recentInsumos;
 
     // Prioritize insumos with image and price, deduplicate by product_name
     const seen = new Set();
@@ -187,11 +192,12 @@ export default function Home() {
       })
       .slice(0, 10);
     setFeaturedInsumos(bestInsumos);
+    setInsumoCount(insumos.length);
+    setRecentCount(totalRecent);
 
     setPrices(priceData);
     setListingCount(listings.length);
     setStoreCount(stores.length);
-    setNewToday(todayCount);
     setRecentListings(listings.slice(0, 6));
     setLastUpdated(new Date().toISOString());
     setLoading(false);
@@ -255,9 +261,9 @@ export default function Home() {
 
       {/* ── Stats row ── */}
       <div className="flex gap-3 mb-5">
-        <StatCard value={listingCount ?? "–"} label="anúncios ativos" emoji="📢" loading={loading} onClick={() => navigate("/marketplace")} />
+        <StatCard value={((listingCount ?? 0) + (insumoCount ?? 0)) || "–"} label="ofertas ativas" emoji="📢" loading={loading} onClick={() => navigate("/marketplace")} />
         <StatCard value={storeCount ?? "–"} label="lojas parceiras" emoji="🏩" loading={loading} onClick={() => navigate("/insumos")} />
-        <StatCard value={newToday ?? "–"} label="novos hoje" emoji="✨" loading={loading} onClick={() => navigate("/marketplace")} />
+        <StatCard value={recentCount ?? "–"} label="novos 7 dias" emoji="✨" loading={loading} onClick={() => navigate("/marketplace")} />
       </div>
 
       {/* ── Action tiles ── */}
@@ -286,12 +292,12 @@ export default function Home() {
           ) : (
             <>
               <button onClick={() => navigate("/marketplace")} className="bg-primary/10 border border-primary/20 rounded-2xl p-3 flex flex-col items-center active:scale-95 transition-transform select-none">
-                <p className="text-xl font-extrabold text-primary">{newToday ?? 0}</p>
-                <p className="text-[10px] text-primary/70 font-semibold text-center leading-tight">novos hoje</p>
+                <p className="text-xl font-extrabold text-primary">{recentCount ?? 0}</p>
+                <p className="text-[10px] text-primary/70 font-semibold text-center leading-tight">novos 7 dias</p>
               </button>
               <button onClick={() => navigate("/marketplace")} className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center active:scale-95 transition-transform select-none">
-                <p className="text-xl font-extrabold text-foreground">{listingCount ?? 0}</p>
-                <p className="text-[10px] text-muted-foreground font-semibold text-center leading-tight">anúncios ativos</p>
+                <p className="text-xl font-extrabold text-foreground">{((listingCount ?? 0) + (insumoCount ?? 0)) || 0}</p>
+                <p className="text-[10px] text-muted-foreground font-semibold text-center leading-tight">ofertas ativas</p>
               </button>
               <button onClick={() => navigate("/insumos")} className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center active:scale-95 transition-transform select-none">
                 <p className="text-xl font-extrabold text-foreground">{storeCount ?? 0}</p>
