@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { MapPin, TrendingUp, TrendingDown, ShoppingCart, PlusCircle, ShoppingBag, Store, RefreshCw, Loader2, ChevronRight, Clock, Edit2 } from "lucide-react";
+import FeaturedInsumos from "../components/FeaturedInsumos";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import ListingCard from "../components/ListingCard";
 import SkeletonCard from "../components/SkeletonCard";
@@ -156,17 +157,36 @@ export default function Home() {
 
   const [region, setRegion] = useState(() => localStorage.getItem(REGION_KEY) || "Goiás (estado)");
   const [showRegionSelector, setShowRegionSelector] = useState(false);
+  const [featuredInsumos, setFeaturedInsumos] = useState([]);
 
   const load = useCallback(async () => {
-    const [priceData, listings, stores] = await Promise.all([
+    const [priceData, listings, stores, insumos] = await Promise.all([
       base44.entities.MarketPrice.list(),
       base44.entities.Listing.filter({ status: "active" }, "-created_date", 50),
       base44.entities.SupplierProfile.list("-created_date", 100),
+      base44.entities.InsumoProduct.filter({ status: "active" }, "-created_date", 30),
     ]);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayCount = listings.filter(l => new Date(l.created_date) >= today).length;
+
+    // Prioritize insumos with image and price, deduplicate by product_name
+    const seen = new Set();
+    const bestInsumos = insumos
+      .sort((a, b) => {
+        const scoreA = (a.image_url ? 2 : 0) + (a.price ? 1 : 0) + (a.featured ? 3 : 0);
+        const scoreB = (b.image_url ? 2 : 0) + (b.price ? 1 : 0) + (b.featured ? 3 : 0);
+        return scoreB - scoreA;
+      })
+      .filter(p => {
+        const key = p.product_name?.toLowerCase().trim();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 10);
+    setFeaturedInsumos(bestInsumos);
 
     setPrices(priceData);
     setListingCount(listings.length);
@@ -315,6 +335,9 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* ── Featured Insumos ── */}
+      <FeaturedInsumos products={featuredInsumos} loading={loading} />
 
       {/* ── Recent listings ── */}
       <div className="flex items-center justify-between mb-3">
