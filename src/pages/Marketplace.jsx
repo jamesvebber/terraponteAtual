@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import ListingCard from "../components/ListingCard";
 import SkeletonCard from "../components/SkeletonCard";
-import { Search, Loader2, SlidersHorizontal, X } from "lucide-react"; // Loader2 used for pull-to-refresh
+import GlobalSearchBar from "../components/GlobalSearchBar";
+import { Loader2, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose,
@@ -17,18 +19,26 @@ const categories = [
 
 const CACHE_KEY = "mkt_listings";
 
-
-
 export default function Marketplace() {
+  const [searchParams] = useSearchParams();
+
   const [listings, setListings] = useState(() => {
     try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null") || []; } catch { return []; }
   });
   const [loading, setLoading] = useState(() => !sessionStorage.getItem(CACHE_KEY));
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => searchParams.get("q") || "");
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [sellerType, setSellerType] = useState("Ambos");
   const [selectedCity, setSelectedCity] = useState("Todas");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+
+  // Sync search with URL ?q= param when navigating from Home
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    if (q) setSearch(q);
+  }, [searchParams]);
 
   const fetchListings = useCallback(async () => {
     const data = await base44.entities.Listing.filter({ status: "active" }, "-created_date");
@@ -43,26 +53,40 @@ export default function Marketplace() {
 
   const cities = useMemo(() => ["Todas", ...new Set(listings.map((l) => l.city).filter(Boolean))], [listings]);
 
+  const suggestions = useMemo(() => {
+    const s = new Set();
+    listings.forEach(l => {
+      if (l.title) s.add(l.title);
+      if (l.category) s.add(l.category);
+      if (l.seller_name) s.add(l.seller_name);
+      if (l.city) s.add(l.city);
+    });
+    return [...s];
+  }, [listings]);
+
   const filtered = useMemo(() => {
     return listings.filter((l) => {
       if (selectedCategory !== "Todos" && l.category !== selectedCategory) return false;
       if (sellerType !== "Ambos" && l.seller_type !== sellerType) return false;
       if (selectedCity !== "Todas" && l.city !== selectedCity) return false;
+      if (minPrice && l.price < parseFloat(minPrice)) return false;
+      if (maxPrice && l.price > parseFloat(maxPrice)) return false;
       if (search) {
         const q = search.toLowerCase();
         if (
           !l.title?.toLowerCase().includes(q) &&
           !l.description?.toLowerCase().includes(q) &&
           !l.seller_name?.toLowerCase().includes(q) &&
-          !l.city?.toLowerCase().includes(q)
+          !l.city?.toLowerCase().includes(q) &&
+          !l.category?.toLowerCase().includes(q)
         ) return false;
       }
       return true;
     });
-  }, [listings, selectedCategory, sellerType, selectedCity, search]);
+  }, [listings, selectedCategory, sellerType, selectedCity, search, minPrice, maxPrice]);
 
   const featured = filtered.filter((l) => l.featured);
-  const hasFilters = sellerType !== "Ambos" || selectedCity !== "Todas";
+  const hasFilters = sellerType !== "Ambos" || selectedCity !== "Todas" || minPrice !== "" || maxPrice !== "";
 
   return (
     <div
@@ -71,7 +95,6 @@ export default function Marketplace() {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* Pull-to-refresh indicator */}
       {pullActive && (
         <div className="flex justify-center pb-2 transition-all">
           <Loader2 className={`h-5 w-5 text-primary ${isPulling ? "animate-spin" : "opacity-40"}`} />
@@ -92,18 +115,18 @@ export default function Marketplace() {
 
       {/* Search + filter */}
       <div className="flex gap-2 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input
-            className="w-full h-11 pl-9 pr-3 rounded-xl border border-border bg-card text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            placeholder="Buscar gado, queijo, roçadeira..."
+        <div className="flex-1">
+          <GlobalSearchBar
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={setSearch}
+            onSearch={q => setSearch(q)}
+            suggestions={suggestions}
+            placeholder="Buscar gado, queijo, roçadeira..."
           />
         </div>
         <Button
           variant="outline"
-          className={`h-11 px-3 rounded-xl gap-1.5 ${hasFilters ? "border-primary text-primary" : ""}`}
+          className={`h-12 px-3 rounded-xl gap-1.5 shrink-0 ${hasFilters ? "border-primary text-primary" : ""}`}
           onClick={() => setFilterDrawerOpen(true)}
         >
           <SlidersHorizontal className="h-4 w-4" />
@@ -151,7 +174,7 @@ export default function Marketplace() {
           )}
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-bold text-foreground">
-              {search ? `Resultados para “${search}”` : selectedCategory !== "Todos" ? selectedCategory : "Todos os anúncios"}
+              {search ? `Resultados para "${search}"` : selectedCategory !== "Todos" ? selectedCategory : "Todos os anúncios"}
             </h2>
             <span className="text-xs text-muted-foreground">{filtered.length} anúncio{filtered.length !== 1 ? "s" : ""}</span>
           </div>
@@ -183,6 +206,28 @@ export default function Marketplace() {
               </div>
             </div>
             <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2 block">Preço (R$)</label>
+              <div className="flex gap-2 items-center">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  placeholder="Mínimo"
+                  value={minPrice}
+                  onChange={e => setMinPrice(e.target.value)}
+                  className="flex-1 h-11 px-3 rounded-xl border border-border bg-card text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+                <span className="text-muted-foreground text-sm font-bold">a</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  placeholder="Máximo"
+                  value={maxPrice}
+                  onChange={e => setMaxPrice(e.target.value)}
+                  className="flex-1 h-11 px-3 rounded-xl border border-border bg-card text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
+            </div>
+            <div>
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2 block">Cidade</label>
               <div className="space-y-1 max-h-44 overflow-y-auto">
                 {cities.map((c) => (
@@ -201,7 +246,7 @@ export default function Marketplace() {
           </div>
           <DrawerFooter>
             {hasFilters && (
-              <Button variant="ghost" className="w-full gap-2 text-muted-foreground" onClick={() => { setSellerType("Ambos"); setSelectedCity("Todas"); }}>
+              <Button variant="ghost" className="w-full gap-2 text-muted-foreground" onClick={() => { setSellerType("Ambos"); setSelectedCity("Todas"); setMinPrice(""); setMaxPrice(""); }}>
                 <X className="h-4 w-4" /> Limpar filtros
               </Button>
             )}
