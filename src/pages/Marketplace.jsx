@@ -179,7 +179,7 @@ export default function Marketplace() {
         <div className="grid grid-cols-2 gap-3">
           {[1,2,3,4,5,6].map(i => <SkeletonCard key={i} />)}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : filtered.length === 0 && filteredInsumos.length === 0 ? (
         <EmptyState search={search} category={selectedCategory} />
       ) : (
         <>
@@ -195,15 +195,19 @@ export default function Marketplace() {
               </div>
             </div>
           )}
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-foreground">
-              {search ? `Resultados para "${search}"` : selectedCategory !== "Todos" ? selectedCategory : "Todos os anúncios"}
-            </h2>
-            <span className="text-xs text-muted-foreground">{filtered.length + (search ? filteredInsumos.length : 0)} resultado{(filtered.length + (search ? filteredInsumos.length : 0)) !== 1 ? "s" : ""}</span>
-          </div>
-          <div className="grid grid-cols-2 gap-3 pb-4">
-            {filtered.map((l) => <ListingCard key={l.id} listing={l} />)}
-          </div>
+          {filtered.length > 0 && (
+            <>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-base font-bold text-foreground">
+                  {search ? `Anúncios para "${search}"` : selectedCategory !== "Todos" ? selectedCategory : "Todos os anúncios"}
+                </h2>
+                <span className="text-xs text-muted-foreground">{filtered.length + (search ? filteredInsumos.length : 0)} resultado{(filtered.length + (search ? filteredInsumos.length : 0)) !== 1 ? "s" : ""}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 pb-4">
+                {filtered.map((l) => <ListingCard key={l.id} listing={l} />)}
+              </div>
+            </>
+          )}
           {search && filteredInsumos.length > 0 && (
             <>
               <h2 className="text-base font-bold text-foreground mt-4 mb-3">🏪 Insumos encontrados</h2>
