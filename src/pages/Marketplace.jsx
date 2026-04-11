@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import ListingCard from "../components/ListingCard";
+import InsumoProductCard from "../components/InsumoProductCard";
 import SkeletonCard from "../components/SkeletonCard";
 import GlobalSearchBar from "../components/GlobalSearchBar";
 import { Loader2, SlidersHorizontal, X } from "lucide-react";
@@ -21,6 +22,7 @@ const CACHE_KEY = "mkt_listings";
 
 export default function Marketplace() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [listings, setListings] = useState(() => {
     try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null") || []; } catch { return []; }
@@ -33,6 +35,7 @@ export default function Marketplace() {
   const [selectedCity, setSelectedCity] = useState("Todas");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [insumos, setInsumos] = useState([]);
 
   // Sync search with URL ?q= param when navigating from Home
   useEffect(() => {
@@ -41,8 +44,12 @@ export default function Marketplace() {
   }, [searchParams]);
 
   const fetchListings = useCallback(async () => {
-    const data = await base44.entities.Listing.filter({ status: "active" }, "-created_date");
+    const [data, insumoData] = await Promise.all([
+      base44.entities.Listing.filter({ status: "active" }, "-created_date"),
+      base44.entities.InsumoProduct.filter({ status: "active" }, "-created_date"),
+    ]);
     setListings(data);
+    setInsumos(insumoData);
     setLoading(false);
     sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
   }, []);
@@ -61,8 +68,24 @@ export default function Marketplace() {
       if (l.seller_name) s.add(l.seller_name);
       if (l.city) s.add(l.city);
     });
+    insumos.forEach(p => {
+      if (p.product_name) s.add(p.product_name);
+      if (p.category) s.add(p.category);
+      if (p.supplier_name) s.add(p.supplier_name);
+    });
     return [...s];
-  }, [listings]);
+  }, [listings, insumos]);
+
+  const filteredInsumos = useMemo(() => {
+    if (!search) return [];
+    const q = search.toLowerCase();
+    return insumos.filter(p =>
+      p.product_name?.toLowerCase().includes(q) ||
+      p.category?.toLowerCase().includes(q) ||
+      p.supplier_name?.toLowerCase().includes(q) ||
+      p.city?.toLowerCase().includes(q)
+    );
+  }, [insumos, search]);
 
   const filtered = useMemo(() => {
     return listings.filter((l) => {
@@ -176,11 +199,19 @@ export default function Marketplace() {
             <h2 className="text-base font-bold text-foreground">
               {search ? `Resultados para "${search}"` : selectedCategory !== "Todos" ? selectedCategory : "Todos os anúncios"}
             </h2>
-            <span className="text-xs text-muted-foreground">{filtered.length} anúncio{filtered.length !== 1 ? "s" : ""}</span>
+            <span className="text-xs text-muted-foreground">{filtered.length + (search ? filteredInsumos.length : 0)} resultado{(filtered.length + (search ? filteredInsumos.length : 0)) !== 1 ? "s" : ""}</span>
           </div>
           <div className="grid grid-cols-2 gap-3 pb-4">
             {filtered.map((l) => <ListingCard key={l.id} listing={l} />)}
           </div>
+          {search && filteredInsumos.length > 0 && (
+            <>
+              <h2 className="text-base font-bold text-foreground mt-4 mb-3">🏪 Insumos encontrados</h2>
+              <div className="grid grid-cols-2 gap-3 pb-4">
+                {filteredInsumos.map(p => <InsumoProductCard key={p.id} product={p} />)}
+              </div>
+            </>
+          )}
         </>
       )}
 
