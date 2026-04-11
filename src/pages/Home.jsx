@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { MapPin, TrendingUp, TrendingDown, ShoppingCart, PlusCircle, ShoppingBag, Store, RefreshCw, Loader2, ChevronRight, Clock, Edit2 } from "lucide-react";
+import GlobalSearchBar from "../components/GlobalSearchBar";
 import FeaturedInsumos from "../components/FeaturedInsumos";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import ListingCard from "../components/ListingCard";
@@ -159,6 +160,8 @@ export default function Home() {
   const [region, setRegion] = useState(() => localStorage.getItem(REGION_KEY) || "Goiás (estado)");
   const [showRegionSelector, setShowRegionSelector] = useState(false);
   const [featuredInsumos, setFeaturedInsumos] = useState([]);
+  const [homeSearch, setHomeSearch] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
 
   const load = useCallback(async () => {
     const [priceData, listings, stores, insumos] = await Promise.all([
@@ -199,6 +202,24 @@ export default function Home() {
     setListingCount(listings.length);
     setStoreCount(stores.length);
     setRecentListings(listings.slice(0, 6));
+
+    // Build autocomplete suggestions from real data
+    const s = new Set();
+    listings.forEach(l => {
+      if (l.title) s.add(l.title);
+      if (l.category) s.add(l.category);
+      if (l.seller_name) s.add(l.seller_name);
+      if (l.city) s.add(l.city);
+    });
+    insumos.forEach(p => {
+      if (p.product_name) s.add(p.product_name);
+      if (p.category) s.add(p.category);
+      if (p.supplier_name) s.add(p.supplier_name);
+    });
+    stores.forEach(st => {
+      if (st.store_name) s.add(st.store_name);
+    });
+    setSuggestions([...s]);
     setLastUpdated(new Date().toISOString());
     setLoading(false);
   }, []);
@@ -243,6 +264,17 @@ export default function Home() {
             <span>{timeAgo(lastUpdated)}</span>
           </div>
         )}
+      </div>
+
+      {/* ── Global search bar ── */}
+      <div className="mb-4">
+        <GlobalSearchBar
+          value={homeSearch}
+          onChange={setHomeSearch}
+          suggestions={suggestions}
+          placeholder="Buscar produto, loja ou categoria..."
+          onSearch={q => navigate(`/marketplace?q=${encodeURIComponent(q)}`)}
+        />
       </div>
 
       {/* ── Region pill ── */}
