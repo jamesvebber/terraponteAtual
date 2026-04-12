@@ -126,8 +126,8 @@ export default function Marketplace() {
 
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Mercado</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">Compre direto de produtores da região</p>
+        <h1 className="text-2xl font-extrabold text-foreground tracking-tight">TerraPonte</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">O mercado rural da sua região — Compre, venda e anuncie direto pelo WhatsApp</p>
       </div>
 
       {/* Trust note */}

@@ -1,14 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { MapPin, TrendingUp, TrendingDown, ShoppingCart, PlusCircle, ShoppingBag, Store, RefreshCw, Loader2, ChevronRight, Clock, Edit2 } from "lucide-react";
+import { MapPin, TrendingUp, TrendingDown, Loader2, ChevronRight, Edit2 } from "lucide-react";
 import GlobalSearchBar from "../components/GlobalSearchBar";
 import FeaturedInsumos from "../components/FeaturedInsumos";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import ListingCard from "../components/ListingCard";
 import SkeletonCard from "../components/SkeletonCard";
 
-// ---------- helpers ----------
 function timeAgo(dateStr) {
   if (!dateStr) return "";
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -21,39 +20,12 @@ function timeAgo(dateStr) {
   return days === 1 ? "ontem" : `há ${days} dias`;
 }
 
-const DEMO_PRICES = [
-  { product_name: "Boi Gordo", icon: "🐂", price: 285.0, unit: "@", trend: "up" },
-  { product_name: "Leite", icon: "🥛", price: 1.72, unit: "L", trend: "down" },
-  { product_name: "Milho", icon: "🌽", price: 72.0, unit: "sc", trend: "up" },
-  { product_name: "Soja", icon: "🌱", price: 138.5, unit: "sc", trend: "down" },
-  { product_name: "Sal Mineral", icon: "🧂", price: 89.0, unit: "sc 25kg", trend: "up" },
-  { product_name: "Ração Bovina", icon: "🌾", price: 115.0, unit: "sc 50kg", trend: "up" },
-];
-
 const REGION_KEY = "tp_user_region";
 const GO_CITIES = [
   "Goiânia","Aparecida de Goiânia","Anápolis","Rio Verde","Luziânia","Jataí",
   "Catalão","Itumbiara","Caldas Novas","Formosa","São Luís de Montes Belos",
   "Córrego do Ouro","Ceres","Itaberaí","Mineiros","Quirinópolis","Inhumas","Trindade","Senador Canedo",
 ];
-
-// ---------- sub-components ----------
-function StatCard({ value, label, emoji, loading, onClick }) {
-  const Tag = onClick ? "button" : "div";
-  return (
-    <Tag
-      onClick={onClick}
-      className={`flex-1 bg-card border border-border rounded-2xl px-4 py-3 flex flex-col items-center ${onClick ? "active:scale-95 transition-transform select-none cursor-pointer" : ""}`}
-    >
-      {loading ? (
-        <div className="h-7 w-16 bg-muted rounded animate-pulse mb-1" />
-      ) : (
-        <p className="text-2xl font-extrabold text-foreground">{value}</p>
-      )}
-      <p className="text-[11px] text-muted-foreground font-medium text-center leading-tight">{emoji} {label}</p>
-    </Tag>
-  );
-}
 
 function PriceRefCard({ item }) {
   const isUp = item.trend === "up";
@@ -145,17 +117,12 @@ function RegionSelector({ onSelect, onCancel }) {
   );
 }
 
-// ---------- main ----------
 export default function Home() {
   const navigate = useNavigate();
   const [prices, setPrices] = useState([]);
   const [recentListings, setRecentListings] = useState([]);
-  const [listingCount, setListingCount] = useState(null);
-  const [insumoCount, setInsumoCount] = useState(null);
-  const [storeCount, setStoreCount] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [recentCount, setRecentCount] = useState(null);
 
   const [region, setRegion] = useState(() => localStorage.getItem(REGION_KEY) || "Goiás (estado)");
   const [showRegionSelector, setShowRegionSelector] = useState(false);
@@ -171,15 +138,6 @@ export default function Home() {
       base44.entities.InsumoProduct.filter({ status: "active" }, "-created_date", 30),
     ]);
 
-    // Count items added in last 7 days (real data)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    sevenDaysAgo.setHours(0, 0, 0, 0);
-    const recentListings = listings.filter(l => new Date(l.created_date) >= sevenDaysAgo).length;
-    const recentInsumos = insumos.filter(p => new Date(p.created_date) >= sevenDaysAgo).length;
-    const totalRecent = recentListings + recentInsumos;
-
-    // Prioritize insumos with image and price, deduplicate by product_name
     const seen = new Set();
     const bestInsumos = insumos
       .sort((a, b) => {
@@ -194,16 +152,11 @@ export default function Home() {
         return true;
       })
       .slice(0, 10);
-    setFeaturedInsumos(bestInsumos);
-    setInsumoCount(insumos.length);
-    setRecentCount(totalRecent);
 
+    setFeaturedInsumos(bestInsumos);
     setPrices(priceData);
-    setListingCount(listings.length);
-    setStoreCount(stores.length);
     setRecentListings(listings.slice(0, 6));
 
-    // Build autocomplete suggestions from real data
     const s = new Set();
     listings.forEach(l => {
       if (l.title) s.add(l.title);
@@ -234,6 +187,8 @@ export default function Home() {
     setShowRegionSelector(false);
   };
 
+  const opps = recentListings.filter(l => l.image_url && l.availability_status !== "Indisponível").slice(0, 8);
+
   return (
     <div
       className="px-4 pt-5 pb-4"
@@ -247,7 +202,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
           <div className="h-11 w-11 rounded-2xl bg-primary flex items-center justify-center shadow shrink-0">
@@ -255,19 +210,13 @@ export default function Home() {
           </div>
           <div>
             <h1 className="text-lg font-extrabold text-foreground leading-tight">TerraPonte</h1>
-            <p className="text-[11px] text-muted-foreground font-medium">Mercado rural em tempo real</p>
+            <p className="text-[11px] text-muted-foreground font-medium">O mercado rural da sua região</p>
           </div>
         </div>
-        {lastUpdated && (
-          <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
-            <Clock className="h-3 w-3" />
-            <span>{timeAgo(lastUpdated)}</span>
-          </div>
-        )}
       </div>
 
-      {/* ── Global search bar ── */}
-      <div className="mb-4">
+      {/* Search */}
+      <div className="mb-3">
         <GlobalSearchBar
           value={homeSearch}
           onChange={setHomeSearch}
@@ -277,7 +226,25 @@ export default function Home() {
         />
       </div>
 
-      {/* ── Region pill ── */}
+      {/* Value prop strip */}
+      <div className="flex items-center justify-between bg-primary/5 border border-primary/15 rounded-2xl px-3 py-2.5 mb-4 gap-1">
+        <div className="flex flex-col items-center flex-1 text-center">
+          <span className="text-base">🟢</span>
+          <p className="text-[10px] font-bold text-foreground leading-tight mt-0.5">Anuncie grátis</p>
+        </div>
+        <div className="w-px h-8 bg-border" />
+        <div className="flex flex-col items-center flex-1 text-center">
+          <span className="text-base">📍</span>
+          <p className="text-[10px] font-bold text-foreground leading-tight mt-0.5">Negócios da região</p>
+        </div>
+        <div className="w-px h-8 bg-border" />
+        <div className="flex flex-col items-center flex-1 text-center">
+          <span className="text-base">💬</span>
+          <p className="text-[10px] font-bold text-foreground leading-tight mt-0.5">Fale no WhatsApp</p>
+        </div>
+      </div>
+
+      {/* Region pill */}
       <button
         onClick={() => setShowRegionSelector(true)}
         className="w-full flex items-center justify-between bg-primary/10 border border-primary/25 rounded-2xl px-4 py-3 mb-4 select-none active:scale-[0.98] transition-transform"
@@ -291,23 +258,16 @@ export default function Home() {
         </div>
       </button>
 
-      {/* ── Stats row ── */}
-      <div className="flex gap-3 mb-5">
-        <StatCard value={((listingCount ?? 0) + (insumoCount ?? 0)) || "–"} label="ofertas ativas" emoji="📢" loading={loading} onClick={() => navigate("/marketplace")} />
-        <StatCard value={storeCount ?? "–"} label="lojas parceiras" emoji="🏩" loading={loading} onClick={() => navigate("/insumos")} />
-        <StatCard value={recentCount ?? "–"} label="novos 7 dias" emoji="✨" loading={loading} onClick={() => navigate("/marketplace")} />
-      </div>
-
-      {/* ── Action tiles ── */}
-      <h2 className="text-sm font-extrabold text-muted-foreground uppercase tracking-wide mb-3">O que você precisa?</h2>
+      {/* Action tiles */}
+      <h2 className="text-sm font-extrabold text-muted-foreground uppercase tracking-wide mb-3">O que você quer fazer?</h2>
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <ActionTile emoji="🛒" label="Comprar" sublabel="Anúncios de produtores locais" onClick={() => navigate("/marketplace")} primary />
-        <ActionTile emoji="📢" label="Vender" sublabel="Publique e venda pelo WhatsApp" onClick={() => navigate("/vender")} />
-        <ActionTile emoji="🌿" label="Insumos" sublabel="Compare preços de lojas" onClick={() => navigate("/insumos")} />
-        <ActionTile emoji="🏪" label="Lojas" sublabel="Fornecedores da sua região" onClick={() => navigate("/lojas")} />
+        <ActionTile emoji="🛒" label="Quero comprar" sublabel="Produtos direto de produtores" onClick={() => navigate("/marketplace")} primary />
+        <ActionTile emoji="📢" label="Quero vender" sublabel="Publique e receba no WhatsApp" onClick={() => navigate("/vender")} />
+        <ActionTile emoji="🌿" label="Ver insumos" sublabel="Ração, adubo e muito mais" onClick={() => navigate("/insumos")} />
+        <ActionTile emoji="🏪" label="Ver lojas" sublabel="Lojas e cooperativas da região" onClick={() => navigate("/lojas")} />
       </div>
 
-      {/* ── Radar do Dia ── */}
+      {/* Radar do Dia */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
           <span className="text-base">📡</span>
@@ -317,43 +277,17 @@ export default function Home() {
           )}
         </div>
 
-        {/* A. Novidades de hoje */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          {loading ? (
-            [1,2,3].map(i => <div key={i} className="h-16 bg-muted rounded-2xl animate-pulse" />)
-          ) : (
-            <>
-              <button onClick={() => navigate("/marketplace")} className="bg-primary/10 border border-primary/20 rounded-2xl p-3 flex flex-col items-center active:scale-95 transition-transform select-none">
-                <p className="text-xl font-extrabold text-primary">{recentCount ?? 0}</p>
-                <p className="text-[10px] text-primary/70 font-semibold text-center leading-tight">novos 7 dias</p>
-              </button>
-              <button onClick={() => navigate("/marketplace")} className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center active:scale-95 transition-transform select-none">
-                <p className="text-xl font-extrabold text-foreground">{((listingCount ?? 0) + (insumoCount ?? 0)) || 0}</p>
-                <p className="text-[10px] text-muted-foreground font-semibold text-center leading-tight">ofertas ativas</p>
-              </button>
-              <button onClick={() => navigate("/insumos")} className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center active:scale-95 transition-transform select-none">
-                <p className="text-xl font-extrabold text-foreground">{storeCount ?? 0}</p>
-                <p className="text-[10px] text-muted-foreground font-semibold text-center leading-tight">lojas parceiras</p>
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* B. Oportunidades perto de você */}
-        {!loading && (() => {
-          const opps = recentListings.filter(l => l.image_url && l.availability_status !== "Indisponível").slice(0, 8);
-          if (opps.length === 0) return null;
-          return (
-            <div className="mb-4">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">📍 Perto de você</p>
-              <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-hide">
-                {opps.map(l => <OpportunityCard key={l.id} listing={l} onClick={() => navigate(`/marketplace/${l.id}`)} />)}
-              </div>
+        {/* Oportunidades perto de você */}
+        {!loading && opps.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">📍 Perto de você</p>
+            <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-hide">
+              {opps.map(l => <OpportunityCard key={l.id} listing={l} onClick={() => navigate(`/marketplace/${l.id}`)} />)}
             </div>
-          );
-        })()}
+          </div>
+        )}
 
-        {/* C. Preços de referência */}
+        {/* Preços de referência */}
         {!loading && prices.length > 0 && (
           <div>
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">📊 Preços de referência</p>
@@ -374,10 +308,10 @@ export default function Home() {
         )}
       </div>
 
-      {/* ── Featured Insumos ── */}
+      {/* Featured Insumos */}
       <FeaturedInsumos products={featuredInsumos} loading={loading} />
 
-      {/* ── Recent listings ── */}
+      {/* Recent listings */}
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-base font-extrabold text-foreground">Anúncios recentes</h2>
         <button onClick={() => navigate("/marketplace")} className="flex items-center gap-1 text-xs font-bold text-primary select-none">
@@ -386,7 +320,7 @@ export default function Home() {
       </div>
       {loading ? (
         <div className="grid grid-cols-2 gap-3">
-          {[1,2,3,4].map(i => <div key={i} className="h-56 bg-muted rounded-2xl animate-pulse" />)}
+          {[1,2,3,4].map(i => <SkeletonCard key={i} />)}
         </div>
       ) : recentListings.length === 0 ? (
         <div className="text-center py-10 bg-card border border-border rounded-2xl">
@@ -396,10 +330,7 @@ export default function Home() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
-          {loading
-            ? [1,2,3,4].map(i => <SkeletonCard key={i} />)
-            : recentListings.map(l => <ListingCard key={l.id} listing={l} />)
-          }
+          {recentListings.map(l => <ListingCard key={l.id} listing={l} />)}
         </div>
       )}
 

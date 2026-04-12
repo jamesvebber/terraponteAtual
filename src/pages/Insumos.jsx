@@ -31,11 +31,9 @@ const CATEGORIES = [
 const CACHE_KEY = "insumos_products";
 const PAGE_SIZE = 12;
 
-
-
 export default function Insumos() {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [products, setProducts] = useState(() => {
     try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null") || []; } catch { return []; }
   });
@@ -66,11 +64,8 @@ export default function Insumos() {
   }, []);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
-
-  // Reset visible count when filters/search change
   useEffect(() => { setVisibleCount(PAGE_SIZE); }, [search, selectedCategory, selectedCity, deliveryOnly, pickupOnly]);
 
-  // Infinite scroll sentinel
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -116,7 +111,6 @@ export default function Insumos() {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* Pull-to-refresh indicator */}
       {pullActive && (
         <div className="flex justify-center pb-2 transition-all">
           <Loader2 className={`h-5 w-5 text-primary ${isPulling ? "animate-spin" : "opacity-40"}`} />
@@ -131,7 +125,7 @@ export default function Insumos() {
           </div>
           <div>
             <h1 className="text-xl font-extrabold text-foreground tracking-tight">Insumos</h1>
-            <p className="text-xs text-muted-foreground font-medium">Lojas e cooperativas da sua região</p>
+            <p className="text-xs text-muted-foreground font-medium">Compare preços de lojas e cooperativas</p>
           </div>
         </div>
         <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-xs font-bold" onClick={() => navigate("/minha-loja")}>
@@ -139,7 +133,7 @@ export default function Insumos() {
         </Button>
       </div>
 
-      {/* Store CTA for non-store users */}
+      {/* Store CTA */}
       {isAuthenticated && (
         <button
           onClick={() => navigate("/minha-loja")}
@@ -208,7 +202,6 @@ export default function Insumos() {
               <InsumoProductCard key={item.id} product={item} isBest={item.id === bestId} isVerified={verifiedStoreIds.includes(item.supplier_id)} />
             ))}
           </div>
-          {/* Infinite scroll sentinel */}
           {hasMore && (
             <div ref={sentinelRef} className="flex justify-center py-6">
               <Loader2 className="h-5 w-5 animate-spin text-primary opacity-60" />
