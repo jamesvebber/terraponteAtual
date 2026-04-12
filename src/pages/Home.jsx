@@ -207,8 +207,12 @@ export default function Home() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="h-11 w-11 rounded-2xl bg-primary flex items-center justify-center shadow shrink-0 overflow-hidden">
-            <span className="text-2xl leading-none">🌾</span>
+          <div className="h-14 w-14 rounded-2xl overflow-hidden shadow shrink-0">
+            <img
+              src="https://media.base44.com/images/public/69c716a35da7111840683290/feff66e14_IMG_3129.png"
+              alt="TerraPonte"
+              className="w-full h-full object-cover"
+            />
           </div>
           <div>
             <div className="flex items-baseline gap-1">
