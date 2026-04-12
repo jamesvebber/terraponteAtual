@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { MapPin, TrendingUp, TrendingDown, Loader2, ChevronRight, Edit2 } from "lucide-react";
 import GlobalSearchBar from "../components/GlobalSearchBar";
 import FeaturedInsumos from "../components/FeaturedInsumos";
+import AnunciarModal from "../components/AnunciarModal";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import ListingCard from "../components/ListingCard";
 import SkeletonCard from "../components/SkeletonCard";
@@ -126,6 +127,7 @@ export default function Home() {
 
   const [region, setRegion] = useState(() => localStorage.getItem(REGION_KEY) || "Goiás (estado)");
   const [showRegionSelector, setShowRegionSelector] = useState(false);
+  const [showAnunciarModal, setShowAnunciarModal] = useState(false);
   const [featuredInsumos, setFeaturedInsumos] = useState([]);
   const [homeSearch, setHomeSearch] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -205,11 +207,14 @@ export default function Home() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="h-11 w-11 rounded-2xl bg-primary flex items-center justify-center shadow shrink-0">
-            <span className="text-xl">🌾</span>
+          <div className="h-11 w-11 rounded-2xl bg-primary flex items-center justify-center shadow shrink-0 overflow-hidden">
+            <span className="text-2xl leading-none">🌾</span>
           </div>
           <div>
-            <h1 className="text-lg font-extrabold text-foreground leading-tight">TerraPonte</h1>
+            <div className="flex items-baseline gap-1">
+              <h1 className="text-xl font-extrabold text-primary leading-tight tracking-tight">Terra</h1>
+              <h1 className="text-xl font-extrabold text-foreground leading-tight tracking-tight">Ponte</h1>
+            </div>
             <p className="text-[11px] text-muted-foreground font-medium">O mercado rural da sua região</p>
           </div>
         </div>
@@ -262,7 +267,7 @@ export default function Home() {
       <h2 className="text-sm font-extrabold text-muted-foreground uppercase tracking-wide mb-3">O que você quer fazer?</h2>
       <div className="grid grid-cols-2 gap-3 mb-6">
         <ActionTile emoji="🛒" label="Quero comprar" sublabel="Produtos direto de produtores" onClick={() => navigate("/marketplace")} primary />
-        <ActionTile emoji="📢" label="Quero vender" sublabel="Publique e receba no WhatsApp" onClick={() => navigate("/vender")} />
+        <ActionTile emoji="📢" label="Quero vender" sublabel="Publique e receba no WhatsApp" onClick={() => setShowAnunciarModal(true)} />
         <ActionTile emoji="🌿" label="Ver insumos" sublabel="Ração, adubo e muito mais" onClick={() => navigate("/insumos")} />
         <ActionTile emoji="🏪" label="Ver lojas" sublabel="Lojas e cooperativas da região" onClick={() => navigate("/lojas")} />
       </div>
@@ -340,6 +345,11 @@ export default function Home() {
           onCancel={() => setShowRegionSelector(false)}
         />
       )}
+
+      <AnunciarModal
+        open={showAnunciarModal}
+        onClose={() => setShowAnunciarModal(false)}
+      />
     </div>
   );
 }
