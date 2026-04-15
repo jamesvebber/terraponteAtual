@@ -34,6 +34,7 @@ import AdminEmailPanel from './pages/AdminEmailPanel';
 import Plans from './pages/Plans';
 import Login from './pages/Login';
 import AdminQueue from "./pages/AdminQueue";
+import MapaDemo from "./pages/MapaDemo";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -90,6 +91,7 @@ const AuthenticatedApp = () => {
         <Route path="/store/:slug" element={<PublicStorePage />} />
         <Route path="/product/:slug" element={<SlugRedirect />} />
         <Route path="/user/:slug" element={<PublicSellerPage />} />
+        <Route path="/mapa-demo" element={<MapaDemo />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
