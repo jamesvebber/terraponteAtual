@@ -17,7 +17,7 @@
     },
     "bio": {
       "type": "string",
-      "description": "Descrição curta"
+      "description": "Descri\u00e7\u00e3o curta"
     },
     "city": {
       "type": "string"
@@ -40,7 +40,7 @@
         "Loja parceira",
         "Verificado"
       ],
-      "description": "Selo de confiança"
+      "description": "Selo de confian\u00e7a"
     },
     "owner_email": {
       "type": "string",
@@ -48,36 +48,32 @@
     },
     "plan_type": {
       "type": "string",
-      "enum": [
-        "bronze",
-        "prata",
-        "ouro",
-        "essencial",
-        "business",
-        "master"
-      ],
-      "description": "Tipo de plano de assinatura mensal atual"
+      "description": "Plano atual do usu\u00e1rio"
     },
     "plan_expiry": {
       "type": "string",
-      "description": "Data de expiração do plano de assinatura"
+      "description": "Data de expira\u00e7\u00e3o do plano"
     },
     "plan_started_at": {
       "type": "string",
-      "description": "Data de início do plano atual"
+      "description": "Data de in\u00edcio do plano"
     },
-    "stripe_customer_id": {
-      "type": "string",
-      "description": "ID do cliente no Stripe (para assinaturas)"
-    },
-    "subscription_id": {
-      "type": "string",
-      "description": "ID da assinatura ativa no Stripe"
-    },
-    "credits_remaining": {
+    "lat": {
       "type": "number",
-      "default": 0,
-      "description": "Créditos de upgrade avulso restantes"
+      "description": "Latitude da localiza\u00e7\u00e3o do usu\u00e1rio"
+    },
+    "lng": {
+      "type": "number",
+      "description": "Longitude da localiza\u00e7\u00e3o do usu\u00e1rio"
+    },
+    "location_updated_at": {
+      "type": "string",
+      "description": "\u00daltima vez que a localiza\u00e7\u00e3o foi atualizada"
+    },
+    "location_consent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Usu\u00e1rio consentiu com uso da localiza\u00e7\u00e3o"
     }
   },
   "required": [

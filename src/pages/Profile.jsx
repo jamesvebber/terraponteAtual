@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import EmailPreferences from "../components/EmailPreferences";
+import LocationCapture from "../components/LocationCapture";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -192,6 +193,9 @@ export default function Profile() {
           )}
         </div>
       </div>
+
+      {/* Location capture */}
+      <LocationCapture sellerProfile={sellerProfile} user={user} onSaved={checkAppState} />
 
       {/* WhatsApp card */}
       <div className="bg-card border border-border rounded-2xl p-4 mb-4">
