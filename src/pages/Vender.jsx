@@ -20,6 +20,17 @@ const stripePromise = loadStripe('pk_test_51TMTVMKUpjZIh8bE7YnKa8KFJGFbQBx1s5lZ9
 
 const SELLER_TYPES = ["Produtor", "Loja"];
 
+// Limites por plano: maxActive = null significa ilimitado
+const PLAN_LIMITS = {
+  bronze: { maxActive: 1, label: 'Bronze', nextPlan: 'prata' },
+  prata:  { maxActive: 2, label: 'Prata',  nextPlan: 'ouro' },
+  ouro:   { maxActive: null, label: 'Ouro', nextPlan: null },
+  // planos business seguem regra do ouro
+  essencial: { maxActive: 10, label: 'Essencial', nextPlan: 'business' },
+  business:  { maxActive: null, label: 'Business', nextPlan: null },
+  master:    { maxActive: null, label: 'Master', nextPlan: null },
+};
+
 const AD_TYPES = [
   {
     id: 'bronze',
@@ -46,9 +57,10 @@ const AD_TYPES = [
       '3 fotos no anúncio',
       '✅ Selo "Verificado"',
       'Destaque no feed',
-      '1 disparo WhatsApp'
+      '1 disparo WhatsApp',
+      'Até 2 anúncios ativos'
     ],
-    limits: { maxPhotos: 3, maxActive: 5 }
+    limits: { maxPhotos: 3, maxActive: 2 }
   },
   {
     id: 'ouro',
@@ -61,8 +73,8 @@ const AD_TYPES = [
       '8 fotos no anúncio',
       '🏆 Selo "Verificado" Ouro',
       'Destaque máximo',
-      '3 dispar WhatsApp',
-      'Prioridade no topo'
+      '3 disparos WhatsApp',
+      'Anúncios ilimitados'
     ],
     limits: { maxPhotos: 8, maxActive: null }
   }
@@ -133,18 +145,14 @@ export default function Vender() {
 
   const getAdTypeConfig = (typeId) => AD_TYPES.find(t => t.id === typeId);
 
-  const checkBronzeLimit = async () => {
-    if (adType !== 'bronze') return { allowed: true };
-    
-    const activeListings = await base44.entities.Listing.filter({ 
-      owner_email: user.email, 
-      status: "active" 
-    });
-    
-    const bronzeActive = activeListings.filter(l => !l.ad_type || l.ad_type === 'bronze');
-    
-    if (bronzeActive.length >= 1) {
-      return { allowed: false, reason: 'limit' };
+  const checkPlanLimit = async () => {
+    const plan = sellerProfile?.plan_type || 'bronze';
+    const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.bronze;
+    if (limits.maxActive === null) return { allowed: true };
+
+    const activeListings = await base44.entities.Listing.filter({ status: "active", created_by: user?.email });
+    if (activeListings.length >= limits.maxActive) {
+      return { allowed: false, limit: limits.maxActive, plan: limits.label, nextPlan: limits.nextPlan };
     }
     return { allowed: true };
   };
@@ -239,13 +247,14 @@ export default function Vender() {
 
     const adConfig = getAdTypeConfig(adType);
 
-    if (adType === 'bronze') {
-      const limitCheck = await checkBronzeLimit();
-      if (!limitCheck.allowed) {
-        toast.error("Limite atingido: O plano Bronze permite apenas 1 anúncio ativo. Faça upgrade para publicar mais!");
-        navigate("/planos");
-        return;
-      }
+    const limitCheck = await checkPlanLimit();
+    if (!limitCheck.allowed) {
+      const nextMsg = limitCheck.nextPlan
+        ? ` Faça upgrade para o plano ${limitCheck.nextPlan.charAt(0).toUpperCase() + limitCheck.nextPlan.slice(1)} e publique mais!`
+        : '';
+      toast.error(`Limite do plano ${limitCheck.plan}: máximo de ${limitCheck.limit} anúncio${limitCheck.limit > 1 ? 's' : ''} ativo${limitCheck.limit > 1 ? 's' : ''}.${nextMsg}`);
+      navigate("/planos");
+      return;
     }
 
     setSubmitting(true);

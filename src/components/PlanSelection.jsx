@@ -34,7 +34,7 @@ const PRODUCER_PLANS = [
     btnColor: 'bg-blue-600 text-white hover:bg-blue-700',
     popular: true,
     features: [
-      '5 anúncios simultâneos',
+      'Até 2 anúncios simultâneos',
       'Selo "Vendedor Prata"',
       '1 disparo WhatsApp/mês',
       'Destaque no feed',
