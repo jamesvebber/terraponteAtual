@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(true);
   const [authError, setAuthError] = useState(null);
   const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
+  const [sellerProfile, setSellerProfile] = useState(null);
 
   useEffect(() => {
     checkAppState();
@@ -46,7 +47,11 @@ export const AuthProvider = ({ children }) => {
         }
         setIsLoadingPublicSettings(false);
       } catch (appError) {
-        console.error('App state check failed:', appError);
+        console.error('❌ App state check failed:', appError);
+        // TEMPORARY DEBUG
+        import("sonner").then(({ toast }) => {
+          toast.error("App settings failed: " + (appError.message || JSON.stringify(appError)));
+        });
         
         // Handle app-level errors
         if (appError.status === 403 && appError.data?.extra_data?.reason) {
@@ -92,11 +97,25 @@ export const AuthProvider = ({ children }) => {
       // Now check if the user is authenticated
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
+      console.log('✅ Auth successful, user:', currentUser);
       setUser(currentUser);
       setIsAuthenticated(true);
+      
+      // Fetch seller profile
+      const profiles = await base44.entities.SellerProfile.filter({ owner_email: currentUser.email });
+      setSellerProfile(profiles[0] || null);
+      
       setIsLoadingAuth(false);
     } catch (error) {
-      console.error('User auth check failed:', error);
+      console.error('❌ User auth check failed. Details:', {
+        status: error.status,
+        message: error.message,
+        data: error.data,
+        fullError: error
+      });
+      // TEMPORARY DEBUG: Show toast so user can see it
+      const errorMessage = error.data?.message || error.message || JSON.stringify(error);
+      
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
       
@@ -136,6 +155,7 @@ export const AuthProvider = ({ children }) => {
       isLoadingPublicSettings,
       authError,
       appPublicSettings,
+      sellerProfile,
       logout,
       navigateToLogin,
       checkAppState

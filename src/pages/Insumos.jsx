@@ -41,6 +41,7 @@ export default function Insumos() {
     try { return JSON.parse(sessionStorage.getItem("insumos_verified") || "null") || []; } catch { return []; }
   });
   const [loading, setLoading] = useState(() => !sessionStorage.getItem(CACHE_KEY));
+  const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -51,31 +52,27 @@ export default function Insumos() {
   const sentinelRef = useRef(null);
 
   const fetchProducts = useCallback(async () => {
-    const [data, stores] = await Promise.all([
-      base44.entities.InsumoProduct.filter({ status: "active" }, "-created_date"),
-      base44.entities.SupplierProfile.filter({ verification_status: "verificada" }),
-    ]);
-    const ids = stores.map(s => s.id);
-    setProducts(data);
-    setVerifiedStoreIds(ids);
-    setLoading(false);
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
-    sessionStorage.setItem("insumos_verified", JSON.stringify(ids));
+    try {
+      setError(null);
+      const [data, stores] = await Promise.all([
+        base44.entities.InsumoProduct.filter({ status: "active" }, "-created_date"),
+        base44.entities.SupplierProfile.filter({ verification_status: "verificada" }),
+      ]);
+      const ids = stores.map(s => s.id);
+      setProducts(data);
+      setVerifiedStoreIds(ids);
+      setLoading(false);
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      sessionStorage.setItem("insumos_verified", JSON.stringify(ids));
+    } catch (err) {
+      console.error("Erro ao carregar insumos:", err);
+      setError("Erro ao carregar produtos. Tente novamente.");
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
   useEffect(() => { setVisibleCount(PAGE_SIZE); }, [search, selectedCategory, selectedCity, deliveryOnly, pickupOnly]);
-
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisibleCount(v => v + PAGE_SIZE); },
-      { rootMargin: "200px" }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [sentinelRef.current]);
 
   const { isPulling, pullActive, onTouchStart, onTouchMove, onTouchEnd } = usePullToRefresh(fetchProducts);
 
@@ -103,6 +100,17 @@ export default function Insumos() {
   const bestId = sorted[0]?.id;
   const visible = sorted.slice(0, visibleCount);
   const hasMore = visibleCount < sorted.length;
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || sorted.length <= visibleCount) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisibleCount(v => v + PAGE_SIZE); },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [visibleCount, sorted.length]);
 
   return (
     <div
@@ -180,8 +188,17 @@ export default function Insumos() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 gap-3">
-          {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)}
+        </div>
+      ) : error ? (
+        <div className="text-center py-16 px-4">
+          <span className="text-6xl mb-4 block">⚠️</span>
+          <p className="text-foreground text-xl font-bold mb-2">Erro ao carregar</p>
+          <p className="text-muted-foreground text-base leading-relaxed mb-5">{error}</p>
+          <Button variant="outline" className="rounded-xl gap-2 h-12 text-sm" onClick={fetchProducts}>
+            <Loader2 className="h-4 w-4" /> Tentar novamente
+          </Button>
         </div>
       ) : sorted.length === 0 ? (
         <div className="text-center py-16 px-4">
@@ -197,7 +214,7 @@ export default function Insumos() {
           <p className="text-xs text-muted-foreground mb-3 font-medium">
             {sorted.length} produto{sorted.length !== 1 ? "s" : ""} · ordenado por menor preço
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {visible.map((item) => (
               <InsumoProductCard key={item.id} product={item} isBest={item.id === bestId} isVerified={verifiedStoreIds.includes(item.supplier_id)} />
             ))}

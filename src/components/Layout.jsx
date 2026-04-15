@@ -4,8 +4,9 @@ import OnboardingModal from "./OnboardingModal";
 import Footer from "./Footer";
 import { AnimatePresence, motion } from "framer-motion";
 import BottomNav from "./BottomNav";
+import DesktopSidebar, { SIDEBAR_WIDTH } from "./DesktopSidebar";
+import { useIsDesktop } from "@/hooks/use-desktop";
 
-// Persist scroll positions across route changes
 const scrollPositions = {};
 
 const ROOT_PATHS = ["/", "/marketplace", "/insumos", "/minha-loja", "/profile"];
@@ -21,6 +22,8 @@ export default function Layout() {
   const mainRef = useRef(null);
   const isRoot = ROOT_PATHS.includes(location.pathname);
   const [offline, setOffline] = useState(!navigator.onLine);
+  const isDesktop = useIsDesktop();
+  const isAdmin = location.pathname.startsWith("/admin");
 
   useEffect(() => {
     const on = () => setOffline(false);
@@ -34,7 +37,6 @@ export default function Layout() {
     const el = mainRef.current;
     if (!el) return;
     const path = location.pathname;
-    // Restore scroll for this path
     const saved = scrollPositions[path] ?? 0;
     el.scrollTop = saved;
 
@@ -46,17 +48,25 @@ export default function Layout() {
   return (
     <div
       className="min-h-screen bg-background flex flex-col"
-      style={{ paddingTop: "env(safe-area-inset-top)" }}
+      style={{ paddingTop: isDesktop ? "0px" : "env(safe-area-inset-top)" }}
     >
       {offline && (
-        <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-white text-xs font-bold text-center py-2 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.5rem)' }}>
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-white text-xs font-bold text-center py-2 px-4" style={{ paddingTop: isDesktop ? '0.5rem' : 'calc(env(safe-area-inset-top) + 0.5rem)' }}>
           📶 Sem conexão — alguns conteúdos podem estar desatualizados
         </div>
       )}
+
+      {isDesktop && <DesktopSidebar isAdmin={isAdmin} />}
+
       <main
         ref={mainRef}
-        className="flex-1 overflow-y-auto max-w-lg mx-auto w-full"
-        style={{ paddingBottom: "calc(4rem + env(safe-area-inset-bottom) + 1rem)" }}
+        className={`flex-1 overflow-y-auto ${isDesktop ? 'w-full' : 'max-w-lg mx-auto w-full'}`}
+        style={{ 
+          paddingBottom: isDesktop ? "1rem" : "calc(4rem + env(safe-area-inset-bottom) + 1rem)",
+          paddingLeft: isDesktop ? SIDEBAR_WIDTH : "0px",
+          paddingRight: isDesktop ? "1rem" : "0px",
+          paddingTop: isDesktop ? "1rem" : "env(safe-area-inset-top)"
+        }}
       >
         <AnimatePresence mode="wait" initial={false} custom={isRoot}>
           <motion.div
@@ -66,14 +76,15 @@ export default function Layout() {
             initial="initial"
             animate="animate"
             exit="exit"
-            className="min-h-full"
+            className={`min-h-full ${isDesktop ? 'max-w-7xl mx-auto' : ''}`}
           >
             <Outlet />
             <Footer />
           </motion.div>
         </AnimatePresence>
       </main>
-      <BottomNav />
+
+      {!isDesktop && <BottomNav />}
       <OnboardingModal />
     </div>
   );

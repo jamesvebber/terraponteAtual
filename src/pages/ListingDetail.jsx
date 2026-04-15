@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2, Clock, Pencil } from "lucide-react";
+import { ArrowLeft, MessageCircle, MapPin, Store, Loader2, ChevronRight, Flag, Share2, Clock, Pencil, Shield, Star, Crown, Check } from "lucide-react";
 import MediaGallery from "../components/MediaGallery";
 import { formatListingPrice } from "../utils/listingPrice";
 import { toSlug } from "./SlugRedirect";
@@ -123,6 +123,22 @@ export default function ListingDetail() {
       <div className="px-4 pt-5 space-y-4">
         {/* Tags */}
         <div className="flex flex-wrap gap-2">
+          {/* Ad Type Badge */}
+          {listing.ad_type === 'ouro' && (
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 flex items-center gap-1">
+              <Crown className="h-3 w-3" /> Ouro Verificado
+            </span>
+          )}
+          {listing.ad_type === 'prata' && (
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 flex items-center gap-1">
+              <Star className="h-3 w-3" /> Prata Verificado
+            </span>
+          )}
+          {(!listing.ad_type || listing.ad_type === 'bronze') && (
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 flex items-center gap-1">
+              <Shield className="h-3 w-3" /> Bronze
+            </span>
+          )}
           {listing.featured && (
             <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700">⭐ Destaque</span>
           )}
@@ -191,6 +207,41 @@ export default function ListingDetail() {
             </div>
           );
         })()}
+
+        {/* Benefits info for premium listings */}
+        {(listing.ad_type === 'prata' || listing.ad_type === 'ouro') && listing.status === 'active' && (
+          <div className={`rounded-2xl p-4 ${listing.ad_type === 'ouro' ? 'bg-amber-50 border border-amber-200' : 'bg-blue-50 border border-blue-200'}`}>
+            <div className="flex items-center gap-2 mb-2">
+              {listing.ad_type === 'ouro' ? (
+                <Crown className="h-5 w-5 text-amber-600" />
+              ) : (
+                <Star className="h-5 w-5 text-blue-600" />
+              )}
+              <p className={`font-bold text-sm ${listing.ad_type === 'ouro' ? 'text-amber-800' : 'text-blue-800'}`}>
+                {listing.ad_type === 'ouro' ? '🏆 Anúncio Ouro' : '✨ Anúncio Prata'}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {listing.ad_type === 'ouro' && (
+                <>
+                  <span className="text-[11px] bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-medium">🔝 Prioridade no topo</span>
+                  <span className="text-[11px] bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-medium">📢 3x mais visualizações</span>
+                </>
+              )}
+              {listing.ad_type === 'prata' && (
+                <>
+                  <span className="text-[11px] bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">✅ Selo verificado</span>
+                  <span className="text-[11px] bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">📢 1x WhatsApp</span>
+                </>
+              )}
+            </div>
+            {listing.ad_expiry && (
+              <p className="text-[10px] text-muted-foreground mt-2">
+                Expira em {new Date(listing.ad_expiry).toLocaleDateString('pt-BR')}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Description */}
         {listing.description && (

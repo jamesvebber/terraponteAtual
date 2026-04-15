@@ -47,7 +47,7 @@ export default function InsumoProductCard({ product, isBest, isVerified }) {
         onClick={() => navigate(`/insumos/${product.id}`)}
       >
         {/* Image */}
-        <div className="relative w-full h-32 shrink-0">
+        <div className="relative w-full h-32 md:h-40 lg:h-48 shrink-0">
           <AppImage
             src={product.image_url}
             alt={product.product_name}

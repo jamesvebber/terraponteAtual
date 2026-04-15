@@ -17,7 +17,7 @@
     },
     "bio": {
       "type": "string",
-      "description": "Descri\u00e7\u00e3o curta"
+      "description": "Descrição curta"
     },
     "city": {
       "type": "string"
@@ -40,11 +40,44 @@
         "Loja parceira",
         "Verificado"
       ],
-      "description": "Selo de confian\u00e7a"
+      "description": "Selo de confiança"
     },
     "owner_email": {
       "type": "string",
       "description": "Email do dono do perfil"
+    },
+    "plan_type": {
+      "type": "string",
+      "enum": [
+        "bronze",
+        "prata",
+        "ouro",
+        "essencial",
+        "business",
+        "master"
+      ],
+      "description": "Tipo de plano de assinatura mensal atual"
+    },
+    "plan_expiry": {
+      "type": "string",
+      "description": "Data de expiração do plano de assinatura"
+    },
+    "plan_started_at": {
+      "type": "string",
+      "description": "Data de início do plano atual"
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "ID do cliente no Stripe (para assinaturas)"
+    },
+    "subscription_id": {
+      "type": "string",
+      "description": "ID da assinatura ativa no Stripe"
+    },
+    "credits_remaining": {
+      "type": "number",
+      "default": 0,
+      "description": "Créditos de upgrade avulso restantes"
     }
   },
   "required": [

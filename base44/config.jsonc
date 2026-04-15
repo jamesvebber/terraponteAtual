@@ -1,0 +1,7 @@
+{
+  "name": "terraponteapp",
+  "appId": "69c716a35da7111840683290",
+  "site": {
+    "outputDirectory": "./dist"
+  }
+}

@@ -10,13 +10,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   User, LogOut, Trash2, ChevronRight, Moon, Sun, Shield, HelpCircle,
-  Pencil, X, Check, FileText, Store, Package,
+  Pencil, X, Check, FileText, Store, Package, CreditCard, MessageSquare,
+  Crown, Star, Zap
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 /* ── small reusable pieces ────────────────────────────────────── */
-function SettingsRow({ icon: Icon, label, sublabel, onClick, danger, rightEl }) {
+function SettingsRow({ icon: Icon, label, sublabel, onClick, danger = false, rightEl = undefined }) {
   return (
     <button
       onClick={onClick}
@@ -71,7 +72,7 @@ function GuestScreen() {
 
 /* ── main component ───────────────────────────────────────────── */
 export default function Profile() {
-  const { user, isAuthenticated, isLoadingAuth } = useAuth();
+  const { user, isAuthenticated, isLoadingAuth, sellerProfile } = useAuth();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user?.full_name || "");
   const [saving, setSaving] = useState(false);
@@ -167,6 +168,63 @@ export default function Profile() {
         </div>
       </div>
 
+      {/* Plan Info Card */}
+      {sellerProfile?.plan_type && sellerProfile.plan_type !== 'bronze' ? (
+        <div className={`rounded-2xl p-4 mb-5 flex items-center gap-3 ${
+          sellerProfile.plan_type === 'ouro' ? 'bg-amber-50 border border-amber-200' :
+          sellerProfile.plan_type === 'prata' ? 'bg-blue-50 border border-blue-200' :
+          'bg-green-50 border border-green-200'
+        }`}>
+          <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${
+            sellerProfile.plan_type === 'ouro' ? 'bg-amber-200' :
+            sellerProfile.plan_type === 'prata' ? 'bg-blue-200' :
+            'bg-green-200'
+          }`}>
+            {sellerProfile.plan_type === 'ouro' ? <Crown className="h-6 w-6 text-amber-700" /> :
+             sellerProfile.plan_type === 'prata' ? <Star className="h-6 w-6 text-blue-700" /> :
+             <Zap className="h-6 w-6 text-green-700" />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={`font-bold ${
+              sellerProfile.plan_type === 'ouro' ? 'text-amber-800' :
+              sellerProfile.plan_type === 'prata' ? 'text-blue-800' :
+              'text-green-800'
+            }`}>
+              Plano {sellerProfile.plan_type.toUpperCase()}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Válido até {sellerProfile.plan_expiry ? new Date(sellerProfile.plan_expiry).toLocaleDateString('pt-BR') : 'indefinido'}
+            </p>
+          </div>
+          <button
+            onClick={() => navigate("/planos")}
+            className={`h-8 px-3 rounded-lg text-xs font-bold shrink-0 ${
+              sellerProfile.plan_type === 'ouro' ? 'bg-amber-600 text-white hover:bg-amber-700' :
+              sellerProfile.plan_type === 'prata' ? 'bg-blue-600 text-white hover:bg-blue-700' :
+              'bg-green-600 text-white hover:bg-green-700'
+            }`}
+          >
+            Upgrade
+          </button>
+        </div>
+      ) : (
+        <div className="rounded-2xl p-4 mb-5 flex items-center gap-3 bg-gray-50 border border-gray-200">
+          <div className="h-12 w-12 rounded-xl bg-gray-200 flex items-center justify-center shrink-0">
+            <Shield className="h-6 w-6 text-gray-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-gray-800">Plano Bronze</p>
+            <p className="text-xs text-muted-foreground">1 anúncio ativo, funcionalidades básicas</p>
+          </div>
+          <button
+            onClick={() => navigate("/planos")}
+            className="h-8 px-3 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary/90 shrink-0"
+          >
+            Upgrade
+          </button>
+        </div>
+      )}
+
       {/* Aparência */}
       <Section title="Aparência">
         <button
@@ -187,14 +245,21 @@ export default function Profile() {
       </Section>
 
       {/* My Listings */}
+      <Section title="Assinatura e Planos">
+        <SettingsRow icon={CreditCard} label="Gerenciar Plano" sublabel="Veja seu plano atual e faturas" onClick={() => navigate("/planos")} />
+      </Section>
+
       <Section title="Meus anúncios">
         <SettingsRow icon={Package} label="Meus anúncios" sublabel="Edite, pause ou exclua seus anúncios" onClick={() => navigate("/meus-anuncios")} />
       </Section>
 
-      {/* Seller profile */}
       <Section title="Vendedor">
         <SettingsRow icon={Store} label="Perfil de vendedor" sublabel="Configure como os compradores te veem" onClick={() => navigate("/edit-seller-profile")} />
         <SettingsRow icon={Store} label="Minha loja de insumos" sublabel="Gerencie produtos, entregas e frete" onClick={() => navigate("/minha-loja")} />
+      </Section>
+
+      <Section title="Administração">
+        <SettingsRow icon={MessageSquare} label="Fila de WhatsApp" sublabel="Acompanhe os disparos de marketing" onClick={() => navigate("/admin/fila")} />
       </Section>
 
       {/* Suporte */}
@@ -217,7 +282,7 @@ export default function Profile() {
 
       {/* Conta */}
       <Section title="Conta">
-        <SettingsRow icon={LogOut} label="Sair" onClick={() => base44.auth.logout()} />
+        <SettingsRow icon={LogOut} label="Sair" sublabel="Deslogar do TerraPonte" onClick={() => base44.auth.logout()} />
       </Section>
 
       {/* Zona de perigo */}
@@ -229,6 +294,7 @@ export default function Profile() {
                 icon={Trash2}
                 label="Excluir conta"
                 sublabel="Remove permanentemente sua conta e dados pessoais"
+                onClick={() => {}}
                 danger
                 rightEl={null}
               />

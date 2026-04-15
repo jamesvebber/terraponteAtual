@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useScrollOnFocus } from "../hooks/useScrollOnFocus";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -7,15 +7,66 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PlusCircle, Loader2, CheckCircle2, ChevronRight, Eye } from "lucide-react";
+import { PlusCircle, Loader2, CheckCircle2, ChevronRight, Eye, Zap, Shield, Crown, Check, Star } from "lucide-react";
+import { loadStripe } from "@stripe/stripe-js";
 import MediaUploader from "../components/MediaUploader";
 import { LISTING_CATEGORIES, SALE_FORMATS_BY_CATEGORY, FORMATS_WITH_PKG_DETAILS } from "../utils/listingCategories";
 import { formatListingPrice } from "../utils/listingPrice";
 import { toast } from "sonner";
 
+const stripePromise = loadStripe('pk_test_51TMTVMKUpjZIh8bE7YnKa8KFJGFbQBx1s5lZ99rDCFNNLWUuGqMMcUybpLwzW9GGCEcc0MQJWk09dE9pXbi8gBfo00vXtPz5Ns');
+
 
 
 const SELLER_TYPES = ["Produtor", "Loja"];
+
+const AD_TYPES = [
+  {
+    id: 'bronze',
+    name: 'Bronze',
+    emoji: '🥉',
+    price: 'Grátis',
+    color: 'bg-gray-100 border-gray-200 text-gray-700',
+    btnColor: 'bg-gray-200 text-gray-700 hover:bg-gray-300',
+    features: [
+      '1 foto no anúncio',
+      'Visibilidade básica',
+      '1 anúncio por vez'
+    ],
+    limits: { maxPhotos: 1, maxActive: 1 }
+  },
+  {
+    id: 'prata',
+    name: 'Prata',
+    emoji: '🥈',
+    price: 'R$ 19,90',
+    color: 'bg-blue-100 border-blue-200 text-blue-700',
+    btnColor: 'bg-blue-600 text-white hover:bg-blue-700',
+    features: [
+      '3 fotos no anúncio',
+      '✅ Selo "Verificado"',
+      'Destaque no feed',
+      '1 disparo WhatsApp'
+    ],
+    limits: { maxPhotos: 3, maxActive: 5 }
+  },
+  {
+    id: 'ouro',
+    name: 'Ouro',
+    emoji: '🥇',
+    price: 'R$ 39,90',
+    color: 'bg-amber-100 border-amber-200 text-amber-700',
+    btnColor: 'bg-amber-600 text-white hover:bg-amber-700',
+    features: [
+      '8 fotos no anúncio',
+      '🏆 Selo "Verificado" Ouro',
+      'Destaque máximo',
+      '3 dispar WhatsApp',
+      'Prioridade no topo'
+    ],
+    limits: { maxPhotos: 8, maxActive: null }
+  }
+];
 
 const PROFANITY = ["merda", "porra", "caralho", "puta", "viado", "fdp"];
 const hasProfanity = (t) => PROFANITY.some((w) => t?.toLowerCase().includes(w));
@@ -33,7 +84,7 @@ const EMPTY = {
   prop_infrastructure: "", prop_distance_km: "",
 };
 
-function FieldGroup({ label, hint, children, error }) {
+function FieldGroup({ label, hint = "", children, error = null }) {
   return (
     <div className="space-y-1.5">
       <Label className="text-sm font-bold text-foreground block">{label}</Label>
@@ -54,7 +105,7 @@ function SectionHeader({ emoji, title }) {
 }
 
 export default function Vender() {
-  const { isAuthenticated, isLoadingAuth } = useAuth();
+  const { isAuthenticated, isLoadingAuth, user, sellerProfile } = useAuth();
   const navigate = useNavigate();
   const scrollRef = useRef(null);
   useScrollOnFocus(scrollRef);
@@ -64,6 +115,39 @@ export default function Vender() {
   const [publishedId, setPublishedId] = useState(null);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [adType, setAdType] = useState(null);
+  const [showAdTypeSelector, setShowAdTypeSelector] = useState(false);
+
+  const getDefaultAdType = () => {
+    if (!sellerProfile?.plan_type) return 'bronze';
+    if (sellerProfile.plan_type === 'ouro') return 'ouro';
+    if (sellerProfile.plan_type === 'prata') return 'prata';
+    if (sellerProfile.plan_type === 'bronze') return 'bronze';
+    return 'bronze';
+  };
+
+  useEffect(() => {
+    const defaultType = getDefaultAdType();
+    setAdType(defaultType);
+  }, [sellerProfile?.plan_type]);
+
+  const getAdTypeConfig = (typeId) => AD_TYPES.find(t => t.id === typeId);
+
+  const checkBronzeLimit = async () => {
+    if (adType !== 'bronze') return { allowed: true };
+    
+    const activeListings = await base44.entities.Listing.filter({ 
+      owner_email: user.email, 
+      status: "active" 
+    });
+    
+    const bronzeActive = activeListings.filter(l => !l.ad_type || l.ad_type === 'bronze');
+    
+    if (bronzeActive.length >= 1) {
+      return { allowed: false, reason: 'limit' };
+    }
+    return { allowed: true };
+  };
 
   if (isLoadingAuth) {
     return (
@@ -153,6 +237,17 @@ export default function Vender() {
     setErrors(e);
     if (Object.keys(e).length > 0) { toast.error("Corrija os campos destacados."); return; }
 
+    const adConfig = getAdTypeConfig(adType);
+
+    if (adType === 'bronze') {
+      const limitCheck = await checkBronzeLimit();
+      if (!limitCheck.allowed) {
+        toast.error("Limite atingido: O plano Bronze permite apenas 1 anúncio ativo. Faça upgrade para publicar mais!");
+        navigate("/planos");
+        return;
+      }
+    }
+
     setSubmitting(true);
     // Upload all media files
     const uploadedUrls = [];
@@ -165,11 +260,26 @@ export default function Vender() {
       }
     }
     const image_url = uploadedUrls[0] || null;
-    const photos = uploadedUrls.slice(1);
+    const photos = uploadedUrls.slice(1, 1 + adConfig.limits.maxPhotos);
 
     const unitLabel = form.pkg_qty && form.pkg_unit
       ? `${form.sale_format} de ${form.pkg_qty} ${form.pkg_unit}`
       : form.sale_format;
+
+    const adExpiry = adType !== 'bronze' 
+      ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      : null;
+
+    const whatsappDispatchesAllowed = adType === 'prata' ? 1 : adType === 'ouro' ? 3 : 0;
+
+    const hasPremiumPlan = sellerProfile?.plan_type && ['prata', 'ouro', 'essencial', 'business', 'master'].includes(sellerProfile.plan_type);
+    const needsPayment = adType !== 'bronze' && !hasPremiumPlan;
+
+    if (needsPayment) {
+      toast.warning("Pagamento Avulso em breve! Por enquanto, seu anúncio será criado como Bronze.");
+      toast.info("Em breve você poderá pagar R$ 19,90 (Prata) ou R$ 39,90 (Ouro) por anúncio.");
+    }
+
     const listing = await base44.entities.Listing.create({
       title: form.title.trim(),
       description: form.description.trim(),
@@ -201,10 +311,32 @@ export default function Vender() {
       availability_status: form.availability_status || "Disponível",
       delivery_type: form.delivery_type || null,
       freight_info: form.freight_info || null,
+      ad_type: adType,
+      ad_expiry: adExpiry,
+      is_upgraded: adType !== 'bronze',
+      whatsapp_dispatches_allowed: whatsappDispatchesAllowed,
+      whatsapp_dispatches_used: 0,
+      views_count: 0,
+      renewal_count: 0,
     });
 
     setSubmitting(false);
     setPublishedId(listing.id);
+
+    if (whatsappDispatchesAllowed > 0) {
+      try {
+        await base44.entities.WhatsAppDispatch.create({
+          listing_id: listing.id,
+          listing_title: listing.title,
+          status: "pendente",
+          target_region: listing.region || "Goiás",
+          owner_email: user.email,
+          scheduled_date: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error("Failed to queue WhatsApp dispatch:", err);
+      }
+    }
   };
 
   return (
@@ -219,6 +351,31 @@ export default function Vender() {
           <p className="text-xs text-muted-foreground font-medium">Ganhe visibilidade e venda direto pelo WhatsApp</p>
         </div>
       </div>
+      
+      {/* Upsell Banner for Bronze users */}
+      {(sellerProfile?.plan_type === 'bronze' || !sellerProfile?.plan_type) && (
+        <div className="mb-6 p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-200 shadow-sm relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:scale-110 transition-transform">
+            <Zap className="h-16 w-16 text-amber-600" />
+          </div>
+          <div className="relative z-10">
+            <h3 className="text-sm font-extrabold text-amber-800 flex items-center gap-1.5 mb-1">
+              <Zap className="h-4 w-4 fill-amber-500" /> Turbine suas vendas!
+            </h3>
+            <p className="text-xs text-amber-700/80 font-medium leading-relaxed mb-4 max-w-[85%]">
+              Anúncios **Prata e Ouro** ganham selo verificado e disparos automáticos nos grupos de WhatsApp da região.
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-9 rounded-xl border-amber-300 bg-white/50 text-amber-800 font-bold hover:bg-amber-100 transition-colors"
+              onClick={() => navigate("/planos")}
+            >
+              Ver vantagens premium
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-5">
 
@@ -514,6 +671,57 @@ export default function Vender() {
             onChange={(e) => set("whatsapp", e.target.value)}
           />
         </FieldGroup>
+
+        {/* === Tipo do Anúncio === */}
+        <SectionHeader emoji="📊" title="Tipo do anúncio" />
+
+        <div className="space-y-3">
+          {AD_TYPES.map((type) => {
+            const isSelected = adType === type.id;
+            const isDisabled = type.id === 'bronze' && sellerProfile?.plan_type && sellerProfile.plan_type !== 'bronze';
+            
+            return (
+              <button
+                key={type.id}
+                type="button"
+                onClick={() => setAdType(type.id)}
+                disabled={isDisabled}
+                className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${
+                  isSelected 
+                    ? `border-primary bg-primary/5 ${type.color}` 
+                    : 'border-border bg-card'
+                } ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary/50 cursor-pointer'}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${type.color}`}>
+                      {type.id === 'bronze' ? <Shield className="h-5 w-5" /> : type.id === 'prata' ? <Star className="h-5 w-5" /> : <Crown className="h-5 w-5" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-foreground">{type.emoji} {type.name}</span>
+                        {isSelected && <Check className="h-4 w-4 text-primary" />}
+                        {(sellerProfile?.plan_type === 'ouro' || sellerProfile?.plan_type === 'prata') && (
+                          <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-bold">
+                            INCLUÍDO
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground font-medium">{type.price}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {type.features.map((feature, i) => (
+                    <span key={i} className="text-[10px] bg-muted/50 px-2 py-1 rounded-full text-muted-foreground font-medium">
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+              </button>
+            );
+          })}
+        </div>
 
         {/* Submit */}
         <div className="pt-2">

@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   Loader2, PlusCircle, Pencil, Trash2, EyeOff, Eye, CheckCircle2,
-  Image, ArrowLeft, Package,
+  Image, ArrowLeft, Package, Shield, Star, Crown, Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatListingPrice } from "../utils/listingPrice";
@@ -18,6 +18,12 @@ const STATUS_COLOR = {
   rejected: "bg-red-100 text-red-600",
 };
 const STATUS_LABEL = { active: "Ativo", paused: "Pausado", sold: "Vendido", pending_review: "Em análise", rejected: "Rejeitado" };
+
+const AD_TYPE_COLORS = {
+  bronze: { bg: "bg-gray-100", text: "text-gray-700", label: "🥉 Bronze" },
+  prata: { bg: "bg-blue-100", text: "text-blue-700", label: "🥈 Prata" },
+  ouro: { bg: "bg-amber-100", text: "text-amber-700", label: "🥇 Ouro" },
+};
 
 const categoryEmoji = {
   "Alimentos da roça": "🍯", "Laticínios": "🧀", "Gado e animais": "🐂",
@@ -119,6 +125,25 @@ export default function MeusAnuncios() {
                       {STATUS_LABEL[l.status] || l.status}
                     </span>
                   </div>
+                  
+                  {/* Ad Type Badge */}
+                  <div className="flex items-center gap-1.5 mt-1 mb-1">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                      AD_TYPE_COLORS[l.ad_type || 'bronze']?.bg || 'bg-gray-100'
+                    } ${
+                      AD_TYPE_COLORS[l.ad_type || 'bronze']?.text || 'text-gray-700'
+                    }`}>
+                      {l.ad_type === 'ouro' ? <Crown className="h-2.5 w-2.5" /> : l.ad_type === 'prata' ? <Star className="h-2.5 w-2.5" /> : <Shield className="h-2.5 w-2.5" />}
+                      {AD_TYPE_COLORS[l.ad_type || 'bronze']?.label || '🥉 Bronze'}
+                    </span>
+                    {l.ad_expiry && new Date(l.ad_expiry) > new Date() && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                        <Clock className="h-2.5 w-2.5" />
+                        Expira {new Date(l.ad_expiry).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}
+                      </span>
+                    )}
+                  </div>
+                  
                   <p className="text-xs text-muted-foreground">{l.category} · {l.city}</p>
                   <p className="text-green-600 font-extrabold text-base mt-1">{formatListingPrice(l)}</p>
                   {(l.photos?.length > 0) && (

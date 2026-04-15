@@ -4,23 +4,23 @@
   "properties": {
     "title": {
       "type": "string",
-      "description": "T\u00edtulo do an\u00fancio"
+      "description": "Título do anúncio"
     },
     "description": {
       "type": "string",
-      "description": "Descri\u00e7\u00e3o detalhada"
+      "description": "Descrição detalhada"
     },
     "category": {
       "type": "string",
       "enum": [
-        "Alimentos da ro\u00e7a",
-        "Latic\u00ednios",
+        "Alimentos da roça",
+        "Laticínios",
         "Hortifruti",
         "Carnes e aves",
         "Gado e animais",
         "Silagem e feno",
-        "M\u00e1quinas e ferramentas",
-        "Servi\u00e7os rurais",
+        "Máquinas e ferramentas",
+        "Serviços rurais",
         "Propriedades rurais",
         "Artesanato rural",
         "Outros"
@@ -29,7 +29,7 @@
     },
     "price": {
       "type": "number",
-      "description": "Pre\u00e7o em R$"
+      "description": "Preço em R$"
     },
     "sale_format": {
       "type": "string",
@@ -45,7 +45,7 @@
     },
     "unit": {
       "type": "string",
-      "description": "Label de exibi\u00e7\u00e3o legado / calculado"
+      "description": "Label de exibição legado / calculado"
     },
     "price_per_kg": {
       "type": "number",
@@ -109,11 +109,11 @@
     "availability_status": {
       "type": "string",
       "enum": [
-        "Dispon\u00edvel",
+        "Disponível",
         "Sob encomenda",
-        "Indispon\u00edvel"
+        "Indisponível"
       ],
-      "default": "Dispon\u00edvel",
+      "default": "Disponível",
       "description": "Disponibilidade do item"
     },
     "delivery_type": {
@@ -121,7 +121,7 @@
       "enum": [
         "Retirada no local",
         "Entrega a combinar",
-        "Entrega dispon\u00edvel"
+        "Entrega disponível"
       ],
       "description": "Tipo de entrega"
     },
@@ -130,13 +130,13 @@
       "enum": [
         "Frete a combinar",
         "Sem frete / retirada",
-        "Entrega pr\u00f3pria"
+        "Entrega própria"
       ],
-      "description": "Informa\u00e7\u00e3o sobre frete"
+      "description": "Informação sobre frete"
     },
     "prop_type": {
       "type": "string",
-      "description": "Tipo do im\u00f3vel rural"
+      "description": "Tipo do imóvel rural"
     },
     "prop_purpose": {
       "type": "string",
@@ -144,15 +144,15 @@
     },
     "prop_area": {
       "type": "number",
-      "description": "\u00c1rea do im\u00f3vel"
+      "description": "Área do imóvel"
     },
     "prop_area_unit": {
       "type": "string",
-      "description": "Unidade da \u00e1rea: hectare ou alqueire"
+      "description": "Unidade da área: hectare ou alqueire"
     },
     "prop_aptitude": {
       "type": "string",
-      "description": "Aptid\u00e3o: pecu\u00e1ria, lavoura, lazer, mista"
+      "description": "Aptidão: pecuária, lavoura, lazer, mista"
     },
     "prop_has_water": {
       "type": "boolean"
@@ -166,7 +166,7 @@
     },
     "prop_distance_km": {
       "type": "number",
-      "description": "Dist\u00e2ncia da cidade em km"
+      "description": "Distância da cidade em km"
     },
     "report_count": {
       "type": "number",
@@ -184,6 +184,48 @@
     },
     "flagged_at": {
       "type": "string"
+    },
+    "ad_type": {
+      "type": "string",
+      "enum": [
+        "bronze",
+        "prata",
+        "ouro"
+      ],
+      "description": "Tipo do anúncio (Bronze/Prata/Ouro)"
+    },
+    "ad_expiry": {
+      "type": "string",
+      "description": "Data de expiração do anúncio premium"
+    },
+    "is_upgraded": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o anúncio foi pago/upgrade avulso"
+    },
+    "payment_id": {
+      "type": "string",
+      "description": "ID do pagamento no Stripe (para upgrades avulsos)"
+    },
+    "whatsapp_dispatches_used": {
+      "type": "number",
+      "default": 0,
+      "description": "Quantidade de disparos WhatsApp utilizados"
+    },
+    "whatsapp_dispatches_allowed": {
+      "type": "number",
+      "default": 0,
+      "description": "Quantidade de disparos WhatsApp permitidos pelo tipo"
+    },
+    "views_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Contagem de visualizações"
+    },
+    "renewal_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Quantas vezes o anúncio foi renovado"
     }
   },
   "required": [

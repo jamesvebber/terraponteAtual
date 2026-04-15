@@ -31,6 +31,9 @@ import StoresDirectory from './pages/StoresDirectory';
 import MeusAnuncios from './pages/MeusAnuncios';
 import EditListing from './pages/EditListing';
 import AdminEmailPanel from './pages/AdminEmailPanel';
+import Plans from './pages/Plans';
+import Login from './pages/Login';
+import AdminQueue from "./pages/AdminQueue";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -62,6 +65,7 @@ const AuthenticatedApp = () => {
         <Route path="/insumos" element={<Insumos />} />
         <Route path="/vender" element={<Vender />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/seller/:sellerName" element={<SellerProfile />} />
         <Route path="/edit-seller-profile" element={<EditSellerProfile />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
@@ -77,7 +81,9 @@ const AuthenticatedApp = () => {
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/admin/unit-assistant" element={<AdminUnitAssistant />} />
         <Route path="/admin/email" element={<AdminEmailPanel />} />
+        <Route path="/admin/fila" element={<AdminQueue />} />
         <Route path="/lojas" element={<StoresDirectory />} />
+        <Route path="/planos" element={<Plans />} />
         <Route path="/meus-anuncios" element={<MeusAnuncios />} />
         <Route path="/editar-anuncio/:id" element={<EditListing />} />
         {/* Clean share URLs */}

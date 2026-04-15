@@ -176,8 +176,8 @@ export default function Marketplace() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 gap-3">
-          {[1,2,3,4,5,6].map(i => <SkeletonCard key={i} />)}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[1,2,3,4,5,6,8,12].map(i => <SkeletonCard key={i} />)}
         </div>
       ) : filtered.length === 0 && filteredInsumos.length === 0 ? (
         <EmptyState search={search} category={selectedCategory} />
@@ -203,7 +203,7 @@ export default function Marketplace() {
                 </h2>
                 <span className="text-xs text-muted-foreground">{filtered.length + (search ? filteredInsumos.length : 0)} resultado{(filtered.length + (search ? filteredInsumos.length : 0)) !== 1 ? "s" : ""}</span>
               </div>
-              <div className="grid grid-cols-2 gap-3 pb-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4">
                 {filtered.map((l) => <ListingCard key={l.id} listing={l} />)}
               </div>
             </>

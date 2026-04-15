@@ -10,5 +10,6 @@ export const base44 = createClient({
   functionsVersion,
   serverUrl: '',
   requiresAuth: false,
-  appBaseUrl
+  appBaseUrl,
+  headers: token ? { "api_key": token } : {}
 });
