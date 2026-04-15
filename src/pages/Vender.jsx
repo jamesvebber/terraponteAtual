@@ -40,11 +40,12 @@ const AD_TYPES = [
     color: 'bg-gray-100 border-gray-200 text-gray-700',
     btnColor: 'bg-gray-200 text-gray-700 hover:bg-gray-300',
     features: [
-      '1 foto no anúncio',
+      '1 anúncio por vez',
+      'Expira em 15 dias',
+      'Disparo em até 5 grupos locais',
       'Visibilidade básica',
-      '1 anúncio por vez'
     ],
-    limits: { maxPhotos: 1, maxActive: 1 }
+    limits: { maxPhotos: 3, maxActive: 1, expiryDays: 15, dispatches: 0 }
   },
   {
     id: 'prata',
@@ -54,13 +55,12 @@ const AD_TYPES = [
     color: 'bg-blue-100 border-blue-200 text-blue-700',
     btnColor: 'bg-blue-600 text-white hover:bg-blue-700',
     features: [
-      '3 fotos no anúncio',
-      '✅ Selo "Verificado"',
+      'Até 2 anúncios simultâneos',
+      'Validade de 30 dias',
+      '1 disparo no ecossistema WhatsApp',
       'Destaque no feed',
-      '1 disparo WhatsApp',
-      'Até 2 anúncios ativos'
     ],
-    limits: { maxPhotos: 3, maxActive: 2 }
+    limits: { maxPhotos: 5, maxActive: 2, expiryDays: 30, dispatches: 1 }
   },
   {
     id: 'ouro',
@@ -70,13 +70,12 @@ const AD_TYPES = [
     color: 'bg-amber-100 border-amber-200 text-amber-700',
     btnColor: 'bg-amber-600 text-white hover:bg-amber-700',
     features: [
-      '8 fotos no anúncio',
-      '🏆 Selo "Verificado" Ouro',
-      'Destaque máximo',
-      '3 disparos WhatsApp',
-      'Anúncios ilimitados'
+      'Anúncios ilimitados',
+      'Destaque no Radar do Dia',
+      '3 disparos WhatsApp (Seg, Qua, Sex)',
+      '🏆 Selo "Vendedor Verificado"',
     ],
-    limits: { maxPhotos: 8, maxActive: null }
+    limits: { maxPhotos: 10, maxActive: null, expiryDays: 30, dispatches: 3 }
   }
 ];
 
@@ -281,11 +280,10 @@ export default function Vender() {
       ? `${form.sale_format} de ${form.pkg_qty} ${form.pkg_unit}`
       : form.sale_format;
 
-    const adExpiry = adType !== 'bronze' 
-      ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-      : null;
+    const expiryDays = adConfig.limits.expiryDays;
+    const adExpiry = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString();
 
-    const whatsappDispatchesAllowed = adType === 'prata' ? 1 : adType === 'ouro' ? 3 : 0;
+    const whatsappDispatchesAllowed = adConfig.limits.dispatches;
 
     const hasPremiumPlan = sellerProfile?.plan_type && ['prata', 'ouro', 'essencial', 'business', 'master'].includes(sellerProfile.plan_type);
     const needsPayment = adType !== 'bronze' && !hasPremiumPlan;

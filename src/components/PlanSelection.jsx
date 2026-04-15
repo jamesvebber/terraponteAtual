@@ -16,10 +16,10 @@ const PRODUCER_PLANS = [
     color: 'bg-gray-100 text-gray-700 border-gray-200',
     btnColor: 'bg-gray-200 text-gray-700 hover:bg-gray-300',
     features: [
-      '1 anúncio ativo',
+      '1 anúncio por vez',
+      'Expira em 15 dias',
+      'Disparo em até 5 grupos locais',
       'Visibilidade básica',
-      'Sem disparo WhatsApp',
-      'Período de 15 dias'
     ]
   },
   {
@@ -35,10 +35,9 @@ const PRODUCER_PLANS = [
     popular: true,
     features: [
       'Até 2 anúncios simultâneos',
-      'Selo "Vendedor Prata"',
-      '1 disparo WhatsApp/mês',
+      'Validade de 30 dias',
+      '1 disparo no ecossistema WhatsApp',
       'Destaque no feed',
-      'Suporte prioritário'
     ]
   },
   {
@@ -53,10 +52,9 @@ const PRODUCER_PLANS = [
     btnColor: 'bg-amber-600 text-white hover:bg-amber-700',
     features: [
       'Anúncios ilimitados',
-      'Selo "Vendedor Ouro"',
-      '3 disparos WhatsApp/mês',
-      'Prioridade no topo',
-      'Suporte premium 24h'
+      'Destaque no Radar do Dia',
+      '3 disparos WhatsApp (Seg, Qua, Sex)',
+      '🏆 Selo "Vendedor Verificado"',
     ]
   }
 ];
