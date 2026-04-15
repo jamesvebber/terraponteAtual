@@ -11,7 +11,7 @@ import {
 import {
   User, LogOut, Trash2, ChevronRight, Moon, Sun, Shield, HelpCircle,
   Pencil, X, Check, FileText, Store, Package, CreditCard, MessageSquare,
-  Crown, Star, Zap
+  Crown, Star, Zap, Phone
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -72,10 +72,13 @@ function GuestScreen() {
 
 /* ── main component ───────────────────────────────────────────── */
 export default function Profile() {
-  const { user, isAuthenticated, isLoadingAuth, sellerProfile } = useAuth();
+  const { user, isAuthenticated, isLoadingAuth, sellerProfile, checkAppState } = useAuth();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user?.full_name || "");
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [phone, setPhone] = useState(sellerProfile?.whatsapp || "");
   const [saving, setSaving] = useState(false);
+  const [savingPhone, setSavingPhone] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains("dark"));
   const navigate = useNavigate();
@@ -95,7 +98,29 @@ export default function Profile() {
     await base44.auth.updateMe({ full_name: name });
     setSaving(false);
     setEditing(false);
-    toast.success("Perfil atualizado!");
+    toast.success("Nome atualizado!");
+  };
+
+  const handleSavePhone = async () => {
+    if (!phone || phone.replace(/\D/g, "").length < 10) {
+      toast.error("Informe um número válido com DDD.");
+      return;
+    }
+    setSavingPhone(true);
+    if (sellerProfile) {
+      await base44.entities.SellerProfile.update(sellerProfile.id, { whatsapp: phone });
+    } else {
+      await base44.entities.SellerProfile.create({
+        owner_email: user.email,
+        seller_name: user.full_name || user.email,
+        seller_type: "Produtor",
+        whatsapp: phone,
+      });
+    }
+    setSavingPhone(false);
+    setEditingPhone(false);
+    checkAppState();
+    toast.success("WhatsApp salvo! Será pré-preenchido nos seus anúncios.");
   };
 
   const toggleDark = () => {
@@ -166,6 +191,59 @@ export default function Profile() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* WhatsApp card */}
+      <div className="bg-card border border-border rounded-2xl p-4 mb-4">
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <Phone className="h-4 w-4 text-green-600" />
+            <p className="text-sm font-bold text-foreground">WhatsApp para anúncios</p>
+          </div>
+          {!editingPhone && (
+            <button
+              onClick={() => { setEditingPhone(true); setPhone(sellerProfile?.whatsapp || ""); }}
+              className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center select-none"
+            >
+              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+        {editingPhone ? (
+          <div className="flex gap-2 items-center mt-2">
+            <Input
+              className="h-9 rounded-xl text-sm flex-1"
+              type="tel"
+              inputMode="tel"
+              placeholder="(62) 99999-9999"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              autoFocus
+            />
+            <button
+              onClick={handleSavePhone}
+              disabled={savingPhone}
+              className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shrink-0 select-none"
+            >
+              <Check className="h-4 w-4 text-primary-foreground" />
+            </button>
+            <button
+              onClick={() => setEditingPhone(false)}
+              className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center shrink-0 select-none"
+            >
+              <X className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {sellerProfile?.whatsapp
+              ? <span className="font-semibold text-green-700">{sellerProfile.whatsapp}</span>
+              : <span className="italic">Não informado — será pedido ao publicar</span>}
+          </p>
+        )}
+        <p className="text-[10px] text-muted-foreground mt-1.5 leading-snug">
+          Esse número será pré-preenchido automaticamente ao criar anúncios.
+        </p>
       </div>
 
       {/* Plan Info Card */}

@@ -134,14 +134,20 @@ export default function Vender() {
     if (!sellerProfile?.plan_type) return 'bronze';
     if (sellerProfile.plan_type === 'ouro') return 'ouro';
     if (sellerProfile.plan_type === 'prata') return 'prata';
-    if (sellerProfile.plan_type === 'bronze') return 'bronze';
     return 'bronze';
   };
 
+  // Pré-preenche nome e WhatsApp do perfil quando disponíveis
   useEffect(() => {
-    const defaultType = getDefaultAdType();
-    setAdType(defaultType);
-  }, [sellerProfile?.plan_type]);
+    setAdType(getDefaultAdType());
+    if (user || sellerProfile) {
+      setForm(prev => ({
+        ...prev,
+        seller_name: prev.seller_name || sellerProfile?.seller_name || user?.full_name || "",
+        whatsapp: prev.whatsapp || sellerProfile?.whatsapp || "",
+      }));
+    }
+  }, [sellerProfile, user]);
 
   const getAdTypeConfig = (typeId) => AD_TYPES.find(t => t.id === typeId);
 
