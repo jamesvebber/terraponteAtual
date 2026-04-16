@@ -831,13 +831,13 @@ export default function MinhaLoja() {
 
       {tab === "clientes" && (
         <div className="space-y-4">
-          {profile && (
-            <LocationCapture
-              sellerProfile={profile}
-              user={user}
-              onSaved={loadData}
-            />
-          )}
+          <LocationCapture
+            profile={profile}
+            user={user}
+            entityName="SupplierProfile"
+            onSaved={loadData}
+            allowUpdate={true}
+          />
           <ClientesProximos supplierProfile={profile} />
         </div>
       )}

@@ -1,23 +1,29 @@
 import { useState } from "react";
-import { MapPin, Loader2, CheckCircle2, X } from "lucide-react";
+import { MapPin, Loader2, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
 /**
- * LocationCapture — pede consentimento, captura lat/lng e salva no SellerProfile.
+ * LocationCapture — captura lat/lng e salva no SellerProfile ou SupplierProfile.
  * Props:
- *   sellerProfile  — perfil atual (pode ser null se ainda não existe)
+ *   profile        — perfil atual (SellerProfile ou SupplierProfile, pode ser null)
  *   user           — objeto do usuário autenticado
+ *   entityName     — "SellerProfile" (padrão) ou "SupplierProfile"
  *   onSaved        — callback após salvar com sucesso
+ *   allowUpdate    — se true, mostra botão para atualizar mesmo quando já tem localização
  */
-export default function LocationCapture({ sellerProfile, user, onSaved }) {
+export default function LocationCapture({ profile, user, entityName = "SellerProfile", onSaved, allowUpdate = false }) {
   const [loading, setLoading] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  const alreadyHasLocation = sellerProfile?.lat && sellerProfile?.lng;
+  const alreadyHasLocation = profile?.lat && profile?.lng;
 
-  if (dismissed || alreadyHasLocation) return null;
+  // Se já tem localização e não é modo "allowUpdate", não mostra nada
+  if (alreadyHasLocation && !allowUpdate) return null;
+
+  // Se dispensou nesta sessão (sem localização ainda), não mostra
+  if (dismissed && !alreadyHasLocation) return null;
 
   const handleCapture = () => {
     if (!navigator.geolocation) {
@@ -35,10 +41,10 @@ export default function LocationCapture({ sellerProfile, user, onSaved }) {
             location_consent: true,
             location_updated_at: new Date().toISOString(),
           };
-          if (sellerProfile) {
-            await base44.entities.SellerProfile.update(sellerProfile.id, data);
+          if (profile?.id) {
+            await base44.entities[entityName].update(profile.id, data);
           } else {
-            await base44.entities.SellerProfile.create({
+            await base44.entities[entityName].create({
               ...data,
               owner_email: user.email,
               seller_name: user.full_name || user.email,
@@ -61,6 +67,41 @@ export default function LocationCapture({ sellerProfile, user, onSaved }) {
     );
   };
 
+  // Modo: já tem localização, mostrar opção de atualizar
+  if (alreadyHasLocation && allowUpdate) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-xl bg-green-200 flex items-center justify-center shrink-0">
+            <MapPin className="h-4 w-4 text-green-700" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-green-800">Localização ativa</p>
+            <p className="text-xs text-green-700">
+              {profile.location_updated_at
+                ? `Atualizada em ${new Date(profile.location_updated_at).toLocaleDateString("pt-BR")}`
+                : "Salva anteriormente"}
+            </p>
+          </div>
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 rounded-xl border-green-300 text-green-700 font-bold text-xs gap-1.5 shrink-0"
+          onClick={handleCapture}
+          disabled={loading}
+        >
+          {loading ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <><RefreshCw className="h-3.5 w-3.5" /> Atualizar</>
+          )}
+        </Button>
+      </div>
+    );
+  }
+
+  // Modo: sem localização, pedir permissão
   return (
     <div className="bg-green-50 border border-green-200 rounded-2xl p-4 relative">
       <button
@@ -76,8 +117,8 @@ export default function LocationCapture({ sellerProfile, user, onSaved }) {
         <div>
           <p className="text-sm font-bold text-green-800 mb-0.5">Ative sua localização</p>
           <p className="text-xs text-green-700 leading-relaxed mb-3">
-            Permita que lojas próximas saibam que você está na região e receba ofertas relevantes.
-            Sua localização exata nunca é exibida publicamente — apenas distância aproximada.
+            Permita que compradores e lojas próximas te encontrem.
+            Sua localização exata nunca é exibida — apenas distância aproximada.
           </p>
           <Button
             size="sm"

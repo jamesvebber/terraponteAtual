@@ -281,7 +281,7 @@ export default function Profile() {
       </div>
 
       {/* Location capture */}
-      <LocationCapture sellerProfile={sellerProfile} user={user} onSaved={checkAppState} />
+      <LocationCapture profile={sellerProfile} user={user} onSaved={checkAppState} allowUpdate={true} />
 
       {/* WhatsApp card */}
       <div className="bg-card border border-border rounded-2xl p-4 mb-4">

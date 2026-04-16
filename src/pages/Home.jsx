@@ -273,7 +273,7 @@ export default function Home() {
       {/* Location capture — só para usuários logados sem localização */}
       {isAuthenticated && user && !sellerProfile?.lat && (
         <div className="mb-4">
-          <LocationCapture sellerProfile={sellerProfile} user={user} onSaved={checkAppState} />
+          <LocationCapture profile={sellerProfile} user={user} onSaved={checkAppState} />
         </div>
       )}
 
