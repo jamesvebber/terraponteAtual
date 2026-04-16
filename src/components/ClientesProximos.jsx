@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { base44 } from "@/api/base44Client";
-import { Loader2, Lock, MapPin, Users, Navigation } from "lucide-react";
+import { Loader2, MapPin, Users, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -47,26 +47,23 @@ function haversineKm(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-const BUSINESS_PLANS = ["business", "master", "essencial"];
-
 export default function ClientesProximos({ supplierProfile }) {
   const navigate = useNavigate();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [radiusKm, setRadiusKm] = useState(50);
 
-  const isBusinessPlan = supplierProfile?.plan_type && BUSINESS_PLANS.includes(supplierProfile.plan_type);
   const storeLat = supplierProfile?.lat;
   const storeLng = supplierProfile?.lng;
   const hasStoreLocation = storeLat && storeLng;
 
   useEffect(() => {
-    if (!isBusinessPlan || !hasStoreLocation) {
+    if (!hasStoreLocation) {
       setLoading(false);
       return;
     }
     loadClients();
-  }, [isBusinessPlan, hasStoreLocation]);
+  }, [hasStoreLocation]);
 
   const loadClients = async () => {
     setLoading(true);
@@ -84,37 +81,7 @@ export default function ClientesProximos({ supplierProfile }) {
     setLoading(false);
   };
 
-  // Not a business plan — show paywall
-  if (!isBusinessPlan) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-        <div className="h-20 w-20 rounded-3xl bg-primary/10 flex items-center justify-center mb-5">
-          <Lock className="h-10 w-10 text-primary" />
-        </div>
-        <h2 className="text-lg font-extrabold text-foreground mb-2">Recurso exclusivo Business</h2>
-        <p className="text-sm text-muted-foreground mb-2 max-w-xs leading-relaxed">
-          Veja no mapa os produtores e clientes próximos à sua loja que já usam o TerraPonte.
-        </p>
-        <div className="bg-muted/50 rounded-2xl p-4 mb-6 w-full max-w-xs text-left space-y-2">
-          {[
-            "Mapa interativo com clientes próximos",
-            "Distância aproximada de cada cliente",
-            "Filtro por raio de até 200 km",
-            "Exclusivo para planos Business e Master",
-          ].map(f => (
-            <div key={f} className="flex items-center gap-2 text-xs text-foreground">
-              <MapPin className="h-3.5 w-3.5 text-primary shrink-0" /> {f}
-            </div>
-          ))}
-        </div>
-        <Button className="w-full max-w-xs h-12 rounded-xl font-bold" onClick={() => navigate("/planos")}>
-          Fazer upgrade para Business
-        </Button>
-      </div>
-    );
-  }
-
-  // Has plan but no store location captured yet
+  // No store location captured yet
   if (!hasStoreLocation) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
