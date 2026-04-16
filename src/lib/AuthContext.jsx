@@ -92,6 +92,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const checkPlanExpiry = async (profile) => {
+    if (!profile) return profile;
+    const paid = ['prata', 'ouro', 'essencial', 'business', 'master'];
+    if (!paid.includes(profile.plan_type)) return profile;
+    if (!profile.plan_expiry) return profile;
+
+    const expired = new Date(profile.plan_expiry) < new Date();
+    if (expired) {
+      console.log('⏰ Plano expirado, revertendo para bronze:', profile.plan_type);
+      await base44.entities.SellerProfile.update(profile.id, { plan_type: 'bronze', plan_expiry: null });
+      return { ...profile, plan_type: 'bronze', plan_expiry: null };
+    }
+    return profile;
+  };
+
   const checkUserAuth = async () => {
     try {
       // Now check if the user is authenticated
@@ -101,9 +116,10 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser);
       setIsAuthenticated(true);
       
-      // Fetch seller profile
+      // Fetch seller profile and check plan expiry
       const profiles = await base44.entities.SellerProfile.filter({ owner_email: currentUser.email });
-      setSellerProfile(profiles[0] || null);
+      const profile = profiles[0] ? await checkPlanExpiry(profiles[0]) : null;
+      setSellerProfile(profile);
       
       setIsLoadingAuth(false);
     } catch (error) {
