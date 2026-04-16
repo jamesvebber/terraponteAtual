@@ -413,12 +413,12 @@ export default function MinhaLoja() {
       )}
 
       {/* Onboarding */}
-      {!showForm && !profile && (
+      {!showForm && !profile && tab === "perfil" && (
         <OnboardingBanner onStart={() => setShowForm(true)} />
       )}
 
       {/* Main form area */}
-      {showForm && (
+      {(showForm || !profile) && (
         <>
           {/* Tabs */}
           <div className="flex bg-muted rounded-xl p-1 mb-5 gap-1 overflow-x-auto">
