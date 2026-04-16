@@ -111,8 +111,8 @@ const BUSINESS_PLANS = [
   }
 ];
 
-export default function PlanSelection({ currentType = 'producer', onSelect }) {
-  const [tab, setTab] = useState(currentType);
+export default function PlanSelection({ currentType = 'producer', onSelect, isLojista = false }) {
+  const [tab, setTab] = useState(isLojista ? 'business' : currentType);
   const [loading, setLoading] = useState(null);
 
   const plans = tab === 'producer' ? PRODUCER_PLANS : BUSINESS_PLANS;
@@ -132,20 +132,22 @@ export default function PlanSelection({ currentType = 'producer', onSelect }) {
 
   return (
     <div className="w-full space-y-6">
-      <div className="flex p-1 bg-muted rounded-2xl">
-        <button
-          onClick={() => setTab('producer')}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all ${tab === 'producer' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-        >
-          INDIVIDUAL
-        </button>
-        <button
-          onClick={() => setTab('business')}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all ${tab === 'business' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-        >
-          PARA EMPRESAS
-        </button>
-      </div>
+      {!isLojista && (
+        <div className="flex p-1 bg-muted rounded-2xl">
+          <button
+            onClick={() => setTab('producer')}
+            className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all ${tab === 'producer' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            INDIVIDUAL
+          </button>
+          <button
+            onClick={() => setTab('business')}
+            className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all ${tab === 'business' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            PARA EMPRESAS
+          </button>
+        </div>
+      )}
 
       <div className="grid gap-4">
         {plans.map((plan) => (

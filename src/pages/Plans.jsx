@@ -184,7 +184,8 @@ export default function Plans() {
 
       <div className="max-w-md mx-auto">
         <PlanSelection 
-          currentType={sellerProfile?.seller_type === 'Loja' ? 'business' : 'producer'} 
+          currentType={sellerProfile?.seller_type === 'Loja' ? 'business' : 'producer'}
+          isLojista={sellerProfile?.seller_type === 'Loja'}
           onSelect={handleSelectPlan} 
         />
       </div>
