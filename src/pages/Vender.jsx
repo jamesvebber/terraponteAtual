@@ -252,16 +252,6 @@ export default function Vender() {
 
     const adConfig = getAdTypeConfig(adType);
 
-    const limitCheck = await checkPlanLimit();
-    if (!limitCheck.allowed) {
-      const nextMsg = limitCheck.nextPlan
-        ? ` Faça upgrade para o plano ${limitCheck.nextPlan.charAt(0).toUpperCase() + limitCheck.nextPlan.slice(1)} e publique mais!`
-        : '';
-      toast.error(`Limite do plano ${limitCheck.plan}: máximo de ${limitCheck.limit} anúncio${limitCheck.limit > 1 ? 's' : ''} ativo${limitCheck.limit > 1 ? 's' : ''}.${nextMsg}`);
-      navigate("/planos");
-      return;
-    }
-
     setSubmitting(true);
     // Upload all media files
     const uploadedUrls = [];
@@ -293,7 +283,7 @@ export default function Vender() {
       toast.info("Em breve você poderá pagar R$ 19,90 (Prata) ou R$ 39,90 (Ouro) por anúncio.");
     }
 
-    const listing = await base44.entities.Listing.create({
+    const listingData = {
       title: form.title.trim(),
       description: form.description.trim(),
       category: form.category,
@@ -331,7 +321,18 @@ export default function Vender() {
       whatsapp_dispatches_used: 0,
       views_count: 0,
       renewal_count: 0,
-    });
+    };
+
+    // Usar backend function para validação segura do limite de plano
+    let listing;
+    const res = await base44.functions.invoke('createListing', { listingData });
+    if (res.data?.error === 'PLAN_LIMIT_EXCEEDED') {
+      toast.error(`Limite do plano: máximo de ${res.data.limit} anúncio${res.data.limit > 1 ? 's' : ''} ativo${res.data.limit > 1 ? 's' : ''}.`);
+      navigate("/planos");
+      setSubmitting(false);
+      return;
+    }
+    listing = res.data?.listing;
 
     setSubmitting(false);
     setPublishedId(listing.id);

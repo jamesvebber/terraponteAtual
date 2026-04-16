@@ -81,9 +81,29 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [savingPhone, setSavingPhone] = useState(false);
   const [savingPhoto, setSavingPhoto] = useState(false);
+  const [savingType, setSavingType] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains("dark"));
   const navigate = useNavigate();
+
+  const isLojista = sellerProfile?.seller_type === "Loja";
+
+  const handleToggleLojista = async () => {
+    setSavingType(true);
+    const newType = isLojista ? "Produtor" : "Loja";
+    if (sellerProfile) {
+      await base44.entities.SellerProfile.update(sellerProfile.id, { seller_type: newType });
+    } else {
+      await base44.entities.SellerProfile.create({
+        owner_email: user.email,
+        seller_name: user.full_name || user.email,
+        seller_type: newType,
+      });
+    }
+    setSavingType(false);
+    checkAppState();
+    toast.success(newType === "Loja" ? "Perfil atualizado para Lojista! Acesse 'Minha Loja' para configurar." : "Perfil atualizado para Produtor.");
+  };
 
   if (isLoadingAuth) {
     return (
@@ -223,6 +243,41 @@ export default function Profile() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Tipo de perfil — Lojista toggle */}
+      <div className="bg-card border border-border rounded-2xl p-4 mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${isLojista ? "bg-primary/10" : "bg-muted"}`}>
+              <Store className={`h-4 w-4 ${isLojista ? "text-primary" : "text-muted-foreground"}`} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-foreground">Sou Lojista / Fornecedor</p>
+              <p className="text-xs text-muted-foreground leading-snug">
+                {isLojista
+                  ? "Acesse 'Minha Loja' para gerenciar produtos e clientes próximos"
+                  : "Ative para acessar funcionalidades de loja e planos Business"}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleToggleLojista}
+            disabled={savingType}
+            className={`h-7 w-13 rounded-full transition-colors relative shrink-0 ml-2 ${isLojista ? "bg-primary" : "bg-muted"} ${savingType ? "opacity-50" : ""}`}
+            style={{ minWidth: 52 }}
+          >
+            <div className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${isLojista ? "translate-x-6" : "translate-x-1"}`} />
+          </button>
+        </div>
+        {isLojista && (
+          <button
+            onClick={() => navigate("/minha-loja")}
+            className="mt-3 w-full h-9 rounded-xl bg-primary/10 text-primary text-xs font-bold flex items-center justify-center gap-1.5 select-none"
+          >
+            <Store className="h-3.5 w-3.5" /> Gerenciar Minha Loja
+          </button>
+        )}
       </div>
 
       {/* Location capture */}
