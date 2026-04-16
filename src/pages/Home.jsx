@@ -5,7 +5,9 @@ import { MapPin, TrendingUp, TrendingDown, Loader2, ChevronRight, Edit2 } from "
 import GlobalSearchBar from "../components/GlobalSearchBar";
 import FeaturedInsumos from "../components/FeaturedInsumos";
 import AnunciarModal from "../components/AnunciarModal";
+import LocationCapture from "../components/LocationCapture";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
+import { useAuth } from "@/lib/AuthContext";
 import ListingCard from "../components/ListingCard";
 import SkeletonCard from "../components/SkeletonCard";
 
@@ -128,6 +130,7 @@ export default function Home() {
   const [region, setRegion] = useState(() => localStorage.getItem(REGION_KEY) || "Goiás (estado)");
   const [showRegionSelector, setShowRegionSelector] = useState(false);
   const [showAnunciarModal, setShowAnunciarModal] = useState(false);
+  const { user, isAuthenticated, sellerProfile, checkAppState } = useAuth();
   const [featuredInsumos, setFeaturedInsumos] = useState([]);
   const [homeSearch, setHomeSearch] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -266,6 +269,13 @@ export default function Home() {
           <Edit2 className="h-3.5 w-3.5" /> Alterar
         </div>
       </button>
+
+      {/* Location capture — só para usuários logados sem localização */}
+      {isAuthenticated && user && !sellerProfile?.lat && (
+        <div className="mb-4">
+          <LocationCapture sellerProfile={sellerProfile} user={user} onSaved={checkAppState} />
+        </div>
+      )}
 
       {/* Action tiles */}
       <h2 className="text-sm font-extrabold text-muted-foreground uppercase tracking-wide mb-3">O que você quer fazer?</h2>
