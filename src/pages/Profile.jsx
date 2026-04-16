@@ -12,7 +12,7 @@ import {
 import {
   User, LogOut, Trash2, ChevronRight, Moon, Sun, Shield, HelpCircle,
   Pencil, X, Check, FileText, Store, Package, CreditCard, MessageSquare,
-  Crown, Star, Zap, Phone
+  Crown, Star, Zap, Phone, Camera, Loader2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -80,6 +80,7 @@ export default function Profile() {
   const [phone, setPhone] = useState(sellerProfile?.whatsapp || "");
   const [saving, setSaving] = useState(false);
   const [savingPhone, setSavingPhone] = useState(false);
+  const [savingPhoto, setSavingPhoto] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains("dark"));
   const navigate = useNavigate();
@@ -93,6 +94,26 @@ export default function Profile() {
   }
 
   if (!isAuthenticated) return <GuestScreen />;
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSavingPhoto(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    if (sellerProfile) {
+      await base44.entities.SellerProfile.update(sellerProfile.id, { photo_url: file_url });
+    } else {
+      await base44.entities.SellerProfile.create({
+        owner_email: user.email,
+        seller_name: user.full_name || user.email,
+        seller_type: "Produtor",
+        photo_url: file_url,
+      });
+    }
+    setSavingPhoto(false);
+    checkAppState();
+    toast.success("Foto atualizada!");
+  };
 
   const handleSaveName = async () => {
     setSaving(true);
@@ -149,11 +170,21 @@ export default function Profile() {
 
       {/* User card */}
       <div className="bg-card border border-border rounded-2xl p-4 mb-5 flex items-center gap-3">
-        <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-          <span className="text-2xl font-extrabold text-primary">
-            {user?.full_name?.charAt(0)?.toUpperCase() || "?"}
-          </span>
-        </div>
+        <label className="relative h-14 w-14 rounded-full shrink-0 cursor-pointer group">
+          <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+          {sellerProfile?.photo_url ? (
+            <img src={sellerProfile.photo_url} alt="Foto" className="h-14 w-14 rounded-full object-cover" />
+          ) : (
+            <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-2xl font-extrabold text-primary">
+                {user?.full_name?.charAt(0)?.toUpperCase() || "?"}
+              </span>
+            </div>
+          )}
+          <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            {savingPhoto ? <Loader2 className="h-4 w-4 text-white animate-spin" /> : <Camera className="h-4 w-4 text-white" />}
+          </div>
+        </label>
         <div className="flex-1 min-w-0">
           {editing ? (
             <div className="flex gap-2 items-center">
