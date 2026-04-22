@@ -139,6 +139,7 @@ export default function Vender() {
   const [touched, setTouched] = useState({});
   const [adType, setAdType] = useState(null);
   const [showAdTypeSelector, setShowAdTypeSelector] = useState(false);
+  const [limitModal, setLimitModal] = useState(null); // { activeCount, limit, currentPlan, overagePriceId, listingPayload }
 
   const getDefaultAdType = () => {
     const plan = sellerProfile?.plan_type;
@@ -162,6 +163,32 @@ export default function Vender() {
   }, [sellerProfile, user]);
 
   const getAdTypeConfig = (typeId) => AD_TYPES.find(t => t.id === typeId);
+
+  const handlePayOverage = async () => {
+    if (!limitModal) return;
+    setSubmitting(true);
+    setLimitModal(null);
+    try {
+      const response = await base44.functions.invoke('publishAd', {
+        listingData: limitModal.listingPayload,
+        payOverage: true,
+        successUrl: window.location.origin + "/meus-anuncios",
+        cancelUrl: window.location.href,
+      });
+      const data = response?.data ?? response;
+      if (data?.requirePayment) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+      if (data?.listing) {
+        setPublishedId(data.listing.id);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao processar pagamento. Tente novamente.');
+    }
+    setSubmitting(false);
+  };
 
 
   if (isLoadingAuth) {
@@ -316,35 +343,32 @@ export default function Vender() {
 
     let listing = null;
     try {
+      // Primeira chamada sem payOverage — respeita o limite
       const response = await base44.functions.invoke('publishAd', {
         listingData: listingPayload,
-        payOverage: true, // Auto trigger redirect if overage happens
+        payOverage: false,
         successUrl: window.location.origin + "/meus-anuncios",
         cancelUrl: window.location.href,
       });
 
-      if (response.requirePayment) {
-        window.location.href = response.checkoutUrl;
+      const data = response?.data ?? response;
+
+      if (data?.error === 'LIMIT_REACHED') {
+        setSubmitting(false);
+        // Mostra modal com as opções: pagar avulso ou assinar plano
+        setLimitModal({
+          activeCount: data.activeCount,
+          limit: data.limit,
+          currentPlan: data.currentPlan,
+          overagePriceId: data.overagePriceId,
+          listingPayload,
+        });
         return;
       }
 
-      if (response.error === 'LIMIT_REACHED') {
-        // Redireciona para página de planos com contexto de limite atingido
-        navigate(`/planos?from=limit`);
-        setSubmitting(false);
-        return;
-      }
-      
-      listing = response.listing || response.data?.listing;
+      listing = data?.listing;
     } catch (err) {
       console.error(err);
-      // Verifica se é erro de limite no corpo da resposta
-      const errData = err?.response?.data;
-      if (errData?.error === 'LIMIT_REACHED') {
-        navigate(`/planos?from=limit`);
-        setSubmitting(false);
-        return;
-      }
       toast.error('Ocorreu um erro ao publicar. Tente novamente.');
       setSubmitting(false);
       return;
@@ -368,6 +392,55 @@ export default function Vender() {
       }
     }
   };
+
+  // Modal de limite atingido
+  if (limitModal) {
+    const hasOverage = !!limitModal.overagePriceId;
+    const OVERAGE_PRICES = { gratis: 'R$ 5,99', bronze: 'R$ 4,99', prata: 'R$ 3,99' };
+    const overagePrice = OVERAGE_PRICES[limitModal.currentPlan] || 'valor avulso';
+
+    return (
+      <div className="px-4 pt-12 flex flex-col items-center justify-center min-h-[80vh] text-center">
+        <div className="h-20 w-20 rounded-full bg-amber-100 flex items-center justify-center mb-5">
+          <Zap className="h-10 w-10 text-amber-600" />
+        </div>
+        <h2 className="text-xl font-extrabold text-foreground mb-2">Limite atingido</h2>
+        <p className="text-sm text-muted-foreground mb-1 max-w-xs">
+          Você já tem <strong className="text-foreground">{limitModal.activeCount}</strong> de <strong className="text-foreground">{limitModal.limit}</strong> anúncios ativos no plano <strong className="text-foreground capitalize">{limitModal.currentPlan}</strong>.
+        </p>
+        <p className="text-sm text-muted-foreground mb-8 max-w-xs">
+          O que você quer fazer?
+        </p>
+
+        <div className="w-full max-w-xs space-y-3">
+          {hasOverage && (
+            <button
+              onClick={handlePayOverage}
+              className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-bold text-sm flex flex-col items-center justify-center gap-0.5 shadow-sm"
+            >
+              <span>💳 Publicar este anúncio avulso</span>
+              <span className="text-xs font-medium opacity-80">{overagePrice} por anúncio extra</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => { setLimitModal(null); navigate('/planos?from=limit'); }}
+            className="w-full h-14 rounded-2xl border-2 border-primary text-primary font-bold text-sm flex flex-col items-center justify-center gap-0.5"
+          >
+            <span>📋 Assinar um plano superior</span>
+            <span className="text-xs font-medium opacity-70">Mais anúncios, menos custo por extra</span>
+          </button>
+
+          <button
+            onClick={() => setLimitModal(null)}
+            className="w-full h-10 rounded-xl text-sm text-muted-foreground font-medium"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={scrollRef} className="px-4 pt-6 pb-10">
