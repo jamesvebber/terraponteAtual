@@ -150,17 +150,6 @@ export default function Vender() {
 
   const getAdTypeConfig = (typeId) => AD_TYPES.find(t => t.id === typeId);
 
-  const checkPlanLimit = async () => {
-    const plan = sellerProfile?.plan_type || 'bronze';
-    const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.bronze;
-    if (limits.maxActive === null) return { allowed: true };
-
-    const activeListings = await base44.entities.Listing.filter({ status: "active", created_by: user?.email });
-    if (activeListings.length >= limits.maxActive) {
-      return { allowed: false, limit: limits.maxActive, plan: limits.label, nextPlan: limits.nextPlan };
-    }
-    return { allowed: true };
-  };
 
   if (isLoadingAuth) {
     return (
@@ -275,15 +264,7 @@ export default function Vender() {
 
     const whatsappDispatchesAllowed = adConfig.limits.dispatches;
 
-    const hasPremiumPlan = sellerProfile?.plan_type && ['prata', 'ouro', 'essencial', 'business', 'master'].includes(sellerProfile.plan_type);
-    const needsPayment = adType !== 'bronze' && !hasPremiumPlan;
-
-    if (needsPayment) {
-      toast.warning("Pagamento Avulso em breve! Por enquanto, seu anúncio será criado como Bronze.");
-      toast.info("Em breve você poderá pagar R$ 19,90 (Prata) ou R$ 39,90 (Ouro) por anúncio.");
-    }
-
-    const listingData = {
+    const listingPayload = {
       title: form.title.trim(),
       description: form.description.trim(),
       category: form.category,
@@ -310,29 +291,37 @@ export default function Vender() {
         prop_infrastructure: form.prop_infrastructure,
         prop_distance_km: form.prop_distance_km ? parseFloat(form.prop_distance_km) : null,
       } : {}),
-      status: "active",
       availability_status: form.availability_status || "Disponível",
       delivery_type: form.delivery_type || null,
       freight_info: form.freight_info || null,
       ad_type: adType,
-      ad_expiry: adExpiry,
       is_upgraded: adType !== 'bronze',
       whatsapp_dispatches_allowed: whatsappDispatchesAllowed,
       whatsapp_dispatches_used: 0,
       views_count: 0,
-      renewal_count: 0,
     };
 
-    // Usar backend function para validação segura do limite de plano
-    let listing;
-    const res = await base44.functions.invoke('createListing', { listingData });
-    if (res.data?.error === 'PLAN_LIMIT_EXCEEDED') {
-      toast.error(`Limite do plano: máximo de ${res.data.limit} anúncio${res.data.limit > 1 ? 's' : ''} ativo${res.data.limit > 1 ? 's' : ''}.`);
-      navigate("/planos");
+    let listing = null;
+    try {
+      const response = await base44.functions.invoke('publishAd', {
+        listingData: listingPayload,
+        payOverage: true, // Auto trigger redirect if overage happens
+        successUrl: window.location.origin + "/meus-anuncios",
+        cancelUrl: window.location.href,
+      });
+
+      if (response.requirePayment) {
+        window.location.href = response.checkoutUrl;
+        return;
+      }
+      
+      listing = response.listing;
+    } catch (err) {
+      console.error(err);
+      toast.error('Ocorreu um erro ao verificar sua franquia. Tente novamente.');
       setSubmitting(false);
       return;
     }
-    listing = res.data?.listing;
 
     setSubmitting(false);
     setPublishedId(listing.id);

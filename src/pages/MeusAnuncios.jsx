@@ -16,8 +16,9 @@ const STATUS_COLOR = {
   sold: "bg-gray-100 text-gray-500",
   pending_review: "bg-blue-100 text-blue-700",
   rejected: "bg-red-100 text-red-600",
+  expirado: "bg-red-100 text-red-700",
 };
-const STATUS_LABEL = { active: "Ativo", paused: "Pausado", sold: "Vendido", pending_review: "Em análise", rejected: "Rejeitado" };
+const STATUS_LABEL = { active: "Ativo", paused: "Pausado", sold: "Vendido", pending_review: "Em análise", rejected: "Rejeitado", expirado: "Expirado" };
 
 const AD_TYPE_COLORS = {
   bronze: { bg: "bg-gray-100", text: "text-gray-700", label: "🥉 Bronze" },
@@ -57,6 +58,30 @@ export default function MeusAnuncios() {
     setListings(prev => prev.filter(l => l.id !== id));
     await base44.entities.Listing.delete(id);
     toast.success("Anúncio excluído.");
+  };
+
+  const handleRepublish = async (id) => {
+    setLoading(true);
+    try {
+      const response = await base44.functions.invoke('republishAd', {
+        listingId: id,
+        payOverage: true, // auto trigger redirect if overage happens
+        successUrl: window.location.origin + "/meus-anuncios",
+        cancelUrl: window.location.href,
+      });
+
+      if (response.requirePayment) {
+        window.location.href = response.checkoutUrl;
+        return;
+      }
+      
+      setListings(prev => prev.map(l => l.id === id ? { ...l, status: "active", ad_expiry: response.listing?.ad_expiry } : l));
+      toast.success("Anúncio republicado com sucesso!");
+    } catch (err) {
+      console.error(err);
+      toast.error('Ocorreu um erro ao republicar. Verifique os limites da sua franquia.');
+    }
+    setLoading(false);
   };
 
   if (isLoadingAuth || loading) return (
@@ -177,6 +202,11 @@ export default function MeusAnuncios() {
                   <button onClick={() => setStatus(l.id, "active")}
                     className="h-8 px-3 rounded-lg bg-green-100 text-green-700 text-xs font-bold flex items-center gap-1.5 shrink-0 select-none">
                     <Eye className="h-3.5 w-3.5" /> Ativar
+                  </button>
+                ) : l.status === "expirado" ? (
+                  <button onClick={() => handleRepublish(l.id)}
+                    className="h-8 px-3 rounded-lg bg-amber-100 text-amber-700 text-xs font-bold flex items-center gap-1.5 shrink-0 select-none">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Republicar
                   </button>
                 ) : null}
                 {l.status !== "sold" && (
