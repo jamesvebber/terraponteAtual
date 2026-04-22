@@ -63,23 +63,52 @@ export default function MeusAnuncios() {
   const handleRepublish = async (id) => {
     setLoading(true);
     try {
-      const response = await base44.functions.invoke('republishAd', {
+      // Primeira tentativa: sem pagamento (respeita o limite do plano)
+      const res = await base44.functions.invoke('republishAd', {
         listingId: id,
-        payOverage: true,
+        payOverage: false,
         successUrl: window.location.origin + "/meus-anuncios",
         cancelUrl: window.location.href,
       });
+      const data = res.data ?? res;
 
-      if (response.requirePayment) {
-        window.location.href = response.checkoutUrl;
+      if (data.success) {
+        setListings(prev => prev.map(l => l.id === id ? { ...l, status: "active", ad_expiry: data.listing?.ad_expiry } : l));
+        toast.success("Anúncio republicado com sucesso!");
+        setLoading(false);
         return;
       }
 
-      setListings(prev => prev.map(l => l.id === id ? { ...l, status: "active", ad_expiry: response.listing?.ad_expiry } : l));
-      toast.success("Anúncio republicado com sucesso!");
+      if (data.error === "LIMIT_REACHED") {
+        // Limite cheio — oferecer pagamento avulso ou sugerir upgrade
+        if (data.overagePriceId) {
+          const confirmed = window.confirm(
+            `Você já tem ${data.activeCount} anúncios ativos (limite do plano ${data.currentPlan}: ${data.limit}).\n\nDeseja publicar este anúncio avulso? Será cobrado um valor adicional.`
+          );
+          if (confirmed) {
+            const res2 = await base44.functions.invoke('republishAd', {
+              listingId: id,
+              payOverage: true,
+              successUrl: window.location.origin + "/meus-anuncios",
+              cancelUrl: window.location.href,
+            });
+            const data2 = res2.data ?? res2;
+            if (data2.requirePayment) {
+              window.location.href = data2.checkoutUrl;
+              return;
+            }
+          }
+        } else {
+          toast.error(`Limite atingido (${data.activeCount}/${data.limit} anúncios ativos). Faça upgrade para republicar.`, { duration: 5000 });
+          navigate("/planos");
+        }
+        setLoading(false);
+        return;
+      }
+
     } catch (err) {
       console.error(err);
-      toast.error('Ocorreu um erro ao republicar. Verifique os limites da sua franquia.');
+      toast.error('Erro ao republicar. Tente novamente.');
     }
     setLoading(false);
   };
