@@ -327,11 +327,25 @@ export default function Vender() {
         window.location.href = response.checkoutUrl;
         return;
       }
+
+      if (response.error === 'LIMIT_REACHED') {
+        // Redireciona para página de planos com contexto de limite atingido
+        navigate(`/planos?from=limit`);
+        setSubmitting(false);
+        return;
+      }
       
-      listing = response.listing;
+      listing = response.listing || response.data?.listing;
     } catch (err) {
       console.error(err);
-      toast.error('Ocorreu um erro ao verificar sua franquia. Tente novamente.');
+      // Verifica se é erro de limite no corpo da resposta
+      const errData = err?.response?.data;
+      if (errData?.error === 'LIMIT_REACHED') {
+        navigate(`/planos?from=limit`);
+        setSubmitting(false);
+        return;
+      }
+      toast.error('Ocorreu um erro ao publicar. Tente novamente.');
       setSubmitting(false);
       return;
     }
