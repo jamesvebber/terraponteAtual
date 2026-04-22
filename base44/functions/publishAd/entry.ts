@@ -2,11 +2,15 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY');
 
+// Plano Grátis: 2 ads / 7 dias / excedente R$ 5,99
+// Plano Bronze: R$ 14,90/mês / 6 ads / 15 dias / excedente R$ 4,99
+// Plano Prata:  R$ 29,90/mês / 15 ads / 30 dias / excedente R$ 3,99
+// Plano Ouro:   R$ 49,90/mês / ilimitado / 60 dias / sem excedente
 const MATRIX = {
-  gratis: { limit: 2, days: 7, overagePriceId: 'price_1TP5cfKUpjZIh8bET8ovHqqZ' },
-  bronze: { limit: 6, days: 15, overagePriceId: 'price_1TP5cgKUpjZIh8bEpVagRJ4h' },
-  prata: { limit: 15, days: 30, overagePriceId: 'price_1TP5cgKUpjZIh8bEwsyGg7H3' },
-  ouro: { limit: 999999, days: 60, overagePriceId: null }
+  gratis: { limit: 2,      days: 7,  overagePriceId: 'price_1TP5cfKUpjZIh8bET8ovHqqZ' }, // R$ 5,99
+  bronze: { limit: 6,      days: 15, overagePriceId: 'price_1TP5cgKUpjZIh8bEpVagRJ4h' }, // R$ 4,99
+  prata:  { limit: 15,     days: 30, overagePriceId: 'price_1TP5cgKUpjZIh8bEwsyGg7H3' }, // R$ 3,99
+  ouro:   { limit: 999999, days: 60, overagePriceId: null }
 };
 
 Deno.serve(async (req) => {

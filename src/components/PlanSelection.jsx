@@ -6,26 +6,45 @@ import { toast } from "sonner";
 
 const PRODUCER_PLANS = [
   {
-    id: 'bronze',
-    name: 'Bronze',
-    price: 'Grátis',
+    id: 'gratis',
+    name: 'Grátis',
+    price: 'R$ 0',
     period: '',
-    subtitle: 'Por tempo ilimitado',
+    subtitle: 'Gratuito para sempre',
     icon: Shield,
     stripe_price_id: null,
     color: 'bg-gray-100 text-gray-700 border-gray-200',
     btnColor: 'bg-gray-200 text-gray-700 hover:bg-gray-300',
+    overage: 'R$ 5,99 / anúncio extra',
     features: [
-      '1 anúncio por vez',
-      'Expira em 15 dias',
-      'Disparo em até 5 grupos locais',
+      'Até 2 anúncios simultâneos',
+      'Anúncio dura 7 dias',
+      'Excedente: R$ 5,99 por anúncio',
+      'Visibilidade básica',
+    ]
+  },
+  {
+    id: 'bronze',
+    name: 'Bronze',
+    price: 'R$ 14,90',
+    period: '/mês',
+    subtitle: 'Assinatura mensal',
+    icon: Shield,
+    stripe_price_id: 'price_1TMTcPKUpjZIh8bEpHw5lbfp',
+    color: 'bg-orange-100 text-orange-700 border-orange-200',
+    btnColor: 'bg-orange-600 text-white hover:bg-orange-700',
+    overage: 'R$ 4,99 / anúncio extra',
+    features: [
+      'Até 6 anúncios simultâneos',
+      'Anúncio dura 15 dias',
+      'Excedente: R$ 4,99 por anúncio',
       'Visibilidade básica',
     ]
   },
   {
     id: 'prata',
     name: 'Prata',
-    price: 'R$ 19,90',
+    price: 'R$ 29,90',
     period: '/mês',
     subtitle: 'Assinatura mensal',
     icon: Zap,
@@ -33,28 +52,30 @@ const PRODUCER_PLANS = [
     color: 'bg-blue-100 text-blue-700 border-blue-200',
     btnColor: 'bg-blue-600 text-white hover:bg-blue-700',
     popular: true,
+    overage: 'R$ 3,99 / anúncio extra',
     features: [
-      'Até 2 anúncios simultâneos',
-      'Validade de 30 dias',
+      'Até 15 anúncios simultâneos',
+      'Anúncio dura 30 dias',
+      'Excedente: R$ 3,99 por anúncio',
       '1 disparo no ecossistema WhatsApp',
-      'Destaque no feed',
     ]
   },
   {
     id: 'ouro',
     name: 'Ouro',
-    price: 'R$ 39,90',
+    price: 'R$ 49,90',
     period: '/mês',
     subtitle: 'Assinatura mensal',
     icon: Crown,
     stripe_price_id: 'price_1TMTcQKUpjZIh8bEzssDEfHc',
     color: 'bg-amber-100 text-amber-700 border-amber-200',
     btnColor: 'bg-amber-600 text-white hover:bg-amber-700',
+    overage: null,
     features: [
       'Anúncios ilimitados',
-      'Destaque no Radar do Dia',
+      'Anúncio dura 60 dias',
+      'Sem custo excedente',
       '3 disparos WhatsApp (Seg, Qua, Sex)',
-      '🏆 Selo "Vendedor Verificado"',
     ]
   }
 ];
@@ -189,6 +210,12 @@ export default function PlanSelection({ currentType = 'producer', onSelect, isLo
                 </div>
               ))}
             </div>
+            {plan.overage && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 -mt-1">
+                <p className="text-[10px] font-bold text-amber-700">⚡ Excedente: {plan.overage}</p>
+                <p className="text-[10px] text-amber-600">Ao ultrapassar o limite, cobra apenas o extra</p>
+              </div>
+            )}
 
             <Button
               onClick={() => handleSelect(plan)}

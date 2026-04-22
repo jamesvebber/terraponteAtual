@@ -162,7 +162,7 @@ export default function Plans() {
         </div>
       </div>
 
-      {sellerProfile?.plan_type && sellerProfile.plan_type !== 'bronze' && (
+      {sellerProfile?.plan_type && !['bronze', 'gratis'].includes(sellerProfile.plan_type) && (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
           <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
           <div>
