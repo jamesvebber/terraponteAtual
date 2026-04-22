@@ -33,49 +33,60 @@ const PLAN_LIMITS = {
 
 const AD_TYPES = [
   {
+    id: 'gratis',
+    name: 'Grátis',
+    emoji: '🆓',
+    price: 'R$ 0',
+    color: 'bg-gray-100 border-gray-200 text-gray-700',
+    features: [
+      'Até 2 anúncios simultâneos',
+      'Anúncio dura 7 dias',
+      'Excedente: R$ 5,99 por anúncio',
+      'Visibilidade básica',
+    ],
+    limits: { maxPhotos: 3, expiryDays: 7, dispatches: 0 }
+  },
+  {
     id: 'bronze',
     name: 'Bronze',
     emoji: '🥉',
-    price: 'Grátis',
-    color: 'bg-gray-100 border-gray-200 text-gray-700',
-    btnColor: 'bg-gray-200 text-gray-700 hover:bg-gray-300',
+    price: 'R$ 14,90/mês',
+    color: 'bg-orange-100 border-orange-200 text-orange-700',
     features: [
-      '1 anúncio por vez',
-      'Expira em 15 dias',
-      'Disparo em até 5 grupos locais',
+      'Até 6 anúncios simultâneos',
+      'Anúncio dura 15 dias',
+      'Excedente: R$ 4,99 por anúncio',
       'Visibilidade básica',
     ],
-    limits: { maxPhotos: 3, maxActive: 1, expiryDays: 15, dispatches: 0 }
+    limits: { maxPhotos: 5, expiryDays: 15, dispatches: 0 }
   },
   {
     id: 'prata',
     name: 'Prata',
     emoji: '🥈',
-    price: 'R$ 19,90',
+    price: 'R$ 29,90/mês',
     color: 'bg-blue-100 border-blue-200 text-blue-700',
-    btnColor: 'bg-blue-600 text-white hover:bg-blue-700',
     features: [
-      'Até 2 anúncios simultâneos',
-      'Validade de 30 dias',
+      'Até 15 anúncios simultâneos',
+      'Anúncio dura 30 dias',
+      'Excedente: R$ 3,99 por anúncio',
       '1 disparo no ecossistema WhatsApp',
-      'Destaque no feed',
     ],
-    limits: { maxPhotos: 5, maxActive: 2, expiryDays: 30, dispatches: 1 }
+    limits: { maxPhotos: 8, expiryDays: 30, dispatches: 1 }
   },
   {
     id: 'ouro',
     name: 'Ouro',
     emoji: '🥇',
-    price: 'R$ 39,90',
+    price: 'R$ 49,90/mês',
     color: 'bg-amber-100 border-amber-200 text-amber-700',
-    btnColor: 'bg-amber-600 text-white hover:bg-amber-700',
     features: [
       'Anúncios ilimitados',
-      'Destaque no Radar do Dia',
+      'Anúncio dura 60 dias',
+      'Sem custo excedente',
       '3 disparos WhatsApp (Seg, Qua, Sex)',
-      '🏆 Selo "Vendedor Verificado"',
     ],
-    limits: { maxPhotos: 10, maxActive: null, expiryDays: 30, dispatches: 3 }
+    limits: { maxPhotos: 10, expiryDays: 60, dispatches: 3 }
   }
 ];
 
@@ -130,10 +141,12 @@ export default function Vender() {
   const [showAdTypeSelector, setShowAdTypeSelector] = useState(false);
 
   const getDefaultAdType = () => {
-    if (!sellerProfile?.plan_type) return 'bronze';
-    if (sellerProfile.plan_type === 'ouro') return 'ouro';
-    if (sellerProfile.plan_type === 'prata') return 'prata';
-    return 'bronze';
+    const plan = sellerProfile?.plan_type;
+    if (!plan || plan === 'gratis') return 'gratis';
+    if (plan === 'bronze') return 'bronze';
+    if (plan === 'prata') return 'prata';
+    if (plan === 'ouro') return 'ouro';
+    return 'gratis';
   };
 
   // Pré-preenche nome e WhatsApp do perfil quando disponíveis
