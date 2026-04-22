@@ -65,7 +65,7 @@ export default function MeusAnuncios() {
     try {
       const response = await base44.functions.invoke('republishAd', {
         listingId: id,
-        payOverage: true, // auto trigger redirect if overage happens
+        payOverage: true,
         successUrl: window.location.origin + "/meus-anuncios",
         cancelUrl: window.location.href,
       });
@@ -74,7 +74,7 @@ export default function MeusAnuncios() {
         window.location.href = response.checkoutUrl;
         return;
       }
-      
+
       setListings(prev => prev.map(l => l.id === id ? { ...l, status: "active", ad_expiry: response.listing?.ad_expiry } : l));
       toast.success("Anúncio republicado com sucesso!");
     } catch (err) {
@@ -93,9 +93,8 @@ export default function MeusAnuncios() {
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
-        <Package className="h-12 w-12 text-muted-foreground/30 mb-4" />
-        <p className="font-bold text-foreground mb-2">Entre para ver seus anúncios</p>
-        <Button className="rounded-xl mt-2" onClick={() => base44.auth.redirectToLogin(window.location.href)}>
+        <p className="text-xl font-extrabold text-foreground mb-4">Entre para ver seus anúncios</p>
+        <Button onClick={() => base44.auth.redirectToLogin(window.location.href)}>
           Entrar / Criar conta
         </Button>
       </div>
@@ -103,84 +102,81 @@ export default function MeusAnuncios() {
   }
 
   return (
-    <div className="px-4 pt-5 pb-16">
+    <div className="px-4 pt-6 pb-16">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-5">
+      <div className="flex items-center gap-3 mb-6">
         <button onClick={() => navigate("/profile")} className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center shrink-0">
           <ArrowLeft className="h-4 w-4 text-muted-foreground" />
         </button>
         <div className="flex-1">
-          <h1 className="text-xl font-extrabold text-foreground">Meus anúncios</h1>
+          <h1 className="text-xl font-extrabold text-foreground tracking-tight">Meus anúncios</h1>
           <p className="text-xs text-muted-foreground">{listings.length} anúncio{listings.length !== 1 ? "s" : ""}</p>
         </div>
-        <Button className="h-10 rounded-xl gap-1.5 text-sm font-bold" onClick={() => navigate("/vender")}>
+        <Button size="sm" className="rounded-xl font-bold gap-1.5" onClick={() => navigate("/vender")}>
           <PlusCircle className="h-4 w-4" /> Novo
         </Button>
       </div>
 
       {listings.length === 0 ? (
         <div className="text-center py-16 px-4">
-          <span className="text-6xl mb-4 block">🌾</span>
-          <p className="text-lg font-bold text-foreground mb-2">Nenhum anúncio ainda</p>
+          <p className="text-4xl mb-3">🌾</p>
+          <p className="text-base font-bold text-foreground mb-1">Nenhum anúncio ainda</p>
           <p className="text-sm text-muted-foreground mb-6">Publique seu primeiro anúncio e venda pelo WhatsApp.</p>
-          <Button className="rounded-xl gap-2" onClick={() => navigate("/vender")}>
+          <Button className="rounded-xl font-bold gap-2" onClick={() => navigate("/vender")}>
             <PlusCircle className="h-4 w-4" /> Criar anúncio
           </Button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {listings.map(l => (
-            <div key={l.id} className={`bg-card border border-border rounded-2xl overflow-hidden ${l.status !== "active" ? "opacity-70" : ""}`}>
+            <div key={l.id} className="bg-card border border-border rounded-2xl overflow-hidden">
+              {/* Top: thumb + info */}
               <div className="flex gap-3 p-3">
-                {/* Thumb */}
                 <div
                   className="h-20 w-20 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden cursor-pointer"
                   onClick={() => navigate(`/marketplace/${l.id}`)}
                 >
                   {l.image_url
-                    ? <img src={l.image_url} alt={l.title} className="w-full h-full object-contain" />
-                    : <span className="text-3xl">{categoryEmoji[l.category] || "📦"}</span>}
+                    ? <img src={l.image_url} alt={l.title} className="w-full h-full object-cover" />
+                    : <span className="text-2xl">{categoryEmoji[l.category] || "📦"}</span>}
                 </div>
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-1 mb-0.5">
-                    <h3 className="font-bold text-foreground text-sm leading-tight line-clamp-2 flex-1 cursor-pointer"
-                      onClick={() => navigate(`/marketplace/${l.id}`)}>{l.title}</h3>
+                <div className="flex-1 min-w-0 py-0.5">
+                  <div className="flex items-start justify-between gap-1 mb-1">
+                    <h3
+                      className="font-bold text-foreground text-sm leading-tight cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => navigate(`/marketplace/${l.id}`)}
+                    >{l.title}</h3>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ml-1 ${STATUS_COLOR[l.status] || "bg-muted text-muted-foreground"}`}>
                       {STATUS_LABEL[l.status] || l.status}
                     </span>
                   </div>
-                  
+
                   {/* Ad Type Badge */}
-                  <div className="flex items-center gap-1.5 mt-1 mb-1">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
-                      AD_TYPE_COLORS[l.ad_type || 'bronze']?.bg || 'bg-gray-100'
-                    } ${
-                      AD_TYPE_COLORS[l.ad_type || 'bronze']?.text || 'text-gray-700'
-                    }`}>
-                      {l.ad_type === 'ouro' ? <Crown className="h-2.5 w-2.5" /> : l.ad_type === 'prata' ? <Star className="h-2.5 w-2.5" /> : <Shield className="h-2.5 w-2.5" />}
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${AD_TYPE_COLORS[l.ad_type || 'bronze']?.bg} ${AD_TYPE_COLORS[l.ad_type || 'bronze']?.text}`}>
+                      {l.ad_type === 'ouro' ? <Crown className="inline h-2.5 w-2.5 mr-0.5" /> : l.ad_type === 'prata' ? <Star className="inline h-2.5 w-2.5 mr-0.5" /> : <Shield className="inline h-2.5 w-2.5 mr-0.5" />}
                       {AD_TYPE_COLORS[l.ad_type || 'bronze']?.label || '🥉 Bronze'}
                     </span>
                     {l.ad_expiry && new Date(l.ad_expiry) > new Date() && (
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                      <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-0.5">
                         <Clock className="h-2.5 w-2.5" />
                         Expira {new Date(l.ad_expiry).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}
                       </span>
                     )}
                   </div>
-                  
+
                   <p className="text-xs text-muted-foreground">{l.category} · {l.city}</p>
-                  <p className="text-green-600 font-extrabold text-base mt-1">{formatListingPrice(l)}</p>
+                  <p className="text-green-600 font-extrabold text-base mt-0.5">{formatListingPrice(l)}</p>
                   {(l.photos?.length > 0) && (
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      <Image className="h-3 w-3 inline mr-0.5" />{(l.photos?.length || 0) + 1} foto{(l.photos?.length || 0) + 1 !== 1 ? "s" : ""}
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <Image className="h-3 w-3" /> {(l.photos?.length || 0) + 1} foto{(l.photos?.length || 0) + 1 !== 1 ? "s" : ""}
                     </p>
                   )}
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="border-t border-border px-3 py-2.5 flex items-center gap-1.5 overflow-x-auto">
+              <div className="border-t border-border px-3 py-2.5 flex flex-wrap items-center gap-1.5">
                 <button
                   onClick={() => navigate(`/editar-anuncio/${l.id}`)}
                   className="h-8 px-3 rounded-lg bg-primary/10 text-primary text-xs font-bold flex items-center gap-1.5 shrink-0 select-none"
@@ -193,6 +189,7 @@ export default function MeusAnuncios() {
                 >
                   <Image className="h-3.5 w-3.5" /> Fotos
                 </button>
+
                 {l.status === "active" ? (
                   <button onClick={() => setStatus(l.id, "paused")}
                     className="h-8 px-3 rounded-lg bg-muted text-muted-foreground text-xs font-bold flex items-center gap-1.5 shrink-0 select-none">
@@ -209,12 +206,14 @@ export default function MeusAnuncios() {
                     <CheckCircle2 className="h-3.5 w-3.5" /> Republicar
                   </button>
                 ) : null}
+
                 {l.status !== "sold" && (
                   <button onClick={() => setStatus(l.id, "sold")}
                     className="h-8 px-3 rounded-lg bg-muted text-muted-foreground text-xs font-bold flex items-center gap-1.5 shrink-0 select-none">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Vendido
                   </button>
                 )}
+
                 <button onClick={() => handleDelete(l.id)}
                   className="h-8 w-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0 select-none ml-auto">
                   <Trash2 className="h-3.5 w-3.5" />

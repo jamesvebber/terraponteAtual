@@ -1,8 +1,7 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY');
 
-// Identical matrix rules
 const MATRIX = {
   gratis: { limit: 2, days: 7, overagePriceId: 'price_1TP5cfKUpjZIh8bET8ovHqqZ' },
   bronze: { limit: 6, days: 15, overagePriceId: 'price_1TP5cgKUpjZIh8bEpVagRJ4h' },
@@ -15,7 +14,6 @@ Deno.serve(async (req) => {
     return new Response('Method Not Allowed', { status: 405 });
   }
 
-  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
@@ -26,26 +24,26 @@ Deno.serve(async (req) => {
       }
     });
   }
-  
+
   const base44 = createClientFromRequest(req);
-  const { user } = await base44.auth.getUser();
+  const user = await base44.auth.me();
   if (!user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { 
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
   }
 
   let body;
-  try { body = await req.json(); } catch { 
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), { 
-      status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } 
-    }); 
+  try { body = await req.json(); } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+      status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    });
   }
 
   const { listingId, successUrl, cancelUrl, payOverage } = body;
   if (!listingId) {
-    return new Response(JSON.stringify({ error: "Missing listingId" }), { 
-      status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } 
+    return new Response(JSON.stringify({ error: "Missing listingId" }), {
+      status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
   }
 
@@ -53,7 +51,7 @@ Deno.serve(async (req) => {
   const profiles = await base44.asServiceRole.entities.SellerProfile.filter({ "owner_email": user.email });
   const profile = profiles && profiles.length > 0 ? profiles[0] : null;
   let planType = profile?.plan_type || 'gratis';
-  
+
   if (['essencial', 'business', 'master'].includes(planType)) planType = 'ouro';
   if (!MATRIX[planType]) planType = 'gratis';
 
@@ -86,18 +84,18 @@ Deno.serve(async (req) => {
         });
         const sessionData = await sessionRes.json();
         if (sessionData.error) throw new Error(sessionData.error.message);
-        
+
         return new Response(JSON.stringify({ requirePayment: true, checkoutUrl: sessionData.url, sessionId: sessionData.id }), {
           status: 200, headers: { "Content-Type": "application/json", 'Access-Control-Allow-Origin': '*' }
         });
       } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { 
-          status: 500, headers: { "Content-Type": "application/json", 'Access-Control-Allow-Origin': '*' } 
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500, headers: { "Content-Type": "application/json", 'Access-Control-Allow-Origin': '*' }
         });
       }
     } else {
-      return new Response(JSON.stringify({ 
-        error: "LIMIT_REACHED", 
+      return new Response(JSON.stringify({
+        error: "LIMIT_REACHED",
         message: "Você atingiu o limite da sua franquia de anúncios ativos.",
         currentPlan: planType,
         activeCount: numActive,
@@ -108,26 +106,26 @@ Deno.serve(async (req) => {
   }
 
   const expiryDate = new Date(Date.now() + rules.days * 24 * 60 * 60 * 1000).toISOString();
-  
-  // 4. Update the ad to republish it
+
+  // 3. Update the ad to republish it
   try {
-     const listing = await base44.asServiceRole.entities.Listing.get(listingId);
-     if (!listing || listing.created_by !== user.email) {
-       return new Response(JSON.stringify({ error: "Listing not found or unauthorized" }), { status: 404, headers: { "Content-Type": "application/json", 'Access-Control-Allow-Origin': '*' } });
-     }
-     
-     const updatedListing = await base44.asServiceRole.entities.Listing.update(listingId, {
-        status: 'active',
-        ad_expiry: expiryDate,
-        renewal_count: (listing.renewal_count || 0) + 1
-     });
-     
-     return new Response(JSON.stringify({ success: true, listing: updatedListing }), {
-       status: 200, headers: { "Content-Type": "application/json", 'Access-Control-Allow-Origin': '*' }
-     });
+    const listing = await base44.asServiceRole.entities.Listing.get(listingId);
+    if (!listing || listing.created_by !== user.email) {
+      return new Response(JSON.stringify({ error: "Listing not found or unauthorized" }), { status: 404, headers: { "Content-Type": "application/json", 'Access-Control-Allow-Origin': '*' } });
+    }
+
+    const updatedListing = await base44.asServiceRole.entities.Listing.update(listingId, {
+      status: 'active',
+      ad_expiry: expiryDate,
+      renewal_count: (listing.renewal_count || 0) + 1
+    });
+
+    return new Response(JSON.stringify({ success: true, listing: updatedListing }), {
+      status: 200, headers: { "Content-Type": "application/json", 'Access-Control-Allow-Origin': '*' }
+    });
   } catch (err) {
-      return new Response(JSON.stringify({ error: "Failed to republish listing" }), {
-       status: 500, headers: { "Content-Type": "application/json", 'Access-Control-Allow-Origin': '*' }
-     });
+    return new Response(JSON.stringify({ error: "Failed to republish listing" }), {
+      status: 500, headers: { "Content-Type": "application/json", 'Access-Control-Allow-Origin': '*' }
+    });
   }
 });
