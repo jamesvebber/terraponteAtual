@@ -4,23 +4,23 @@
   "properties": {
     "title": {
       "type": "string",
-      "description": "Título do anúncio"
+      "description": "T\u00edtulo do an\u00fancio"
     },
     "description": {
       "type": "string",
-      "description": "Descrição detalhada"
+      "description": "Descri\u00e7\u00e3o detalhada"
     },
     "category": {
       "type": "string",
       "enum": [
-        "Alimentos da roça",
-        "Laticínios",
+        "Alimentos da ro\u00e7a",
+        "Latic\u00ednios",
         "Hortifruti",
         "Carnes e aves",
         "Gado e animais",
         "Silagem e feno",
-        "Máquinas e ferramentas",
-        "Serviços rurais",
+        "M\u00e1quinas e ferramentas",
+        "Servi\u00e7os rurais",
         "Propriedades rurais",
         "Artesanato rural",
         "Outros"
@@ -29,7 +29,7 @@
     },
     "price": {
       "type": "number",
-      "description": "Preço em R$"
+      "description": "Pre\u00e7o em R$"
     },
     "sale_format": {
       "type": "string",
@@ -45,7 +45,7 @@
     },
     "unit": {
       "type": "string",
-      "description": "Label de exibição legado / calculado"
+      "description": "Label de exibi\u00e7\u00e3o legado / calculado"
     },
     "price_per_kg": {
       "type": "number",
@@ -109,11 +109,11 @@
     "availability_status": {
       "type": "string",
       "enum": [
-        "Disponível",
+        "Dispon\u00edvel",
         "Sob encomenda",
-        "Indisponível"
+        "Indispon\u00edvel"
       ],
-      "default": "Disponível",
+      "default": "Dispon\u00edvel",
       "description": "Disponibilidade do item"
     },
     "delivery_type": {
@@ -121,7 +121,7 @@
       "enum": [
         "Retirada no local",
         "Entrega a combinar",
-        "Entrega disponível"
+        "Entrega dispon\u00edvel"
       ],
       "description": "Tipo de entrega"
     },
@@ -130,13 +130,13 @@
       "enum": [
         "Frete a combinar",
         "Sem frete / retirada",
-        "Entrega própria"
+        "Entrega pr\u00f3pria"
       ],
-      "description": "Informação sobre frete"
+      "description": "Informa\u00e7\u00e3o sobre frete"
     },
     "prop_type": {
       "type": "string",
-      "description": "Tipo do imóvel rural"
+      "description": "Tipo do im\u00f3vel rural"
     },
     "prop_purpose": {
       "type": "string",
@@ -144,15 +144,15 @@
     },
     "prop_area": {
       "type": "number",
-      "description": "Área do imóvel"
+      "description": "\u00c1rea do im\u00f3vel"
     },
     "prop_area_unit": {
       "type": "string",
-      "description": "Unidade da área: hectare ou alqueire"
+      "description": "Unidade da \u00e1rea: hectare ou alqueire"
     },
     "prop_aptitude": {
       "type": "string",
-      "description": "Aptidão: pecuária, lavoura, lazer, mista"
+      "description": "Aptid\u00e3o: pecu\u00e1ria, lavoura, lazer, mista"
     },
     "prop_has_water": {
       "type": "boolean"
@@ -166,7 +166,7 @@
     },
     "prop_distance_km": {
       "type": "number",
-      "description": "Distância da cidade em km"
+      "description": "Dist\u00e2ncia da cidade em km"
     },
     "report_count": {
       "type": "number",
@@ -192,16 +192,16 @@
         "prata",
         "ouro"
       ],
-      "description": "Tipo do anúncio (Bronze/Prata/Ouro)"
+      "description": "Tipo do an\u00fancio (Bronze/Prata/Ouro)"
     },
     "ad_expiry": {
       "type": "string",
-      "description": "Data de expiração do anúncio premium"
+      "description": "Data de expira\u00e7\u00e3o do an\u00fancio premium"
     },
     "is_upgraded": {
       "type": "boolean",
       "default": false,
-      "description": "Se o anúncio foi pago/upgrade avulso"
+      "description": "Se o an\u00fancio foi pago/upgrade avulso"
     },
     "payment_id": {
       "type": "string",
@@ -220,12 +220,12 @@
     "views_count": {
       "type": "number",
       "default": 0,
-      "description": "Contagem de visualizações"
+      "description": "Contagem de visualiza\u00e7\u00f5es"
     },
     "renewal_count": {
       "type": "number",
       "default": 0,
-      "description": "Quantas vezes o anúncio foi renovado"
+      "description": "Quantas vezes o an\u00fancio foi renovado"
     }
   },
   "required": [
